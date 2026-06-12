@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist_Mono } from "next/font/google";
-import { display, body } from "@/lib/fonts";
+import { displayFont, bodyFont } from "@/lib/fonts";
 import GrainOverlay from "@/components/ui/GrainOverlay";
 import SmoothScroll from "@/components/providers/SmoothScroll";
 import "./globals.css";
@@ -23,9 +23,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${display.variable} ${body.variable} ${geistMono.variable} antialiased`}
+      className={`${displayFont.variable} ${bodyFont.variable} ${geistMono.variable} antialiased`}
     >
-      <body className="bg-void text-bone">
+      <body>
         <SmoothScroll>{children}</SmoothScroll>
         <GrainOverlay />
       </body>
