@@ -4,6 +4,8 @@ import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
 import CameraRig from "./CameraRig";
 import Embers from "./Embers";
+import MonolithField from "./MonolithField";
+import DreamFragment from "./DreamFragment";
 
 export default function WorldCanvas() {
   return (
@@ -20,6 +22,8 @@ export default function WorldCanvas() {
         <Suspense fallback={null}>
           <CameraRig />
           <Embers />
+          <MonolithField />
+          <DreamFragment />
         </Suspense>
       </Canvas>
     </div>
