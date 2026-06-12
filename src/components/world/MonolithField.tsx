@@ -42,10 +42,15 @@ function ProjectMonolith({
   useFrame((state) => {
     const t = state.clock.elapsedTime;
     const { chapter, chapterProgress } = useJourney.getState();
-    // The cores ignite as the journey approaches the work chapter: faint
-    // sleeping embers during the story, full burn among the projects.
+    // The cores ignite as the journey approaches the work chapter: asleep
+    // through the story (the turn camera passes right beside them), waking
+    // only in the turn's final stretch, full burn among the projects.
     const ignite =
-      chapter < 2 ? 0.1 : chapter === 2 ? 0.1 + chapterProgress * 0.9 : 1;
+      chapter < 2
+        ? 0.08
+        : chapter === 2
+          ? 0.08 + Math.max(0, (chapterProgress - 0.7) / 0.3) * 0.92
+          : 1;
     if (mat.current) {
       mat.current.emissiveIntensity =
         (0.14 + (Math.sin(t * 1.3 + phase) * 0.5 + 0.5) * 0.12) * ignite;

@@ -1,7 +1,7 @@
 export const skills = [
   { cluster: "Web", items: ["TypeScript", "Node.js", "Next.js", "Express", "MySQL"] },
   { cluster: "Infra", items: ["Linux", "Docker", "Proxmox", "nginx", "systemd"] },
-  { cluster: "AI", items: ["Claude", "AI agents", "MCP", "automation"] },
+  { cluster: "AI", items: ["Claude API", "Claude Code", "AI agents", "MCP servers", "automation"] },
   { cluster: "Mobile", items: ["Swift", "SwiftUI"] },
   { cluster: "Security", items: ["auth systems", "rate limiting", "hardening", "honeypots"] },
 ];

@@ -8,6 +8,9 @@ import Embers from "./Embers";
 import MonolithField from "./MonolithField";
 import DreamFragment from "./DreamFragment";
 import HeroShard from "./HeroShard";
+import WebsitePanes from "./WebsitePanes";
+import AutomationGraph from "./AutomationGraph";
+import CyberGrid from "./CyberGrid";
 
 const GLOW_VERT = /* glsl */ `
   varying vec2 vUv;
@@ -76,6 +79,9 @@ export default function WorldCanvas() {
           <Embers />
           <MonolithField />
           <DreamFragment />
+          <WebsitePanes />
+          <AutomationGraph />
+          <CyberGrid />
         </Suspense>
       </Canvas>
     </div>

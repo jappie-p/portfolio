@@ -1,17 +1,17 @@
 "use client";
 
-import { useFrame, useThree } from "@react-three/fiber";
+import { useFrame } from "@react-three/fiber";
 import { Vector3 } from "three";
 import { useRef } from "react";
 import { sampleCamera } from "@/lib/journey-math";
 import { useJourney } from "@/lib/store";
 
 export default function CameraRig() {
-  const camera = useThree((s) => s.camera);
   const sample = useRef({ position: new Vector3(), target: new Vector3() });
   const smoothedTarget = useRef<Vector3 | null>(null);
 
   useFrame((state, dt) => {
+    const camera = state.camera;
     const { progress } = useJourney.getState();
     sampleCamera(progress, sample.current);
 

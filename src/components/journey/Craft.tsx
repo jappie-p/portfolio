@@ -12,11 +12,14 @@ export default function Craft() {
         </p>
         <h2
           data-lines
-          className="headline mb-12 text-bone"
+          className="headline mb-4 text-bone"
           style={{ fontSize: "clamp(2.4rem, 6vw, 5rem)" }}
         >
           {story.craft.heading}
         </h2>
+        <p data-lines className="mb-12 max-w-xl text-bone-dim">
+          {story.craft.sub}
+        </p>
       </RevealLines>
 
       <div className="grid gap-8 md:grid-cols-5">

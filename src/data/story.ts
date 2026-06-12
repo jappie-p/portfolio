@@ -1,7 +1,7 @@
 export const story = {
   hero: {
     name: ["JASPER", "PATHUIS"],
-    meta: ["developer", "builder", "the netherlands"],
+    meta: ["developer", "ai-native builder", "the netherlands"],
     tagline: "I build systems that run.",
     hint: "scroll",
   },
@@ -17,8 +17,8 @@ export const story = {
     label: "chapter 02 — the turn",
     lines: [
       "The start was rough. Nothing worked and I understood almost none of it.",
-      "Then AI changed how I learn. The wall I kept hitting suddenly had doors.",
-      "I stopped following tutorials and started shipping real things.",
+      "Then AI changed everything. It taught me faster than school ever could, and somewhere along the way it became my co-builder.",
+      "Today Claude is wired into everything I make. My own assistant runs on it. Companies pay me to integrate it. This site was built with it.",
     ],
   },
   work: {
@@ -29,6 +29,7 @@ export const story = {
   craft: {
     label: "chapter 04 — the craft",
     heading: "What I work with.",
+    sub: "AI runs through all of it: a personal assistant built on Claude, AI agents working inside a real company, and a daily workflow where I architect and AI accelerates.",
   },
   contact: {
     label: "chapter 05 — what's next",
