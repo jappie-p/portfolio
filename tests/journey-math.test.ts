@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
+import { Vector3 } from "three";
 import {
   CHAPTERS,
   TOTAL_WEIGHT,
   progressToChapter,
+  sampleCamera,
 } from "@/lib/journey-math";
 
 describe("CHAPTERS", () => {
@@ -46,5 +48,43 @@ describe("progressToChapter", () => {
     const r = progressToChapter(start + span / 2);
     expect(r.index).toBe(1);
     expect(r.local).toBeCloseTo(0.5);
+  });
+
+  it("an exact chapter boundary belongs to the ending chapter", () => {
+    const boundary = CHAPTERS[0].weight / TOTAL_WEIGHT;
+    const r = progressToChapter(boundary);
+    expect(r.index).toBe(0);
+    expect(r.local).toBeCloseTo(1);
+    expect(progressToChapter(boundary + 1e-9).index).toBe(1);
+  });
+});
+
+describe("sampleCamera", () => {
+  const out = { position: new Vector3(), target: new Vector3() };
+
+  it("starts at the hero viewpoint", () => {
+    sampleCamera(0, out);
+    expect(out.position.z).toBeCloseTo(8, 1);
+  });
+
+  it("moves the camera forward (negative z) as progress increases", () => {
+    sampleCamera(0, out);
+    const zStart = out.position.z;
+    sampleCamera(1, out);
+    expect(out.position.z).toBeLessThan(zStart - 10);
+  });
+
+  it("target is always distinct from position", () => {
+    for (const p of [0, 0.2, 0.5, 0.8, 1]) {
+      sampleCamera(p, out);
+      expect(out.position.distanceTo(out.target)).toBeGreaterThan(0.5);
+    }
+  });
+
+  it("clamps progress outside 0..1", () => {
+    sampleCamera(0, out);
+    const z0 = out.position.z;
+    sampleCamera(-1, out);
+    expect(out.position.z).toBeCloseTo(z0);
   });
 });
