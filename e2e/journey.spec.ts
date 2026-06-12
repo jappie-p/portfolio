@@ -38,6 +38,32 @@ test("same-session reload does not leave a stuck preloader", async ({
   await expect(page.locator("h1")).toContainText("JASPER");
 });
 
+test("custom fonts actually load and apply to rendered text", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator("[data-preloader]")).toBeHidden({ timeout: 8000 });
+  // next/font names families after the exports in src/lib/fonts.ts.
+  const h1Font = await page
+    .locator("h1")
+    .evaluate((el) => getComputedStyle(el).fontFamily);
+  expect(h1Font).toContain("displayFont");
+  const bodyFont = await page.evaluate(
+    () => getComputedStyle(document.body).fontFamily
+  );
+  expect(bodyFont).toContain("bodyFont");
+  // And the actual woff2 files must be loaded, not just requested.
+  const loaded = await page.evaluate(async () => {
+    await document.fonts.ready;
+    return {
+      display: document.fonts.check("1em displayFont"),
+      body: document.fonts.check("1em bodyFont"),
+    };
+  });
+  expect(loaded.display).toBe(true);
+  expect(loaded.body).toBe(true);
+});
+
 test("content survives without WebGL (fallback mode)", async ({ browser }) => {
   const context = await browser.newContext();
   const page = await context.newPage();
