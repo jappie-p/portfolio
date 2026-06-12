@@ -27,6 +27,7 @@ export default function RootLayout({
     >
       <body>
         <SmoothScroll>{children}</SmoothScroll>
+        <div aria-hidden className="vignette" />
         <GrainOverlay />
       </body>
     </html>

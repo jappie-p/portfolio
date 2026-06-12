@@ -1,10 +1,12 @@
 import { story } from "@/data/story";
 import RevealLines from "@/components/ui/RevealLines";
 import ScrambleLabel from "@/components/ui/ScrambleLabel";
+import ParallaxDrift from "@/components/ui/ParallaxDrift";
 
 export default function Dream() {
   return (
     <div className="sticky top-0 flex h-screen items-center px-6 md:px-14">
+      <ParallaxDrift>
       <RevealLines className="max-w-2xl">
         <p className="mb-8 font-mono text-xs uppercase tracking-[0.3em] text-ember">
           <ScrambleLabel text={story.dream.label} />
@@ -24,6 +26,7 @@ export default function Dream() {
           </p>
         ))}
       </RevealLines>
+      </ParallaxDrift>
     </div>
   );
 }

@@ -33,7 +33,9 @@ html {
 }
 
 body {
-  background: var(--void);
+  /* No background here: body's background would paint OVER the fixed
+     -z-10 world canvas (negative-z descendants paint before in-flow
+     element backgrounds). html carries the page background instead. */
   color: var(--bone);
   font-family: var(--font-body), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -56,6 +58,19 @@ body {
 .headline-outline {
   color: transparent;
   -webkit-text-stroke: 1.5px var(--bone-faint);
+}
+
+/* Cinematic edge darkening under the grain */
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  background: radial-gradient(
+    120% 90% at 50% 45%,
+    transparent 55%,
+    rgba(2, 1, 0, 0.45) 100%
+  );
 }
 
 /* Film grain (SVG turbulence tile, animated in steps) */

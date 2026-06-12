@@ -39,28 +39,41 @@ export default function DreamFragment() {
 
   return (
     <>
-      <group ref={dream} position={[-1.6, 0.9, 2.2]}>
+      <group ref={dream} position={[-2.6, 1.7, 1.6]} scale={1.4}>
         <mesh>
           <icosahedronGeometry args={[0.7, 0]} />
-          <meshStandardMaterial color="#0d0b09" roughness={0.85} wireframe />
+          <meshBasicMaterial color="#c87f2e" wireframe />
         </mesh>
         <mesh position={[0.8, 0.4, -0.3]} rotation={[0.4, 0.3, 0.1]}>
           <boxGeometry args={[0.28, 0.28, 0.28]} />
-          <meshStandardMaterial color="#a8a29e" roughness={0.9} wireframe />
+          <meshBasicMaterial color="#e8c9a0" wireframe />
         </mesh>
         <mesh position={[-0.7, -0.4, 0.2]} rotation={[0.2, 0.8, 0.3]}>
           <boxGeometry args={[0.2, 0.2, 0.2]} />
-          <meshStandardMaterial color="#78716c" roughness={0.9} wireframe />
+          <meshBasicMaterial color="#a8865f" wireframe />
         </mesh>
+        <pointLight color="#e8961e" intensity={1.4} distance={4.5} decay={2} />
       </group>
 
-      <group ref={turn} position={[1.5, 0.5, -1.2]}>
+      <group ref={turn} position={[1.6, 0.5, -1.4]}>
         {[0, 1, 2, 3].map((i) => (
           <mesh key={i} position={[0, i * 0.34, 0]} rotation={[0, i * 0.18, 0]}>
             <boxGeometry args={[0.9 - i * 0.16, 0.26, 0.9 - i * 0.16]} />
-            <meshStandardMaterial color="#1c1917" roughness={0.88} />
+            <meshStandardMaterial
+              color="#241e18"
+              roughness={0.82}
+              emissive="#d97706"
+              emissiveIntensity={0.05}
+            />
           </mesh>
         ))}
+        <pointLight
+          position={[0.6, 1.2, 1.0]}
+          color="#e8961e"
+          intensity={1.6}
+          distance={5}
+          decay={2}
+        />
       </group>
     </>
   );

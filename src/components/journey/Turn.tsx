@@ -1,10 +1,12 @@
 import { story } from "@/data/story";
 import RevealLines from "@/components/ui/RevealLines";
 import ScrambleLabel from "@/components/ui/ScrambleLabel";
+import ParallaxDrift from "@/components/ui/ParallaxDrift";
 
 export default function Turn() {
   return (
     <div className="sticky top-0 flex h-screen items-center justify-end px-6 md:px-14">
+      <ParallaxDrift from={90} to={-90}>
       <RevealLines className="max-w-2xl text-right">
         <p className="mb-8 font-mono text-xs uppercase tracking-[0.3em] text-ember">
           <ScrambleLabel text={story.turn.label} />
@@ -24,6 +26,7 @@ export default function Turn() {
           </p>
         ))}
       </RevealLines>
+      </ParallaxDrift>
     </div>
   );
 }

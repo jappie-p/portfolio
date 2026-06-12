@@ -11,7 +11,7 @@ export default function CameraRig() {
   const sample = useRef({ position: new Vector3(), target: new Vector3() });
   const smoothedTarget = useRef<Vector3 | null>(null);
 
-  useFrame((_, dt) => {
+  useFrame((state, dt) => {
     const { progress } = useJourney.getState();
     sampleCamera(progress, sample.current);
 
@@ -23,6 +23,12 @@ export default function CameraRig() {
     const k = Math.min(1, dt * 3.2);
     camera.position.lerp(sample.current.position, k);
     smoothedTarget.current.lerp(sample.current.target, k);
+
+    // Idle sway: the world keeps breathing when scrolling stops. Applied
+    // after the lerp so it never accumulates into the smoothed values.
+    const t = state.clock.elapsedTime;
+    camera.position.x += Math.sin(t * 0.4) * 0.06;
+    camera.position.y += Math.cos(t * 0.27) * 0.04;
     camera.lookAt(smoothedTarget.current);
   });
 
