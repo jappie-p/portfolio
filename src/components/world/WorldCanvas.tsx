@@ -3,6 +3,7 @@
 import { Canvas } from "@react-three/fiber";
 import { Suspense } from "react";
 import CameraRig from "./CameraRig";
+import Embers from "./Embers";
 
 export default function WorldCanvas() {
   return (
@@ -18,6 +19,7 @@ export default function WorldCanvas() {
         <directionalLight position={[3, 6, 2]} intensity={0.25} color="#f5e0c8" />
         <Suspense fallback={null}>
           <CameraRig />
+          <Embers />
         </Suspense>
       </Canvas>
     </div>
