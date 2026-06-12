@@ -41,3 +41,5 @@ out/
 pass.md
 yarn-debug.log*
 yarn-error.log*
+test-results/
+playwright-report/
