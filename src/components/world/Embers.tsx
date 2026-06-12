@@ -8,6 +8,7 @@ import {
   BufferGeometry,
   ShaderMaterial,
 } from "three";
+import { useJourney } from "@/lib/store";
 
 const VERT = /* glsl */ `
   uniform float uTime;
@@ -22,6 +23,9 @@ const VERT = /* glsl */ `
     p.x += sin(uTime * (0.2 + aSeed * 0.3) + aSeed * 40.0) * 0.45;
     vFade = smoothstep(0.0, 0.9, p.y) * (1.0 - smoothstep(h - 1.6, h, p.y));
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
+    // Fade out sprites near the camera — a close fly-through otherwise
+    // blows up into a screen-filling blob (point size grows as 1/z).
+    vFade *= smoothstep(1.2, 4.0, -mv.z);
     gl_PointSize = (2.5 + aSeed * 6.0) * (uSize / max(0.1, -mv.z));
     gl_Position = projectionMatrix * mv;
   }
@@ -79,6 +83,7 @@ function EmberLayer({
   alpha: number;
 }) {
   const material = useRef<ShaderMaterial>(null);
+  const timeAcc = useRef(0);
 
   const { geometry, uniforms } = useMemo(
     () => ({
@@ -95,9 +100,12 @@ function EmberLayer({
   // R3F only auto-disposes JSX-declared geometries; this one is prop-passed.
   useEffect(() => () => geometry.dispose(), [geometry]);
 
-  useFrame((state) => {
+  useFrame((_, dt) => {
     if (material.current) {
-      material.current.uniforms.uTime.value = state.clock.elapsedTime;
+      // Embers stream faster while the camera whooshes — speed-line feel.
+      const boost = Math.min(2.5, Math.abs(useJourney.getState().velocity) * 0.0012);
+      timeAcc.current += dt * (1 + boost);
+      material.current.uniforms.uTime.value = timeAcc.current;
     }
   });
 

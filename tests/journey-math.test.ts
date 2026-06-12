@@ -60,11 +60,18 @@ describe("progressToChapter", () => {
 });
 
 describe("sampleCamera", () => {
-  const out = { position: new Vector3(), target: new Vector3() };
+  const out = {
+    position: new Vector3(),
+    target: new Vector3(),
+    roll: 0,
+    fov: 42,
+  };
 
   it("starts at the hero viewpoint", () => {
     sampleCamera(0, out);
-    expect(out.position.z).toBeCloseTo(8, 1);
+    expect(out.position.z).toBeCloseTo(7.5, 1);
+    expect(out.fov).toBeCloseTo(42, 1);
+    expect(out.roll).toBeCloseTo(0, 2);
   });
 
   it("moves the camera forward (negative z) as progress increases", () => {
@@ -78,6 +85,15 @@ describe("sampleCamera", () => {
     for (const p of [0, 0.2, 0.5, 0.8, 1]) {
       sampleCamera(p, out);
       expect(out.position.distanceTo(out.target)).toBeGreaterThan(0.5);
+    }
+  });
+
+  it("keeps roll and fov within sane cinematic bounds everywhere", () => {
+    for (let i = 0; i <= 100; i++) {
+      sampleCamera(i / 100, out);
+      expect(Math.abs(out.roll)).toBeLessThanOrEqual(0.1);
+      expect(out.fov).toBeGreaterThanOrEqual(40);
+      expect(out.fov).toBeLessThanOrEqual(54);
     }
   });
 

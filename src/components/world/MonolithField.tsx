@@ -6,15 +6,16 @@ import { MeshStandardMaterial, PointLight } from "three";
 import { featured } from "@/data/projects";
 import { useJourney } from "@/lib/store";
 
-// Five project monoliths flank the camera path through the work chapter
-// (camera z ≈ -3.5 → -8 there), plus ambient silhouettes deeper in the fog.
+// The work chapter is a colonnade: two tight rows forming a hall the camera
+// glides through dead-center (path y≈1.1, z -3.9 → -7.4), plus ambient
+// silhouettes deeper in the fog.
 const PROJECT_SLOTS: [number, number, number, number][] = [
   // x, z, height, rotationY
-  [-2.6, -4.0, 2.6, 0.18],
-  [2.4, -5.2, 3.1, -0.22],
-  [-2.2, -6.4, 2.2, 0.4],
-  [2.8, -7.6, 2.8, -0.1],
-  [-2.9, -8.8, 3.4, 0.28],
+  [-2.0, -4.6, 3.0, 0.12],
+  [2.0, -5.6, 3.4, -0.15],
+  [-2.1, -6.8, 2.9, 0.2],
+  [2.1, -7.9, 3.6, -0.1],
+  [-2.0, -9.2, 3.2, 0.15],
 ];
 
 const AMBIENT_SLOTS: [number, number, number, number][] = [
@@ -53,7 +54,7 @@ function ProjectMonolith({
           : 1;
     if (mat.current) {
       mat.current.emissiveIntensity =
-        (0.14 + (Math.sin(t * 1.3 + phase) * 0.5 + 0.5) * 0.12) * ignite;
+        (0.11 + (Math.sin(t * 1.3 + phase) * 0.5 + 0.5) * 0.1) * ignite;
     }
     if (light.current) {
       light.current.intensity =

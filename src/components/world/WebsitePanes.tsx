@@ -217,10 +217,10 @@ function buildPaneConfigs(): PaneConfig[] {
   const rand = mulberry32(7331);
   return [
     {
-      position: [-0.9, 1.5, -4.0],
+      position: [-1.7, 1.55, -2.4],
       width: 2.1,
       height: 1.31,
-      rotY: 0.3,
+      rotY: 0.4,
       rotX: -0.06,
       layout: 0,
       floatPhase: rand() * Math.PI * 2,
@@ -229,10 +229,10 @@ function buildPaneConfigs(): PaneConfig[] {
       staggerIndex: 0,
     },
     {
-      position: [-2.0, 1.75, -5.2],
+      position: [1.9, 2.1, -4.0],
       width: 1.9,
       height: 1.19,
-      rotY: 0.26,
+      rotY: -0.45,
       rotX: 0.05,
       layout: 1,
       floatPhase: rand() * Math.PI * 2,
@@ -241,10 +241,10 @@ function buildPaneConfigs(): PaneConfig[] {
       staggerIndex: 1,
     },
     {
-      position: [-2.5, 1.0, -6.3],
+      position: [-2.4, 1.05, -5.4],
       width: 1.8,
       height: 1.13,
-      rotY: 0.42,
+      rotY: 0.32,
       rotX: -0.08,
       layout: 2,
       floatPhase: rand() * Math.PI * 2,

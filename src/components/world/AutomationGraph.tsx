@@ -85,18 +85,20 @@ type NodeDef = {
   rot: number;
 };
 
-// Positions are relative to the group center at (0, 2, -16.5):
-// world spread x -3.5..3.5, y 0.6..3.4, z -14..-19. Columns flow left→right.
+// The craft chapter views this from ABOVE (camera rises to y≈3.2 and looks
+// down) — so the graph lies nearly flat, like a glowing circuit city.
+// Positions relative to the group center at (0, 1.0, -15.0):
+// world spread x -4.1..4, y 0.65..1.45, z -17.7..-12.7.
 const NODES: NodeDef[] = [
-  { p: [-3.3, 0.1, 0.4], box: false, mat: 1, rot: 0.0 }, // trigger
-  { p: [-1.9, 0.9, -1.2], box: true, mat: 0, rot: 0.35 },
-  { p: [-1.7, -0.8, 1.3], box: false, mat: 2, rot: 0.6 },
-  { p: [-0.3, 1.2, 0.2], box: true, mat: 0, rot: 0.15 },
-  { p: [-0.2, -0.5, -1.8], box: false, mat: 0, rot: 0.8 },
-  { p: [1.2, 0.5, 0.9], box: true, mat: 2, rot: 0.5 },
-  { p: [1.5, -1.0, -0.8], box: false, mat: 0, rot: 0.25 },
-  { p: [3.0, 0.8, -1.5], box: false, mat: 1, rot: 0.7 },
-  { p: [3.2, -0.4, 1.0], box: true, mat: 0, rot: 0.4 },
+  { p: [-4.1, 0.05, 0.7], box: false, mat: 1, rot: 0.0 }, // trigger
+  { p: [-2.4, 0.3, -2.2], box: true, mat: 0, rot: 0.35 },
+  { p: [-2.1, -0.25, 2.3], box: false, mat: 2, rot: 0.6 },
+  { p: [-0.4, 0.45, 0.4], box: true, mat: 0, rot: 0.15 },
+  { p: [-0.25, -0.15, -3.2], box: false, mat: 0, rot: 0.8 },
+  { p: [1.5, 0.2, 1.6], box: true, mat: 2, rot: 0.5 },
+  { p: [1.9, -0.3, -1.4], box: false, mat: 0, rot: 0.25 },
+  { p: [3.75, 0.3, -2.7], box: false, mat: 1, rot: 0.7 },
+  { p: [4.0, -0.1, 1.8], box: true, mat: 0, rot: 0.4 },
 ];
 
 // DAG, strictly left→right.
@@ -302,7 +304,7 @@ export default function AutomationGraph() {
   });
 
   return (
-    <group ref={groupRef} position={[0, 2, -16.5]} visible={false}>
+    <group ref={groupRef} position={[0, 1.0, -15.0]} visible={false}>
       {NODES.map((n, i) => (
         <mesh
           key={i}

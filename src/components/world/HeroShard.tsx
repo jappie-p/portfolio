@@ -23,16 +23,16 @@ export default function HeroShard() {
   });
 
   return (
-    <group ref={group} position={[2.6, 1.55, 0.6]}>
+    <group ref={group} position={[3.0, 1.55, 0.2]}>
       <mesh rotation={[0.04, 0.5, -0.03]}>
         <boxGeometry args={[0.85, 3.4, 0.65]} />
         <meshStandardMaterial
           ref={mat}
-          color="#14100c"
-          roughness={0.82}
+          color="#0f0c09"
+          roughness={0.86}
           metalness={0.1}
           emissive="#d97706"
-          emissiveIntensity={0.09}
+          emissiveIntensity={0.06}
         />
       </mesh>
       <pointLight

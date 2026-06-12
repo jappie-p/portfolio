@@ -41,14 +41,14 @@ export default function DreamFragment() {
       const vis =
         chapter < 2 ? 1 : chapter === 2 ? Math.max(0, 1 - chapterProgress * 2) : 0;
       dream.current.visible = vis > 0.01;
-      dream.current.scale.setScalar(0.001 + vis * 1.4);
+      dream.current.scale.setScalar(0.001 + vis);
     }
   });
 
   return (
-    <group ref={dream} position={[-2.6, 1.7, 1.6]}>
+    <group ref={dream} position={[-3.0, 1.6, 1.0]}>
       <mesh geometry={terrain} rotation={[-Math.PI / 2.3, 0, 0]} position={[0, -0.5, 0]}>
-        <meshBasicMaterial color="#8a5a26" wireframe transparent opacity={0.55} />
+        <meshBasicMaterial color="#8a5a26" wireframe transparent opacity={0.38} />
       </mesh>
       <mesh>
         <icosahedronGeometry args={[0.55, 0]} />

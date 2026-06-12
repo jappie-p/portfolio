@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { CHAPTERS } from "@/lib/journey-math";
 import { useJourney } from "@/lib/store";
-import { ScrollTrigger, useGSAP } from "@/lib/gsap";
+import { gsap, ScrollTrigger, useGSAP } from "@/lib/gsap";
 import Hero from "./Hero";
 import Dream from "./Dream";
 import Turn from "./Turn";
@@ -31,7 +31,26 @@ export default function Journey() {
         trigger: ref.current,
         start: "top top",
         end: "bottom bottom",
-        onUpdate: (self) => useJourney.getState().setScroll(self.progress),
+        onUpdate: (self) =>
+          useJourney.getState().setScroll(self.progress, self.getVelocity()),
+      });
+
+      // Velocity skew: fast scrolling shears the whole journey a fraction of
+      // a degree, snapping back as it settles. Sticky children are fine with
+      // a transformed ancestor; only position:fixed would break (none here).
+      const mm = gsap.matchMedia();
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const skewTo = gsap.quickTo(ref.current, "skewY", {
+          duration: 0.6,
+          ease: "power3",
+        });
+        const st = ScrollTrigger.create({
+          onUpdate: (self) => {
+            const v = Math.max(-0.55, Math.min(0.55, self.getVelocity() / -3500));
+            skewTo(v);
+          },
+        });
+        return () => st.kill();
       });
     },
     { scope: ref }

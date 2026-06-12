@@ -14,17 +14,25 @@ test("capture journey snapshots", async ({ page }) => {
   const total = await page.evaluate(
     () => document.documentElement.scrollHeight - window.innerHeight
   );
+  // Filmstrip: dense stops so camera choreography (arrive/hold/whoosh)
+  // can be judged from stills.
   const stops: [string, number][] = [
-    ["0-hero", 0],
-    ["1-dream", 0.18],
-    ["2-turn", 0.36],
-    ["3-work", 0.56],
-    ["4-craft", 0.78],
-    ["5-contact", 0.97],
+    ["00-hero", 0],
+    ["01-dive", 0.1],
+    ["02-dream", 0.2],
+    ["03-bank", 0.3],
+    ["04-web", 0.4],
+    ["05-divehall", 0.48],
+    ["06-hall", 0.56],
+    ["07-glide", 0.65],
+    ["08-rise", 0.72],
+    ["09-city", 0.82],
+    ["10-descend", 0.9],
+    ["11-arena", 0.99],
   ];
   for (const [name, p] of stops) {
     await page.evaluate((y) => window.scrollTo(0, y), Math.round(total * p));
-    await page.waitForTimeout(1800); // lenis + camera lerp settle
+    await page.waitForTimeout(1500); // lenis + camera lerp settle
     await page.screenshot({
       path: `test-results/visual/${name}.png`,
       fullPage: false,
