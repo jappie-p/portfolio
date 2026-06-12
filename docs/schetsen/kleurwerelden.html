@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portfolio — Color World</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0a; color: #e5e5e5; font-family: -apple-system, "SF Pro Display", "Segoe UI", sans-serif; padding: 40px 28px 120px; }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+  .sub { color: #888; font-size: 14.5px; margin: 10px 0 32px; line-height: 1.55; max-width: 740px; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+  .card { border: 1px solid #262626; border-radius: 14px; overflow: hidden; cursor: pointer; background: #111; transition: border-color .15s, transform .15s, box-shadow .15s; position: relative; }
+  .card:hover { border-color: #525252; transform: translateY(-2px); }
+  .card.selected { border-color: #22c55e; box-shadow: 0 0 0 1px #22c55e, 0 8px 40px rgba(34,197,94,.15); }
+  .card .check { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 50%; background: #22c55e; color: #052e16; display: none; align-items: center; justify-content: center; font-weight: 800; z-index: 5; }
+  .card.selected .check { display: flex; }
+  .preview { height: 300px; position: relative; overflow: hidden; }
+  .meta { padding: 16px 20px 18px; border-top: 1px solid #1d1d1d; display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+  .meta .left { flex: 1; min-width: 280px; }
+  .meta .tag { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: #666; display: block; margin-bottom: 5px; }
+  .meta h3 { font-size: 17px; margin-bottom: 6px; }
+  .meta p { font-size: 13px; color: #a3a3a3; line-height: 1.55; }
+  .swatches { display: flex; gap: 8px; padding-top: 4px; }
+  .sw { width: 34px; height: 34px; border-radius: 8px; border: 1px solid rgba(255,255,255,.14); }
+  .grain { position: absolute; inset: 0; opacity: .4; background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px), radial-gradient(rgba(255,255,255,.04) 1px, transparent 1px); background-size: 3px 3px, 5px 5px; background-position: 0 0, 2px 3px; pointer-events: none; }
+  .bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10,10,10,.92); backdrop-filter: blur(12px); border-top: 1px solid #262626; padding: 16px 28px; font-size: 14px; color: #888; text-align: center; z-index: 50; }
+  .bar .sel { color: #22c55e; font-weight: 600; }
+
+  .ed-type { position: absolute; left: 34px; bottom: 56px; font-weight: 750; letter-spacing: -0.045em; line-height: .88; }
+  .ed-label { position: absolute; left: 36px; top: 26px; font-size: 10px; letter-spacing: .26em; text-transform: uppercase; }
+  .ed-right { position: absolute; right: 34px; bottom: 60px; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; text-align: right; line-height: 2; }
+
+  /* 1: GLACIAL */
+  .p1 { background: radial-gradient(120% 100% at 75% 115%, #0e3a5c 0%, #07243d 35%, #02060f 75%); }
+  .p1 .aur { position: absolute; inset: -30%; background: radial-gradient(40% 28% at 30% 35%, rgba(56,189,248,.25), transparent 65%), radial-gradient(34% 24% at 70% 25%, rgba(129,140,248,.2), transparent 65%); filter: blur(24px); animation: drift 9s ease-in-out infinite alternate; }
+  @keyframes drift { to { transform: translate(3%,-2%) scale(1.04); } }
+  .p1 .cry { position: absolute; right: 90px; top: 60px; width: 74px; height: 74px; transform: rotate(18deg); background: linear-gradient(135deg, rgba(125,211,252,.38), rgba(30,58,138,.55)); border: 1px solid rgba(165,243,252,.5); box-shadow: 0 0 50px rgba(56,189,248,.4); }
+  .p1 .ed-type { font-size: 84px; color: #eef6ff; }
+  .p1 .ed-type .thin { font-weight: 250; color: #9cc8e8; }
+  .p1 .ed-label { color: #7dd3fc; }
+  .p1 .ed-right { color: #64a8cc; }
+
+  /* 2: VOID & EMBER */
+  .p2 { background: radial-gradient(120% 110% at 25% 120%, #1c1410 0%, #120d0a 40%, #070605 80%); }
+  .p2 .glow { position: absolute; inset: -20%; background: radial-gradient(36% 26% at 75% 70%, rgba(217,119,6,.16), transparent 60%), radial-gradient(28% 20% at 20% 30%, rgba(120,113,108,.1), transparent 60%); filter: blur(20px); animation: drift 9s ease-in-out infinite alternate; }
+  .p2 .mono { position: absolute; right: 100px; top: 56px; width: 60px; height: 96px; background: linear-gradient(160deg, #292524, #0c0a09 80%); border: 1px solid #44403c; box-shadow: 0 0 40px rgba(217,119,6,.18); transform: rotate(-3deg); }
+  .p2 .mono::after { content:""; position: absolute; inset: 30% 38%; background: rgba(245,158,11,.7); filter: blur(5px); }
+  .p2 .ed-type { font-size: 84px; color: #f5f0ea; }
+  .p2 .ed-type .thin { font-weight: 250; color: #a8a29e; }
+  .p2 .ed-label { color: #d97706; }
+  .p2 .ed-right { color: #78716c; }
+
+  /* 3: MIDNIGHT SIGNAL */
+  .p3 { background: radial-gradient(120% 110% at 70% 120%, #04140c 0%, #03100a 40%, #040505 80%); }
+  .p3 .glow { position: absolute; inset: -20%; background: radial-gradient(38% 26% at 70% 60%, rgba(16,185,129,.14), transparent 60%), radial-gradient(26% 18% at 25% 25%, rgba(45,212,191,.08), transparent 60%); filter: blur(22px); animation: drift 9s ease-in-out infinite alternate; }
+  .p3 .orb { position: absolute; right: 100px; top: 64px; width: 70px; height: 70px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgba(110,231,183,.5), rgba(6,78,59,.7)); border: 1px solid rgba(110,231,183,.4); box-shadow: 0 0 56px rgba(16,185,129,.35); }
+  .p3 .ed-type { font-size: 84px; color: #f0f4f1; }
+  .p3 .ed-type .thin { font-weight: 250; color: #86a896; }
+  .p3 .ed-label { color: #34d399; }
+  .p3 .ed-right { color: #5f7a6c; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Pick the color world</h1>
+  <p class="sub">Structure is settled: a scroll-driven 3D world (B) with cinematic editorial typography and grain (D). The palette decides the <em>feeling</em> of that world. All three previews show the same hero treatment.</p>
+
+  <div class="grid">
+    <div class="card" data-choice="glacial" onclick="pick(this,'1 — Glacial')">
+      <div class="check">✓</div>
+      <div class="preview p1">
+        <div class="aur"></div>
+        <div class="cry"></div>
+        <div class="ed-label">portfolio — 2026</div>
+        <div class="ed-type">JASPER<br><span class="thin">PATHUIS</span></div>
+        <div class="ed-right">developer<br>builder<br>nederland</div>
+        <div class="grain"></div>
+      </div>
+      <div class="meta">
+        <div class="left">
+          <span class="tag">1 — the igloo homage</span>
+          <h3>Glacial</h3>
+          <p>Deep blue-black with icy cyan glows and aurora light. Cold, vast, premium. Closest to the original reference — risk: reads as "inspired by igloo".</p>
+        </div>
+        <div class="swatches">
+          <div class="sw" style="background:#02060f"></div>
+          <div class="sw" style="background:#07243d"></div>
+          <div class="sw" style="background:#7dd3fc"></div>
+          <div class="sw" style="background:#eef6ff"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-choice="void-ember" onclick="pick(this,'2 — Void & Ember')">
+      <div class="check">✓</div>
+      <div class="preview p2">
+        <div class="glow"></div>
+        <div class="mono"></div>
+        <div class="ed-label">portfolio — 2026</div>
+        <div class="ed-type">JASPER<br><span class="thin">PATHUIS</span></div>
+        <div class="ed-right">developer<br>builder<br>nederland</div>
+        <div class="grain"></div>
+      </div>
+      <div class="meta">
+        <div class="left">
+          <span class="tag">2 — the darkroom soul</span>
+          <h3>Void &amp; Ember</h3>
+          <p>Warm near-black, bone-white type, one amber ember accent. Filmic and editorial — pure D energy inside B's world. Most "high-end studio" of the three.</p>
+        </div>
+        <div class="swatches">
+          <div class="sw" style="background:#070605"></div>
+          <div class="sw" style="background:#292524"></div>
+          <div class="sw" style="background:#d97706"></div>
+          <div class="sw" style="background:#f5f0ea"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" data-choice="midnight-signal" onclick="pick(this,'3 — Midnight Signal')">
+      <div class="check">✓</div>
+      <div class="preview p3">
+        <div class="glow"></div>
+        <div class="orb"></div>
+        <div class="ed-label">portfolio — 2026</div>
+        <div class="ed-type">JASPER<br><span class="thin">PATHUIS</span></div>
+        <div class="ed-right">developer<br>builder<br>nederland</div>
+        <div class="grain"></div>
+      </div>
+      <div class="meta">
+        <div class="left">
+          <span class="tag">3 — your brand, evolved</span>
+          <h3>Midnight Signal</h3>
+          <p>Near-black with a desaturated emerald signal glow — your green identity, but cinematic instead of terminal. Continuity with HypHosting's brand world.</p>
+        </div>
+        <div class="swatches">
+          <div class="sw" style="background:#040505"></div>
+          <div class="sw" style="background:#04140c"></div>
+          <div class="sw" style="background:#34d399"></div>
+          <div class="sw" style="background:#f0f4f1"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bar" id="bar">No selection yet — click a card</div>
+
+<script>
+  function pick(el, label) {
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('bar').innerHTML = '<span class="sel">' + label + '</span> selected — return to the terminal to continue';
+  }
+</script>
+</body>
+</html>
