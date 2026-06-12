@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { gsap, useGSAP } from "@/lib/gsap";
 import { useJourney } from "@/lib/store";
 
@@ -10,17 +10,20 @@ export default function Preloader() {
   const root = useRef<HTMLDivElement>(null);
   const counterRef = useRef<HTMLSpanElement>(null);
   const emberRef = useRef<HTMLDivElement>(null);
-  const [skipped] = useState(
-    () =>
-      typeof window !== "undefined" &&
-      sessionStorage.getItem(SESSION_KEY) === "1"
-  );
   const tl = useRef<gsap.core.Timeline>(null);
 
+  // Always render the same tree on server and client; the skip decision is
+  // made post-mount so React owns the node (branching the initial render on
+  // sessionStorage orphans the server-rendered overlay on hydration).
   useGSAP(
     () => {
-      if (skipped) {
+      const skipped = sessionStorage.getItem(SESSION_KEY) === "1";
+      const reduced = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+      ).matches;
+      if (skipped || reduced) {
         useJourney.getState().setLoaded(true);
+        if (root.current) root.current.style.display = "none";
         return;
       }
 
@@ -60,16 +63,21 @@ export default function Preloader() {
         { clipPath: "inset(0 0 100% 0)", duration: 0.8, ease: "power4.inOut" },
         "-=0.15"
       );
+
+      const skipOnKey = () => tl.current?.progress(1);
+      window.addEventListener("keydown", skipOnKey);
+      return () => window.removeEventListener("keydown", skipOnKey);
     },
     { scope: root }
   );
-
-  if (skipped) return null;
 
   return (
     <div
       ref={root}
       data-preloader
+      role="button"
+      tabIndex={0}
+      aria-label="Skip intro"
       onClick={() => tl.current?.progress(1)}
       className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center bg-void"
       style={{ clipPath: "inset(0 0 0% 0)" }}

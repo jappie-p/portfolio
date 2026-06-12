@@ -1,19 +1,17 @@
 "use client";
 
-import { ReactLenis } from "lenis/react";
-import type { LenisRef } from "lenis/react";
-import { useEffect, useRef } from "react";
+import { ReactLenis, useLenis } from "lenis/react";
+import { useEffect } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 
-export default function SmoothScroll({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const lenisRef = useRef<LenisRef>(null);
+// ReactLenis exposes its instance via state one commit after mount, so the
+// GSAP wiring must live in a child that reacts to the instance appearing —
+// wiring it in the same effect that renders ReactLenis runs too early and
+// leaves wheel input intercepted but never animated.
+function LenisGsapBridge() {
+  const lenis = useLenis();
 
   useEffect(() => {
-    const lenis = lenisRef.current?.lenis;
     if (!lenis) return;
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -26,16 +24,25 @@ export default function SmoothScroll({
     gsap.ticker.add(update);
     gsap.ticker.lagSmoothing(0);
     return () => {
+      lenis.off("scroll", ScrollTrigger.update);
       gsap.ticker.remove(update);
     };
-  }, []);
+  }, [lenis]);
 
+  return null;
+}
+
+export default function SmoothScroll({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <ReactLenis
       root
       options={{ autoRaf: false, anchors: true, syncTouch: false }}
-      ref={lenisRef}
     >
+      <LenisGsapBridge />
       {children}
     </ReactLenis>
   );

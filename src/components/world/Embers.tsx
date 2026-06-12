@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import {
   AdditiveBlending,
@@ -71,6 +71,9 @@ export default function Embers() {
     const uniforms = { uTime: { value: 0 } };
     return { geometry, uniforms };
   }, []);
+
+  // R3F only auto-disposes JSX-declared geometries; this one is prop-passed.
+  useEffect(() => () => geometry.dispose(), [geometry]);
 
   useFrame((state) => {
     if (material.current) {

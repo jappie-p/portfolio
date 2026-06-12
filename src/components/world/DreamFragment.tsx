@@ -21,6 +21,7 @@ export default function DreamFragment() {
       // Visible through hero + dream, gone by mid-turn.
       const vis =
         chapter < 2 ? 1 : chapter === 2 ? Math.max(0, 1 - chapterProgress * 2) : 0;
+      dream.current.visible = vis > 0;
       dream.current.scale.setScalar(0.001 + vis);
     }
     if (turn.current) {
@@ -31,6 +32,7 @@ export default function DreamFragment() {
           : chapter > 2
             ? 1
             : 0;
+      turn.current.visible = vis > 0;
       turn.current.scale.setScalar(0.001 + vis * 0.9);
     }
   });

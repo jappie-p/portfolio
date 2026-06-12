@@ -26,17 +26,20 @@ export default function RevealLines({
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         const targets = ref.current!.querySelectorAll("[data-lines]");
         if (!targets.length) return;
+        // The tween is created inside onSplit so autoSplit re-splits (late
+        // font load, resize) rebuild it against the fresh line elements.
         const split = SplitText.create(targets, {
           type: "lines",
           mask: "lines",
           autoSplit: true,
-        });
-        gsap.from(split.lines, {
-          yPercent: 115,
-          duration: 0.9,
-          stagger: 0.08,
-          ease: "power3.out",
-          scrollTrigger: { trigger: ref.current, start },
+          onSplit: (self) =>
+            gsap.from(self.lines, {
+              yPercent: 115,
+              duration: 0.9,
+              stagger: 0.08,
+              ease: "power3.out",
+              scrollTrigger: { trigger: ref.current, start },
+            }),
         });
         return () => split.revert();
       });

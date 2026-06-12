@@ -17,6 +17,27 @@ test("case stub pages resolve", async ({ page }) => {
   await expect(page.locator("h1")).toContainText("Jarvis");
 });
 
+test("wheel scrolling actually moves the page (Lenis wired to ticker)", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator("[data-preloader]")).toBeHidden({ timeout: 8000 });
+  await page.mouse.wheel(0, 2000);
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY), { timeout: 5000 })
+    .toBeGreaterThan(50);
+});
+
+test("same-session reload does not leave a stuck preloader", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.locator("[data-preloader]")).toBeHidden({ timeout: 8000 });
+  await page.reload();
+  await expect(page.locator("[data-preloader]")).toBeHidden({ timeout: 4000 });
+  await expect(page.locator("h1")).toContainText("JASPER");
+});
+
 test("content survives without WebGL (fallback mode)", async ({ browser }) => {
   const context = await browser.newContext();
   const page = await context.newPage();
