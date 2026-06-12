@@ -1,5 +1,11 @@
 import Journey from "@/components/journey/Journey";
+import WorldRoot from "@/components/world/WorldRoot";
 
 export default function Home() {
-  return <Journey />;
+  return (
+    <>
+      <WorldRoot />
+      <Journey />
+    </>
+  );
 }
