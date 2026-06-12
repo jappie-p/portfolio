@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+build/
+.env
+.env.*
+local.md
+pass.md
+.superpowers/
+.DS_Store
+*.log
