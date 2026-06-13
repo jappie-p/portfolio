@@ -10,7 +10,7 @@ export default function VersionToggle() {
   const onV2 = pathname?.startsWith("/v2");
 
   return (
-    <div className="fixed right-5 top-5 z-[70] flex items-center gap-1 rounded-full border border-stone bg-void/70 p-1 font-mono text-[10px] uppercase tracking-[0.2em] backdrop-blur">
+    <div className="fixed right-5 bottom-5 z-[70] flex items-center gap-1 rounded-full border border-stone bg-void/70 p-1 font-mono text-[10px] uppercase tracking-[0.2em] backdrop-blur">
       <Link
         href="/"
         className={`rounded-full px-3 py-1 transition-colors ${
