@@ -65,7 +65,7 @@ export default function V2Hero() {
         // (a) 0 → 0.35 — tracking expands, corners drift outward
         tl.to(
           names,
-          { letterSpacing: "0.12em", duration: 0.35, ease: "none" },
+          { letterSpacing: "0.04em", duration: 0.35, ease: "none" },
           0
         )
           .to(q(".corner-tl"), { x: -18, y: -12, duration: 0.35, ease: "none" }, 0)
@@ -117,10 +117,10 @@ export default function V2Hero() {
           {story.hero.name[0]} {story.hero.name[1]}
         </h1>
         <div aria-hidden className="flex flex-col">
-          <span className="hero-name hero-name-top headline block text-[17vw] leading-[0.86] text-bone">
+          <span className="hero-name hero-name-top headline block whitespace-nowrap text-[16vw] leading-[0.86] text-bone">
             {story.hero.name[0]}
           </span>
-          <span className="hero-name hero-name-bottom headline headline-outline block text-[17vw] leading-[0.86]">
+          <span className="hero-name hero-name-bottom headline headline-outline block whitespace-nowrap text-[16vw] leading-[0.86]">
             {story.hero.name[1]}
           </span>
         </div>

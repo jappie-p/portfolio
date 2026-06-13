@@ -7,6 +7,7 @@ import V2Work from "@/components/v2/V2Work";
 import V2Craft from "@/components/v2/V2Craft";
 import V2Contact from "@/components/v2/V2Contact";
 import V2Progress from "@/components/v2/V2Progress";
+import V2Cursor from "@/components/v2/V2Cursor";
 import VersionToggle from "@/components/v2/VersionToggle";
 import Preloader from "@/components/ui/Preloader";
 
@@ -21,6 +22,7 @@ export default function V2Page() {
       <V2Canvas />
       <Preloader />
       <V2Progress />
+      <V2Cursor />
       <VersionToggle />
       <main className="relative">
         <V2Hero />
