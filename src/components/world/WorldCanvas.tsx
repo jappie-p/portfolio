@@ -7,7 +7,7 @@ import CameraRig from "./CameraRig";
 import Embers from "./Embers";
 import MonolithField from "./MonolithField";
 import DreamFragment from "./DreamFragment";
-import HeroShard from "./HeroShard";
+import DesertArmor from "./DesertArmor";
 import WebsitePanes from "./WebsitePanes";
 import AutomationGraph from "./AutomationGraph";
 import CyberGrid from "./CyberGrid";
@@ -75,7 +75,7 @@ export default function WorldCanvas() {
           <CameraRig />
           <HorizonGlow />
           <Ground />
-          <HeroShard />
+          <DesertArmor />
           <Embers />
           <MonolithField />
           <DreamFragment />
