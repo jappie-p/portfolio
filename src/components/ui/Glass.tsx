@@ -1,13 +1,5 @@
-import type { ElementType, ReactNode } from "react";
+import type { ReactNode } from "react";
 
-export function Glass({
-  as: Tag = "div",
-  className = "",
-  children,
-}: {
-  as?: ElementType;
-  className?: string;
-  children: ReactNode;
-}) {
-  return <Tag className={`glass ${className}`}>{children}</Tag>;
+export function Glass({ className = "", children }: { className?: string; children: ReactNode }) {
+  return <div className={`glass ${className}`}>{children}</div>;
 }

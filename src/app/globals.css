@@ -23,16 +23,26 @@
   --font-display: var(--font-display-var); --font-body: var(--font-body-var);
 }
 
-html { color-scheme: light; background: var(--canvas); }
+/* The document itself is the vertical scroller (scroll-snap on html). The page
+   gradient lives on the root (html) background, which always paints behind a
+   POSITIVE-z fixed canvas. Layering: html bg -> WorldCanvas orb (z-1) ->
+   content (z-2) -> nav/rail (z-50). The transparent content sits above the orb. */
+/* The orb canvas is scoped inside the hero (not a global fixed layer), so the
+   page background can live normally on the root. */
+html {
+  color-scheme: light;
+  scroll-snap-type: y mandatory;
+  background:
+    radial-gradient(140% 100% at 50% -10%, var(--sky-top) 0%, transparent 55%),
+    linear-gradient(180deg, var(--canvas) 0%, var(--canvas-2) 100%) var(--canvas);
+}
+
+body { background: transparent; }
 
 body {
   color: var(--ink);
   font-family: var(--font-body), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background:
-    radial-gradient(140% 100% at 50% -10%, var(--sky-top) 0%, transparent 55%),
-    linear-gradient(180deg, var(--canvas) 0%, var(--canvas-2) 100%);
-  min-height: 100dvh;
 }
 
 ::selection { background: var(--leaf); color: #fff; }
@@ -52,17 +62,7 @@ body {
   .glass { background: rgba(255,255,255,0.86); }
 }
 
-/* --- Two-axis journey grid: vertical = topics, horizontal = projects --- */
-#journey-root {
-  height: 100dvh;
-  overflow-y: auto;
-  scroll-snap-type: y mandatory;
-  overscroll-behavior-y: contain;
-  touch-action: pan-y;
-  scrollbar-width: none;
-}
-#journey-root::-webkit-scrollbar { display: none; }
-
+/* --- Two-axis journey grid: vertical = topics (document scroll), horizontal = projects --- */
 .topic-row {
   height: 100dvh;
   scroll-snap-align: start;
@@ -90,5 +90,5 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
-  #journey-root, .project-track { scroll-snap-type: none; scroll-behavior: auto; }
+  html, .project-track { scroll-snap-type: none; scroll-behavior: auto; }
 }
