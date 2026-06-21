@@ -1,35 +1,40 @@
 import { create } from "zustand";
-import { progressToChapter } from "@/lib/chapters";
 
 export type OrbState = "idle" | "responding";
 
 type JourneyState = {
-  /** Global scroll progress 0..1 across the whole journey. */
-  progress: number;
-  chapter: number;
-  chapterProgress: number;
-  /** Scroll velocity from Lenis; drives motion accents. */
-  velocity: number;
-  /** Hero=idle, AI zone=responding. */
+  // vertical (topic) axis
+  topic: number;
+  // horizontal (project) axis, scoped to the active topic
+  project: number;
+  projectCount: number;
+  /** 0..1 within the active topic's horizontal track (continuous, for scene parallax). */
+  projectProgress: number;
+  // which topics have played their "wake up" scene
+  entered: Record<number, boolean>;
   orbState: OrbState;
-  /** null = not yet detected. */
   webglOk: boolean | null;
-  setScroll: (progress: number, velocity?: number) => void;
+  setTopic: (topic: number, projectCount: number) => void;
+  setProject: (project: number) => void;
+  setProjectProgress: (p: number) => void;
+  markEntered: (topic: number) => void;
   setOrbState: (s: OrbState) => void;
   setWebglOk: (v: boolean) => void;
 };
 
 export const useJourney = create<JourneyState>()((set) => ({
-  progress: 0,
-  chapter: 0,
-  chapterProgress: 0,
-  velocity: 0,
+  topic: 0,
+  project: 0,
+  projectCount: 1,
+  projectProgress: 0,
+  entered: { 0: true },
   orbState: "idle",
   webglOk: null,
-  setScroll: (progress, velocity = 0) => {
-    const { index, local } = progressToChapter(progress);
-    set({ progress, chapter: index, chapterProgress: local, velocity });
-  },
+  setTopic: (topic, projectCount) =>
+    set((s) => (s.topic === topic && s.projectCount === projectCount ? s : { topic, projectCount })),
+  setProject: (project) => set((s) => (s.project === project ? s : { project })),
+  setProjectProgress: (projectProgress) => set({ projectProgress }),
+  markEntered: (topic) => set((s) => (s.entered[topic] ? s : { entered: { ...s.entered, [topic]: true } })),
   setOrbState: (s) => set({ orbState: s }),
   setWebglOk: (v) => set({ webglOk: v }),
 }));

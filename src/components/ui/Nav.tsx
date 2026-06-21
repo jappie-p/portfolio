@@ -1,17 +1,20 @@
 "use client";
-import { CHAPTERS, type ChapterId } from "@/lib/chapters";
+import { TOPICS, type TopicId } from "@/lib/chapters";
 import { useT } from "@/i18n/useT";
 import { LangToggle } from "./LangToggle";
 
+type NavId = Exclude<TopicId, "hero">;
+
 export function Nav() {
   const t = useT();
-  const items = CHAPTERS.filter((c) => c.id !== "hero").map((c) => c.id) as Exclude<ChapterId, "hero">[];
-  const jump = (id: ChapterId) =>
-    document.querySelector(`[data-section="${id}"]`)?.scrollIntoView({
-      behavior: "smooth",
-      inline: "start",
-      block: "start",
-    });
+  const items = TOPICS.filter((c) => c.id !== "hero").map((c) => c.id as NavId);
+  const jump = (id: TopicId) => {
+    const row = document.querySelector<HTMLElement>(`[data-section="${id}"]`);
+    if (!row) return;
+    row.scrollIntoView({ behavior: "smooth", block: "start" });
+    // always enter a topic at its first project
+    row.querySelector<HTMLElement>(".project-track")?.scrollTo({ left: 0 });
+  };
   return (
     <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-4">
       <button type="button" data-nav="hero" onClick={() => jump("hero")} className="headline text-lg text-forest">

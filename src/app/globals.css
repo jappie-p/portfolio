@@ -52,6 +52,43 @@ body {
   .glass { background: rgba(255,255,255,0.86); }
 }
 
+/* --- Two-axis journey grid: vertical = topics, horizontal = projects --- */
+#journey-root {
+  height: 100dvh;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  scrollbar-width: none;
+}
+#journey-root::-webkit-scrollbar { display: none; }
+
+.topic-row {
+  height: 100dvh;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.project-track {
+  height: 100%;
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  touch-action: pan-x;
+  scrollbar-width: none;
+}
+.project-track::-webkit-scrollbar { display: none; }
+
+.project-panel {
+  flex: 0 0 100vw;
+  height: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  #journey-root, .project-track { scroll-snap-type: none; scroll-behavior: auto; }
 }

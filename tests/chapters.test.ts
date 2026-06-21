@@ -1,20 +1,26 @@
 import { describe, it, expect } from "vitest";
-import { CHAPTERS, progressToChapter } from "@/lib/chapters";
+import { TOPICS, PROJECT_NAMES, TOPIC_INDEX, topicPanelCount } from "@/lib/chapters";
 
-describe("progressToChapter", () => {
-  it("has six chapters in journey order", () => {
-    expect(CHAPTERS.map((c) => c.id)).toEqual(["hero", "websites", "ai", "cyber", "about", "contact"]);
+describe("topics grid model", () => {
+  it("lists six topics in journey order", () => {
+    expect(TOPICS.map((t) => t.id)).toEqual(["hero", "websites", "ai", "cyber", "about", "contact"]);
   });
-  it("maps 0 to hero start", () => {
-    expect(progressToChapter(0)).toEqual({ index: 0, local: 0 });
+
+  it("subject topics carry projects, others do not", () => {
+    expect(TOPICS.find((t) => t.id === "websites")!.projects).toEqual(["hyphosting", "louisa"]);
+    expect(TOPICS.find((t) => t.id === "hero")!.projects).toEqual([]);
   });
-  it("maps 1 to the last chapter end", () => {
-    const r = progressToChapter(1);
-    expect(r.index).toBe(5);
-    expect(r.local).toBeCloseTo(1);
+
+  it("panel count is cover + projects for subjects, 1 for single-panel topics", () => {
+    expect(topicPanelCount("websites")).toBe(3); // cover + 2 projects
+    expect(topicPanelCount("ai")).toBe(3);
+    expect(topicPanelCount("cyber")).toBe(2); // cover + 1 project
+    expect(topicPanelCount("hero")).toBe(1);
+    expect(topicPanelCount("about")).toBe(1);
   });
-  it("clamps out-of-range", () => {
-    expect(progressToChapter(-0.5).index).toBe(0);
-    expect(progressToChapter(2).index).toBe(5);
+
+  it("indexes topics and names every project", () => {
+    expect(TOPIC_INDEX.cyber).toBe(3);
+    for (const t of TOPICS) for (const p of t.projects) expect(PROJECT_NAMES[p]).toBeTruthy();
   });
 });

@@ -15,6 +15,13 @@ export const nl: Dictionary = {
   },
   about: { lead: "Game-artist, nu developer. Dit is mijn werk." },
   contact: { lead: "Laten we praten." },
+  projects: {
+    hyphosting: { blurb: "Commercieel Minecraft-hostingplatform met paneel, betalingen en iOS-app." },
+    louisa: { blurb: "Elegante edelstenen-webshop met catalogus en afrekenen." },
+    jarvis: { blurb: "Persoonlijke AI-assistent die mijn mail leest en mijn dag regelt." },
+    "social-elephant": { blurb: "Werkervaring: AI-tooling en automatisering voor een marketingbureau." },
+    homelab: { blurb: "Proxmox-server met mediastack, kluis, monitoring en een honeypot." },
+  },
   ui: {
     openCase: "Bekijk project",
     close: "Sluiten",
@@ -23,5 +30,6 @@ export const nl: Dictionary = {
     school: "Schoolproject",
     refsOnRequest: "Referenties op aanvraag",
     langName: "Nederlands",
+    scrollSideways: "scroll opzij",
   },
 };

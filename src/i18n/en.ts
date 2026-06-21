@@ -15,6 +15,13 @@ export const en: Dictionary = {
   },
   about: { lead: "Game artist, now a developer. Here is my work." },
   contact: { lead: "Let us talk." },
+  projects: {
+    hyphosting: { blurb: "A commercial Minecraft hosting platform with a panel, payments and an iOS app." },
+    louisa: { blurb: "An elegant gemstone webshop with catalog and checkout." },
+    jarvis: { blurb: "A personal AI assistant that reads my mail and runs my day." },
+    "social-elephant": { blurb: "Work experience: AI tooling and automation for a marketing agency." },
+    homelab: { blurb: "A Proxmox server with a media stack, vault, monitoring and a honeypot." },
+  },
   ui: {
     openCase: "View project",
     close: "Close",
@@ -23,5 +30,6 @@ export const en: Dictionary = {
     school: "School project",
     refsOnRequest: "References on request",
     langName: "English",
+    scrollSideways: "scroll sideways",
   },
 };

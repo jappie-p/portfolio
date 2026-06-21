@@ -4,7 +4,7 @@ test("defaults to Dutch and persists an English toggle", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("lang", "nl");
   await expect(page.getByText("Game-artist die developer werd")).toBeVisible();
-  await page.getByRole("button", { name: "EN" }).click();
+  await page.getByRole("button", { name: "EN", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.getByText("Game artist turned developer")).toBeVisible();
   await page.reload();

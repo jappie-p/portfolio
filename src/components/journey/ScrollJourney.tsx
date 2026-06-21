@@ -1,14 +1,11 @@
-"use client";
 import type { ReactNode } from "react";
-import { useHorizontalScroll } from "@/lib/scroll/useHorizontalScroll";
 
+/** The vertical scroll-snap root. Topics stack inside it; each subject topic
+ *  owns its own horizontal project track (see panels.tsx). */
 export function ScrollJourney({ children }: { children: ReactNode }) {
-  const { pinRef, trackRef } = useHorizontalScroll();
   return (
-    <div ref={pinRef} className="overflow-hidden">
-      <div ref={trackRef} className="flex flex-col lg:h-dvh lg:flex-row lg:flex-nowrap">
-        {children}
-      </div>
+    <div id="journey-root" tabIndex={-1}>
+      {children}
     </div>
   );
 }
