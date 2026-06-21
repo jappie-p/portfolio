@@ -3,7 +3,7 @@ import { TOPICS, PROJECT_NAMES, TOPIC_INDEX, topicPanelCount } from "@/lib/chapt
 
 describe("topics grid model", () => {
   it("lists six topics in journey order", () => {
-    expect(TOPICS.map((t) => t.id)).toEqual(["hero", "websites", "ai", "cyber", "about", "contact"]);
+    expect(TOPICS.map((t) => t.id)).toEqual(["hero", "about", "websites", "ai", "cyber", "contact"]);
   });
 
   it("subject topics carry projects, others do not", () => {
@@ -20,7 +20,7 @@ describe("topics grid model", () => {
   });
 
   it("indexes topics and names every project", () => {
-    expect(TOPIC_INDEX.cyber).toBe(3);
+    expect(TOPIC_INDEX.cyber).toBe(4);
     for (const t of TOPICS) for (const p of t.projects) expect(PROJECT_NAMES[p]).toBeTruthy();
   });
 });

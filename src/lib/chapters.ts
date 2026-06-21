@@ -11,12 +11,13 @@ export const PROJECT_NAMES: Record<ProjectSlug, string> = {
   homelab: "Homelab",
 };
 
+// Flow: hero -> about me -> my work (websites/ai/cyber) -> contact.
 export const TOPICS = [
   { id: "hero", projects: [] },
+  { id: "about", projects: [] },
   { id: "websites", projects: ["hyphosting", "louisa"] },
   { id: "ai", projects: ["jarvis", "social-elephant"] },
   { id: "cyber", projects: ["homelab"] },
-  { id: "about", projects: [] },
   { id: "contact", projects: [] },
 ] as const satisfies ReadonlyArray<{ id: string; projects: readonly ProjectSlug[] }>;
 

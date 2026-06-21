@@ -15,10 +15,10 @@ export default function Home() {
       <Nav />
       <ScrollJourney>
         <Hero />
+        <About />
         <SubjectTopic id="websites" />
         <SubjectTopic id="ai" background={<WorldCanvas />} />
         <SubjectTopic id="cyber" background={<CyberCanvas />} />
-        <About />
         <Contact />
       </ScrollJourney>
       <JourneyObserver />
