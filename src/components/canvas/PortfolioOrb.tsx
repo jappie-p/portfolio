@@ -4,6 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { OrbParticles } from "./OrbParticles";
 import { useJourney } from "@/lib/store";
+import { TOPIC_INDEX } from "@/lib/chapters";
 
 /** A soft dark radial disc behind the orb so its additive particles read on the
  *  light page (additive blending is invisible over white). */
@@ -38,8 +39,8 @@ export function PortfolioOrb() {
 
   useFrame(() => {
     if (!outerRef.current) return;
-    // First pass: orb lives on the hero (topic 0); fades out elsewhere.
-    const target = useJourney.getState().topic === 0 ? 1 : 0;
+    // The orb anchors the AI topic; it fades in there and out elsewhere.
+    const target = useJourney.getState().topic === TOPIC_INDEX.ai ? 1 : 0;
     visRef.current += (target - visRef.current) * 0.06;
     const v = visRef.current;
     outerRef.current.visible = v > 0.01;

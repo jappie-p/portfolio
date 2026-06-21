@@ -28,7 +28,7 @@ export function Panel({ children }: { children: ReactNode }) {
 /** Horizontal snap track holding a topic's project panels. */
 export function ProjectTrack({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="project-track" role="group" aria-roledescription="carousel" aria-label={label}>
+    <div className="project-track relative z-10" role="group" aria-roledescription="carousel" aria-label={label}>
       {children}
     </div>
   );
