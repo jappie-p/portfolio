@@ -19,7 +19,7 @@ function mulberry32(seed: number) {
 const rng = mulberry32(0x5eed1234);
 
 const N_RED = 1500; // attacker comet streaks
-const N_BLUE = 1200; // defender field
+const N_BLUE = 1600; // defender field
 const N_SPARK = 800; // impact sparks
 const WALL = 0;
 const RIGHT = 17;
@@ -166,7 +166,7 @@ export function CyberScene() {
 
     if (membraneRef.current) {
       const m = membraneRef.current.material as THREE.MeshBasicMaterial;
-      m.opacity = 0.1 + Math.min(impacts, 16) * 0.022 + Math.sin(t * 5) * 0.02;
+      m.opacity = 0.03 + Math.min(impacts, 16) * 0.012 + Math.sin(t * 5) * 0.01;
     }
     if (wallRef.current) wallRef.current.scale.y = 1 + Math.min(impacts, 14) * 0.006;
   });
@@ -192,25 +192,25 @@ export function CyberScene() {
       </lineSegments>
 
       <points ref={blueRef} geometry={blue.g}>
-        <pointsMaterial size={0.075} color={"#38bdf8"} transparent opacity={0.85} blending={THREE.AdditiveBlending} depthWrite={false} sizeAttenuation />
+        <pointsMaterial size={0.09} color={"#5cc8ff"} transparent opacity={0.9} blending={THREE.AdditiveBlending} depthWrite={false} sizeAttenuation />
       </points>
 
       <points ref={sparkRef} geometry={sparkGeo}>
         <pointsMaterial size={0.18} vertexColors transparent opacity={1} blending={THREE.AdditiveBlending} depthWrite={false} sizeAttenuation />
       </points>
 
-      <mesh ref={membraneRef} position={[0.15, 0.3, 0]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[SZ + 3, SY + 2.5]} />
-        <meshBasicMaterial color={"#5fe3ef"} transparent opacity={0.12} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} depthWrite={false} />
+      <mesh ref={membraneRef} position={[0.1, 0.2, 0]} rotation={[0, Math.PI / 2, 0]}>
+        <planeGeometry args={[3.4, 3.2]} />
+        <meshBasicMaterial color={"#3fb8c9"} transparent opacity={0.05} side={THREE.DoubleSide} blending={THREE.AdditiveBlending} depthWrite={false} />
       </mesh>
 
       <group ref={wallRef}>
         <Suspense fallback={null}>
           <FirewallSentinel />
         </Suspense>
-        <pointLight color={0x6fe9ff} intensity={5} distance={16} position={[0, 1.5, 5]} />
-        <pointLight color={0xf87171} intensity={1.8} distance={16} position={[7, 0.5, 3]} />
-        <directionalLight color={0xcfeeff} intensity={0.9} position={[-3, 5, 5]} />
+        <pointLight color={0x9fd8ff} intensity={1.9} distance={18} position={[-2, 2.5, 6]} />
+        <pointLight color={0xf87171} intensity={0.9} distance={16} position={[7, 0.5, 3]} />
+        <directionalLight color={0xdfeeff} intensity={0.7} position={[-3, 5, 5]} />
       </group>
 
       <ambientLight intensity={0.32} />

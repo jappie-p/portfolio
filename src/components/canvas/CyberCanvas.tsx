@@ -28,7 +28,8 @@ export function CyberCanvas() {
         <fog attach="fog" args={["#0a1626", 13, 44]} />
         <CyberScene />
         <EffectComposer>
-          <Bloom intensity={1.35} luminanceThreshold={0.2} luminanceSmoothing={0.85} mipmapBlur />
+          {/* high threshold: only the bright particles bloom, not the lit wall */}
+          <Bloom intensity={1.05} luminanceThreshold={0.5} luminanceSmoothing={0.9} mipmapBlur />
           <Vignette offset={0.3} darkness={0.78} />
         </EffectComposer>
       </Canvas>
