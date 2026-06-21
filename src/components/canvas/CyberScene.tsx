@@ -1,9 +1,10 @@
 "use client";
-import { useMemo, useRef } from "react";
+import { Suspense, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useJourney } from "@/lib/store";
 import { TOPIC_INDEX } from "@/lib/chapters";
+import { FirewallSentinel } from "./FirewallSentinel";
 
 function mulberry32(seed: number) {
   return () => {
@@ -31,7 +32,6 @@ export function CyberScene() {
   const attRef = useRef<THREE.Points>(null!);
   const defRef = useRef<THREE.Points>(null!);
   const wallRef = useRef<THREE.Group>(null!);
-  const ringRef = useRef<THREE.Mesh>(null!);
   const sweepRef = useRef<THREE.Mesh>(null!);
 
   const att = useMemo(() => {
@@ -109,7 +109,6 @@ export function CyberScene() {
       const flex = 1 + Math.min(impact, 12) * 0.012 + Math.sin(t * 3) * 0.02;
       wallRef.current.scale.set(1, flex, 1);
     }
-    if (ringRef.current) ringRef.current.rotation.z = t * 0.4;
     if (sweepRef.current) sweepRef.current.rotation.z = -t * 0.9;
   });
 
@@ -128,17 +127,14 @@ export function CyberScene() {
         <pointsMaterial size={0.06} color={"#38bdf8"} transparent opacity={0.7} blending={THREE.AdditiveBlending} depthWrite={false} sizeAttenuation />
       </points>
 
-      {/* firewall wall + hex shield ring (placeholder for the Sentinel GLB) */}
+      {/* firewall sentinel (Jasper's GLB) — the wall the attackers shatter against */}
       <group ref={wallRef}>
-        <mesh>
-          <boxGeometry args={[0.12, SPREAD_Y + 1.5, 0.12]} />
-          <meshBasicMaterial color={"#5fe3ef"} transparent opacity={0.5} blending={THREE.AdditiveBlending} />
-        </mesh>
-        <mesh ref={ringRef}>
-          <torusGeometry args={[1.6, 0.05, 8, 6]} />
-          <meshBasicMaterial color={"#18b4c4"} transparent opacity={0.8} blending={THREE.AdditiveBlending} />
-        </mesh>
-        <pointLight color={0x18b4c4} intensity={3} distance={9} />
+        <Suspense fallback={null}>
+          <FirewallSentinel />
+        </Suspense>
+        <pointLight color={0x5fe3ef} intensity={3} distance={12} position={[0, 1, 4]} />
+        <pointLight color={0x0e7490} intensity={1.6} distance={12} position={[-5, 0, 2]} />
+        <directionalLight color={0xffffff} intensity={0.6} position={[2, 4, 5]} />
       </group>
 
       {/* radar sweep ring on the floor */}
