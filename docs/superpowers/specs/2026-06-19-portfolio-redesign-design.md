@@ -22,7 +22,7 @@ The opening hero is the **ported Jarvis particle orb** carrying Jasper's name, r
 | Language | **NL default, full EN toggle.** Instant client-side text-swap (Zustand + localStorage), no `/nl` `/en` routes. Every string in both dictionaries; type-enforced so it can never render mixed-language. |
 | Projects | **4–5 deep case studies** (HypHosting, Jarvis, Homelab, Social Elephant, Louisa) + a **light "school & team" strip** (Zelda ALttP Pygame, Utrecht Festival PWA, Happy Herbivore Kiosk) to satisfy school-projects + collaboration rubric lines. |
 | Scene order | Hero (orb / AI identity) → **Websites → AI → Cyber** → About → Contact. |
-| Scroll | **Desktop = horizontal** journey (GSAP track + Lenis). **Mobile = vertical stack** (same sections, responsive). |
+| Scroll | **Two-axis grid (revised 2026-06-21).** Scroll DOWN = move between topics; scroll SIDEWAYS = move through that topic's projects. Independent axes: sideways clamps at a topic's ends, you scroll down for the next topic. Built with native CSS scroll-snap on both axes (`overscroll-behavior: contain`, `scroll-snap-stop: always`); Lenis dropped (it hijacked horizontal wheel); `IntersectionObserver` drives the store. Mobile = same model (vertical scroll + horizontal swipe). Each topic plays a "wake up" scene on entry, then you scroll its projects against that scene. |
 | Case studies | Open as **expanding frosted overlay panels** addressed by `?case=<slug>` (shareable, back-button friendly), not separate routes. |
 | References | **None held yet.** Graceful "op aanvraag / on request" fallback; Jasper to obtain ≥1 (Social Elephant or teacher) before grading. |
 | Public email | **Professional alias on an owned domain** (e.g. `jasper@hyphosting.com`), obfuscated against scraping. Not the personal Gmail. |
@@ -41,25 +41,27 @@ Next **16.2.9** (App Router), React **19.2.4**, TypeScript 5, Tailwind **4**, Re
 
 A **single rendered route**. The scorecard "pages" (Home, Projects, About, Contact) are scroll sections, not URLs. Deep case studies are URL-addressable via `?case=<slug>` so they stay linkable and back-button-friendly without breaking the single-scroll DOM. Locale is client state, not a route.
 
+**The journey is a 2-axis grid (revised 2026-06-21):** vertical = topics (rows), horizontal = projects within a topic (columns). Hero / About / Contact are single-panel topics with no horizontal track.
+
 ```
-Hero (orb)        = graded "Home": name + function + AI identity line + nav + lang toggle
-  │  scroll →
-Websites zone     draggable showcase of live products (HypHosting, Louisa) + secondary strip
-  │
-AI zone           orb returns as anchor + automation flow graph; Jarvis + Social Elephant
-  │
-Cyber zone        firewall battle viewport + Sentinel/Honeypot GLBs + Canary feed; Homelab
-  │
-School & team strip   Zelda Pygame (school, playable), Utrecht Festival PWA (team), Kiosk (team)
-  │
-About             photo, story (why), future/learning, hard+soft skills, CV, links, references
-  │
-Contact           email, validated form, SVG region map, footer (lang toggle, back-to-top)
+            [ Hero — orb, name, AI identity ]   ← graded "Home"
+                        │ scroll ↓ (topic)
+   WEBSITES   ⟵→  cover  ⟵→  HypHosting  ⟵→  Louisa          ← scroll sideways (projects)
+                        │ scroll ↓
+   AI         ⟵→  cover  ⟵→  Jarvis  ⟵→  Social Elephant
+                        │ scroll ↓
+   CYBER      ⟵→  cover  ⟵→  Homelab  ⟵→ …
+                        │ scroll ↓
+   [ School & team strip ]   (Zelda playable, Utrecht Festival, Kiosk)
+                        │ scroll ↓
+   [ About ]            photo, story, future, skills, CV, links, references
+                        │ scroll ↓
+   [ Contact ]          email, validated form, SVG region map, footer
 
 Overlay (any time):  ?case=<slug>  → expanding frosted case-study panel
 ```
 
-Header nav smooth-jumps to any section via Lenis `scrollTo`; **Contact** is the last offset. A persistent **ProgressRail** shows the current chapter so users know Contact exists at the end.
+Each subject topic opens on a **cover panel** (topic title + lead + "scroll sideways" hint), then its project panels follow horizontally. Header nav jumps vertically to a topic (and resets it to its cover); a 2-tier **ProgressRail** shows the topic position (outer dots) and the active project within it (inner dots).
 
 ---
 
