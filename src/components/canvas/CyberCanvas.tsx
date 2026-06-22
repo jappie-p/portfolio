@@ -7,8 +7,8 @@ import { hasWebGL } from "@/lib/webgl";
 import { prefersReducedMotion } from "@/lib/motion";
 import { useJourney } from "@/lib/store";
 
-/** The cyber topic's dark "screen" backdrop, with bloom + fog so the battle
- *  glows. Opaque (additive blue/red washes out on light), scoped to the topic. */
+/** The cyber topic's dark "screen" backdrop: a 3/4 angled cyber-command view —
+ *  code wall (left) ▸ firewall ▸ named attack beams (right) — with bloom + fog. */
 export function CyberCanvas() {
   const [ready, setReady] = useState(false);
 
@@ -23,13 +23,17 @@ export function CyberCanvas() {
 
   return (
     <div className="pointer-events-none absolute inset-0 z-0" aria-hidden>
-      <Canvas camera={{ position: [0, 1.5, 11], fov: 52 }} dpr={[1, 1.6]} gl={{ alpha: false, antialias: true }}>
+      <Canvas
+        camera={{ position: [5, 2.6, 13], fov: 52 }}
+        dpr={[1, 1.6]}
+        gl={{ alpha: false, antialias: true }}
+        onCreated={({ camera }) => camera.lookAt(0, 0, 0)}
+      >
         <color attach="background" args={["#0a1626"]} />
-        <fog attach="fog" args={["#0a1626", 13, 44]} />
+        <fog attach="fog" args={["#0a1626", 15, 48]} />
         <CyberScene />
         <EffectComposer>
-          {/* high threshold: only the bright particles bloom, not the lit wall */}
-          <Bloom intensity={1.05} luminanceThreshold={0.5} luminanceSmoothing={0.9} mipmapBlur />
+          <Bloom intensity={1.1} luminanceThreshold={0.5} luminanceSmoothing={0.9} mipmapBlur />
           <Vignette offset={0.3} darkness={0.78} />
         </EffectComposer>
       </Canvas>
