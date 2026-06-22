@@ -35,6 +35,28 @@ html {
   background:
     radial-gradient(140% 100% at 50% -10%, var(--sky-top) 0%, transparent 55%),
     linear-gradient(180deg, var(--canvas) 0%, var(--canvas-2) 100%) var(--canvas);
+  /* Firefox: thin on-brand scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(79, 157, 105, 0.55) transparent;
+}
+
+/* WebKit/Chrome/Safari: thin rounded green pill on a transparent track */
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(79, 157, 105, 0.7);
+  border-radius: 99px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(47, 107, 70, 0.95);
+  background-clip: padding-box;
 }
 
 body { background: transparent; }
