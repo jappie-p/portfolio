@@ -6,10 +6,13 @@ import * as THREE from "three";
 
 const TARGET = 6; // max-dimension size in world units
 
+// Prefix public assets with the deploy sub-path (empty for root/local).
+const MODEL_URL = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/models/firewall-sentinel.glb`;
+
 /** Loads Jasper's firewall gate GLB, auto-centers + normalizes it (Meshy
  *  exports arbitrary scale/orientation), and gives it a subtle idle. */
 export function FirewallSentinel() {
-  const { scene } = useGLTF("/models/firewall-sentinel.glb");
+  const { scene } = useGLTF(MODEL_URL);
   const ref = useRef<THREE.Group>(null!);
 
   const model = useMemo(() => {
@@ -41,4 +44,4 @@ export function FirewallSentinel() {
   );
 }
 
-useGLTF.preload("/models/firewall-sentinel.glb");
+useGLTF.preload(MODEL_URL);
