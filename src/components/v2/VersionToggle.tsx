@@ -27,6 +27,13 @@ export default function VersionToggle() {
       >
         v2
       </Link>
+      {/* v3 lives in a separate app at /v3, so use a plain anchor for a hard nav. */}
+      <a
+        href="/v3"
+        className="rounded-full px-3 py-1 text-bone-faint transition-colors hover:text-bone"
+      >
+        v3
+      </a>
     </div>
   );
 }
