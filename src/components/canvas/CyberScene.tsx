@@ -3,9 +3,9 @@ import { Suspense, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Grid, Html } from "@react-three/drei";
 import * as THREE from "three";
-import { useJourney } from "@/lib/store";
-import { TOPIC_INDEX } from "@/lib/chapters";
 import { FirewallSentinel } from "./FirewallSentinel";
+
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
 function mulberry32(seed: number) {
   return () => {
@@ -31,7 +31,15 @@ const SX = 15; // beam start x (right)
 const N_RED = 950; // streak particles across all beams
 const N_SPARK = 800;
 
-export function CyberScene() {
+export function CyberScene({
+  progressRef,
+  active,
+}: {
+  /** 0..1 scroll-scrub position; flies the camera from a wide shot to a close 3/4. */
+  progressRef?: { current: number };
+  /** run the sim + show the scene only while the cyber section is near the viewport. */
+  active: boolean;
+}) {
   const redRef = useRef<THREE.LineSegments>(null!);
   const sparkRef = useRef<THREE.Points>(null!);
   const wallRef = useRef<THREE.Group>(null!);
@@ -137,10 +145,17 @@ export function CyberScene() {
     return tx;
   }, []);
 
-  const topic = useJourney((s) => s.topic);
-  const live = topic === TOPIC_INDEX.cyber;
+  const live = active;
 
-  useFrame((_, dtRaw) => {
+  useFrame((state, dtRaw) => {
+    // Scroll-scrub: fly the camera from a wide establishing shot (p=0) to a
+    // close 3/4 angle on the firewall (p=1). Resolution-independent, so crisp
+    // at any screen size.
+    if (live) {
+      const p = progressRef?.current ?? 0;
+      state.camera.position.set(lerp(6, 4, p), lerp(3.4, 1.6, p), lerp(19, 10, p));
+      state.camera.lookAt(0, 0.3, 0);
+    }
     if (!live || !redRef.current || !sparkRef.current) return;
     const dt = Math.min(dtRaw, 0.05);
     const aux = sparkAux.current;
