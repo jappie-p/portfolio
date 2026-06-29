@@ -3,7 +3,7 @@ import { ProgressRail } from "@/components/journey/ProgressRail";
 import { ScrollJourney } from "@/components/journey/ScrollJourney";
 import { JourneyObserver } from "@/components/journey/JourneyObserver";
 import { WorldCanvas } from "@/components/canvas/WorldCanvas";
-import { FirewallScrub } from "@/components/canvas/FirewallScrub";
+import { CyberScrollScene } from "@/components/canvas/CyberScrollScene";
 import { Hero } from "@/components/sections/Hero";
 import { SubjectTopic } from "@/components/sections/SubjectTopic";
 import { About } from "@/components/sections/About";
@@ -18,7 +18,7 @@ export default function Home() {
         <About />
         <SubjectTopic id="websites" />
         <SubjectTopic id="ai" background={<WorldCanvas />} />
-        <SubjectTopic id="cyber" background={<FirewallScrub />} />
+        <CyberScrollScene />
         <Contact />
       </ScrollJourney>
       <JourneyObserver />

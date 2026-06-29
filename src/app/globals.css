@@ -31,7 +31,10 @@
    page background can live normally on the root. */
 html {
   color-scheme: light;
-  scroll-snap-type: y mandatory;
+  /* proximity (not mandatory) so the tall pinned cyber scene can free-scroll;
+     mandatory would yank the viewport out of a mid-scrub rest position. The
+     full-viewport one-screen sections still snap when you settle near them. */
+  scroll-snap-type: y proximity;
   background:
     radial-gradient(140% 100% at 50% -10%, var(--sky-top) 0%, transparent 55%),
     linear-gradient(180deg, var(--canvas) 0%, var(--canvas-2) 100%) var(--canvas);
@@ -110,7 +113,31 @@ body {
   scroll-snap-stop: always;
 }
 
+/* --- Cyber scroll-scrub scene: a tall section with a full-screen sticky pin.
+   The firewall video scrubs over the section's scroll length; content reveals
+   over the pin. Collapses to one screen in non-scrub (touch / reduced motion). */
+.cyber-scene {
+  position: relative;
+  width: 100vw;
+  height: 300vh;
+}
+.cyber-scene--short {
+  height: 100dvh;
+}
+.cyber-pin {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
+}
+.cyber-scene--short .cyber-pin {
+  position: relative;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   html, .project-track { scroll-snap-type: none; scroll-behavior: auto; }
+  .cyber-scene { height: 100dvh; }
+  .cyber-pin { position: relative; }
 }
