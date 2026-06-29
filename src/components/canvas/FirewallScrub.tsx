@@ -43,10 +43,8 @@ export function FirewallScrub() {
   useEffect(() => {
     if (mode !== "scrub") return;
     const v = videoRef.current;
-    const track = wrapRef.current
-      ?.closest(".topic-row")
-      ?.querySelector<HTMLElement>(".project-track");
-    if (!v || !track) return;
+    const row = wrapRef.current?.closest<HTMLElement>(".topic-row");
+    if (!v || !row) return;
 
     let ready = v.readyState >= 1; // HAVE_METADATA
     let pendingFrame: number | null = null;
@@ -70,28 +68,38 @@ export function FirewallScrub() {
     };
     v.requestVideoFrameCallback(loop);
 
+    // Drive the scrub off the cyber row's VERTICAL position: the firewall powers
+    // up 0 -> end as the row slides up into place on the way down (top goes from
+    // one viewport below to the viewport top), and reverses scrolling back up.
+    const compute = () => {
+      const vh = window.innerHeight || 1;
+      const top = row.getBoundingClientRect().top;
+      const p = Math.min(1, Math.max(0, 1 - top / vh));
+      pendingFrame = Math.round(p * FRAMES);
+      reconcile(); // kick a seek now so the rVFC loop wakes back up
+    };
+
     const onScroll = () => {
       if (raf) return;
       raf = requestAnimationFrame(() => {
         raf = 0;
-        const max = track.scrollWidth - track.clientWidth;
-        const p = max > 0 ? Math.min(1, Math.max(0, track.scrollLeft / max)) : 0;
-        pendingFrame = Math.round(p * FRAMES);
-        reconcile(); // kick a seek now so the rVFC loop wakes back up
+        compute();
       });
     };
 
     const onMeta = () => {
       ready = true;
-      onScroll(); // paint the frame matching the current scroll position
+      compute(); // paint the frame matching the current scroll position
     };
-    if (ready) onScroll();
+    if (ready) compute();
     else v.addEventListener("loadedmetadata", onMeta, { once: true });
 
-    track.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
     return () => {
       cancelled = true;
-      track.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
       v.removeEventListener("loadedmetadata", onMeta);
       if (raf) cancelAnimationFrame(raf);
       pendingFrame = null;
