@@ -98,18 +98,38 @@ export function FirewallScrub() {
     };
   }, [mode]);
 
-  // Ambient mode: drive autoplay imperatively (don't rely on the attribute's
-  // timing) and retry on first interaction if the policy blocked it.
+  // Lazy buffering: the asset is a sharp ~16MB all-intra clip, so don't pull it
+  // on page load. Start buffering only once the cyber row is ~2 screens away,
+  // which gives it time to be ready before the user arrives to scrub it. For
+  // ambient mode this is also where playback starts (with an interaction retry).
   useEffect(() => {
-    if (mode !== "ambient") return;
+    if (mode === "static") return;
     const v = videoRef.current;
-    if (!v) return;
-    v.muted = true;
-    v.playsInline = true;
+    const row = wrapRef.current?.closest(".topic-row");
+    if (!v || !row) return;
+    let triggered = false;
     const tryPlay = () => v.play().catch(() => {});
-    tryPlay();
-    window.addEventListener("pointerdown", tryPlay, { once: true });
-    return () => window.removeEventListener("pointerdown", tryPlay);
+    const start = () => {
+      if (triggered) return;
+      triggered = true;
+      v.preload = "auto";
+      v.load();
+      if (mode === "ambient") {
+        v.muted = true;
+        v.playsInline = true;
+        tryPlay();
+        window.addEventListener("pointerdown", tryPlay, { once: true });
+      }
+    };
+    const io = new IntersectionObserver(
+      (entries) => entries.some((e) => e.isIntersecting) && start(),
+      { root: null, rootMargin: "200% 0px 200% 0px", threshold: 0 },
+    );
+    io.observe(row);
+    return () => {
+      io.disconnect();
+      window.removeEventListener("pointerdown", tryPlay);
+    };
   }, [mode]);
 
   return (
@@ -123,9 +143,8 @@ export function FirewallScrub() {
           poster={POSTER}
           muted
           playsInline
-          autoPlay={mode === "ambient"}
           loop={mode === "ambient"}
-          preload="auto"
+          preload="none"
           disableRemotePlayback
           aria-hidden
           className="h-full w-full object-cover"
