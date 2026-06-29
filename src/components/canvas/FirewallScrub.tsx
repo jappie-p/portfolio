@@ -19,7 +19,6 @@ const SRC = `${BASE}/firewall-intra.mp4`;
 const POSTER = `${BASE}/firewall-poster.jpg`;
 const FRAMES = 239; // 240 frames, 0-indexed
 const FPS = 24;
-const FRAME_DUR = 1 / FPS;
 
 type Mode = "static" | "scrub" | "ambient";
 
@@ -50,15 +49,16 @@ export function FirewallScrub() {
     if (!v || !track) return;
 
     let ready = v.readyState >= 1; // HAVE_METADATA
-    let pending: number | null = null;
+    let pendingFrame: number | null = null;
     let raf = 0;
     let cancelled = false;
 
-    // Move toward the latest scroll target, one seek at a time. The seeking
-    // guard is the anti-jank gate: never stack seeks.
+    // Move toward the latest scroll target, one seek at a time. Compare by frame
+    // INDEX (not time distance) so every single-frame step advances and the true
+    // end frame settles; the seeking guard is the anti-jank gate (never stack).
     const reconcile = () => {
-      if (cancelled || pending == null || !ready || v.seeking) return;
-      if (Math.abs(v.currentTime - pending) > FRAME_DUR) v.currentTime = pending;
+      if (cancelled || pendingFrame == null || !ready || v.seeking) return;
+      if (Math.round(v.currentTime * FPS) !== pendingFrame) v.currentTime = pendingFrame / FPS;
     };
 
     // Each painted frame (incl. the frame a seek lands on) re-checks and re-arms.
@@ -76,7 +76,7 @@ export function FirewallScrub() {
         raf = 0;
         const max = track.scrollWidth - track.clientWidth;
         const p = max > 0 ? Math.min(1, Math.max(0, track.scrollLeft / max)) : 0;
-        pending = Math.round(p * FRAMES) / FPS; // snap to frame boundary
+        pendingFrame = Math.round(p * FRAMES);
         reconcile(); // kick a seek now so the rVFC loop wakes back up
       });
     };
@@ -94,36 +94,28 @@ export function FirewallScrub() {
       track.removeEventListener("scroll", onScroll);
       v.removeEventListener("loadedmetadata", onMeta);
       if (raf) cancelAnimationFrame(raf);
-      pending = null;
+      pendingFrame = null;
     };
   }, [mode]);
 
-  if (mode === "static") {
-    return (
-      <div
-        ref={wrapRef}
-        className="pointer-events-none absolute inset-0 z-0 bg-[#0a1626] bg-cover bg-center"
-        style={{ backgroundImage: `url(${POSTER})` }}
-        aria-hidden
-      />
-    );
-  }
+  // Ambient mode: drive autoplay imperatively (don't rely on the attribute's
+  // timing) and retry on first interaction if the policy blocked it.
+  useEffect(() => {
+    if (mode !== "ambient") return;
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = true;
+    v.playsInline = true;
+    const tryPlay = () => v.play().catch(() => {});
+    tryPlay();
+    window.addEventListener("pointerdown", tryPlay, { once: true });
+    return () => window.removeEventListener("pointerdown", tryPlay);
+  }, [mode]);
 
   return (
     <div ref={wrapRef} className="pointer-events-none absolute inset-0 z-0 bg-[#0a1626]" aria-hidden>
-      {mode === "ambient" ? (
-        <video
-          ref={videoRef}
-          src={SRC}
-          poster={POSTER}
-          muted
-          playsInline
-          autoPlay
-          loop
-          preload="auto"
-          aria-hidden
-          className="h-full w-full object-cover"
-        />
+      {mode === "static" ? (
+        <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url(${POSTER})` }} />
       ) : (
         <video
           ref={videoRef}
@@ -131,13 +123,15 @@ export function FirewallScrub() {
           poster={POSTER}
           muted
           playsInline
+          autoPlay={mode === "ambient"}
+          loop={mode === "ambient"}
           preload="auto"
           disableRemotePlayback
           aria-hidden
           className="h-full w-full object-cover"
         />
       )}
-      {/* legibility scrim for the white cover text that sits at z-10 above this */}
+      {/* shared legibility scrim for the white cover text that sits at z-10 above */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#0a1626]/30 via-transparent to-[#0a1626]/45" />
     </div>
   );
