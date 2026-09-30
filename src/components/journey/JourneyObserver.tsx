@@ -25,6 +25,11 @@ export function JourneyObserver() {
           const count = panelsOf(rows[i]).length || 1;
           setTopic(i, count);
           markEntered(i);
+          // the sideways position belongs to the topic: pick up this row's own
+          const track = trackOf(rows[i]);
+          const max = track ? track.scrollWidth - track.clientWidth : 0;
+          setProjectProgress(track && max > 0 ? track.scrollLeft / max : 0);
+          setProject(track && track.clientWidth > 0 ? Math.round(track.scrollLeft / track.clientWidth) : 0);
         }
       },
       { root: null, rootMargin: "-45% 0px -45% 0px", threshold: 0 },

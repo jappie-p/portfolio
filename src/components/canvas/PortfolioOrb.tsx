@@ -1,56 +1,48 @@
 "use client";
-import { useMemo, useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useRef } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { OrbParticles } from "./OrbParticles";
 import { useJourney } from "@/lib/store";
 import { TOPIC_INDEX } from "@/lib/chapters";
 
-/** A soft dark radial disc behind the orb so its additive particles read on the
- *  light page (additive blending is invisible over white). */
-function ContainmentDisc() {
-  const texture = useMemo(() => {
-    const size = 512;
-    const c = document.createElement("canvas");
-    c.width = c.height = size;
-    const ctx = c.getContext("2d")!;
-    const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-    g.addColorStop(0, "rgba(15,13,11,0.9)");
-    g.addColorStop(0.5, "rgba(15,13,11,0.62)");
-    g.addColorStop(0.8, "rgba(15,13,11,0.18)");
-    g.addColorStop(1, "rgba(15,13,11,0)");
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, size, size);
-    const tex = new THREE.CanvasTexture(c);
-    tex.colorSpace = THREE.SRGBColorSpace;
-    return tex;
-  }, []);
-  return (
-    <mesh position={[0, 0, -1.5]}>
-      <planeGeometry args={[13, 13]} />
-      <meshBasicMaterial map={texture} transparent depthWrite={false} />
-    </mesh>
-  );
+const damp = THREE.MathUtils.damp;
+
+/** Where the orb sits for a given sideways position through the AI topic: on
+ *  the right beside the copy for the cover and Jarvis, then gliding up and
+ *  shrinking on the last panel to make room for the automation diagram. On
+ *  portrait screens it floats above the copy, and bows out on the last panel. */
+function layout(progress: number, aspect: number) {
+  const portrait = aspect < 1;
+  const last = THREE.MathUtils.smoothstep(progress, 0.5, 1);
+  // portrait: no room beside the copy on the last panel, so the diagram takes over there
+  if (portrait) return { x: 0, y: 1.9 + last * 0.8, s: 0.52 * (1 - last) };
+  const halfW = 9 * Math.tan(THREE.MathUtils.degToRad(25)) * aspect;
+  return { x: halfW * 0.42 + last * halfW * 0.2, y: 0.1 + last * 2.2, s: 0.8 - last * 0.42 };
 }
 
 export function PortfolioOrb() {
-  const outerRef = useRef<THREE.Group>(null!);
-  const visRef = useRef(1);
+  const outer = useRef<THREE.Group>(null!);
+  const vis = useRef(0);
+  const { size } = useThree();
 
-  useFrame(() => {
-    if (!outerRef.current) return;
-    // The orb anchors the AI topic; it fades in there and out elsewhere.
-    const target = useJourney.getState().topic === TOPIC_INDEX.ai ? 1 : 0;
-    visRef.current += (target - visRef.current) * 0.06;
-    const v = visRef.current;
-    outerRef.current.visible = v > 0.01;
-    outerRef.current.scale.setScalar(0.82 * Math.max(v, 0.0001));
-    outerRef.current.position.y = 0.15;
+  useFrame((_, delta) => {
+    const g = outer.current;
+    if (!g) return;
+    const { topic, projectProgress } = useJourney.getState();
+    // the orb belongs to the AI topic; it fades in there and out elsewhere
+    const here = topic === TOPIC_INDEX.ai;
+    const dt = Math.min(delta, 0.05);
+    vis.current = damp(vis.current, here ? 1 : 0, 4, dt);
+    const l = layout(here ? projectProgress : 0, size.width / Math.max(size.height, 1));
+    g.visible = vis.current > 0.01;
+    g.position.x = damp(g.position.x, l.x, 4, dt);
+    g.position.y = damp(g.position.y, l.y, 4, dt);
+    g.scale.setScalar(Math.max(l.s * vis.current, 0.0001));
   });
 
   return (
-    <group ref={outerRef}>
-      <ContainmentDisc />
+    <group ref={outer}>
       <OrbParticles />
     </group>
   );

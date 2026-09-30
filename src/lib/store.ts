@@ -13,13 +13,11 @@ type JourneyState = {
   // which topics have played their "wake up" scene
   entered: Record<number, boolean>;
   orbState: OrbState;
-  webglOk: boolean | null;
   setTopic: (topic: number, projectCount: number) => void;
   setProject: (project: number) => void;
   setProjectProgress: (p: number) => void;
   markEntered: (topic: number) => void;
   setOrbState: (s: OrbState) => void;
-  setWebglOk: (v: boolean) => void;
 };
 
 export const useJourney = create<JourneyState>()((set) => ({
@@ -29,12 +27,10 @@ export const useJourney = create<JourneyState>()((set) => ({
   projectProgress: 0,
   entered: { 0: true },
   orbState: "idle",
-  webglOk: null,
   setTopic: (topic, projectCount) =>
     set((s) => (s.topic === topic && s.projectCount === projectCount ? s : { topic, projectCount })),
   setProject: (project) => set((s) => (s.project === project ? s : { project })),
   setProjectProgress: (projectProgress) => set({ projectProgress }),
   markEntered: (topic) => set((s) => (s.entered[topic] ? s : { entered: { ...s.entered, [topic]: true } })),
   setOrbState: (s) => set({ orbState: s }),
-  setWebglOk: (v) => set({ webglOk: v }),
 }));

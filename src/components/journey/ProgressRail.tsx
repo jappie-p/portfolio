@@ -9,11 +9,11 @@ export function ProgressRail() {
   const projectCount = useJourney((s) => s.projectCount);
   if (projectCount <= 1) return null;
   return (
-    <div className="pointer-events-none fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 gap-2" aria-hidden>
+    <div className="pointer-events-none fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 gap-2" aria-hidden>
       {Array.from({ length: projectCount }).map((_, i) => (
         <span
           key={i}
-          className={`h-1.5 rounded-full transition-all ${i === project ? "w-6 bg-forest" : "w-1.5 bg-sage/50"}`}
+          className={`h-1.5 rounded-full transition-all duration-300 ${i === project ? "w-7 bg-leaf shadow-[0_0_12px_rgba(74,222,128,0.6)]" : "w-1.5 bg-white/25"}`}
         />
       ))}
     </div>

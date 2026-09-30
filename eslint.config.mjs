@@ -5,6 +5,13 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    // R3F scene code: useFrame callbacks run in the render loop, outside React
+    // render, and mutate three.js objects (uniforms, materials, instance data)
+    // that React never renders from. That is the intended R3F pattern.
+    files: ["src/components/{cyber,scenes,canvas}/**/*.{ts,tsx}"],
+    rules: { "react-hooks/immutability": "off" },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

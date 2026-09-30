@@ -1,0 +1,22 @@
+def _draw_transition(self, game_surf, ticks):
+    """Draw the scrolling transition between two screens."""
+    t = self.transition
+    progress = t["progress"] / t["total"]  # 0.0 → 1.0
+    d = t["direction"]
+
+    if d == "left":
+        off_x = int(NATIVE_W * progress)
+        self._draw_screen(game_surf, t["from"], off_x, 0, ticks)
+        self._draw_screen(game_surf, t["to"], off_x - NATIVE_W, 0, ticks)
+    elif d == "right":
+        off_x = int(-NATIVE_W * progress)
+        self._draw_screen(game_surf, t["from"], off_x, 0, ticks)
+        self._draw_screen(game_surf, t["to"], off_x + NATIVE_W, 0, ticks)
+    elif d == "up":
+        off_y = int(CACHE_H * progress)
+        self._draw_screen(game_surf, t["from"], 0, off_y, ticks)
+        self._draw_screen(game_surf, t["to"], 0, off_y - CACHE_H, ticks)
+    elif d == "down":
+        off_y = int(-CACHE_H * progress)
+        self._draw_screen(game_surf, t["from"], 0, off_y, ticks)
+        self._draw_screen(game_surf, t["to"], 0, off_y + CACHE_H, ticks)

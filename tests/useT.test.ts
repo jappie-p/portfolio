@@ -11,13 +11,13 @@ describe("locale store", () => {
 
   it("defaults to Dutch", () => {
     expect(useLocale.getState().locale).toBe("nl");
-    expect(nl.hero.role).toMatch(/Game-artist/);
+    expect(nl.hero.role).toMatch(/game-artist naar developer/);
   });
 
   it("swaps to English and persists", () => {
     useLocale.getState().set("en");
     expect(useLocale.getState().locale).toBe("en");
     expect(localStorage.getItem("lang")).toBe("en");
-    expect(en.hero.role).toMatch(/Game artist turned/);
+    expect(en.hero.role).toMatch(/game artist to developer/);
   });
 });

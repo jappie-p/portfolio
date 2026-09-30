@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { TOPICS, PROJECT_NAMES, TOPIC_INDEX, topicPanelCount } from "@/lib/chapters";
 
 describe("topics grid model", () => {
-  it("lists six topics in journey order", () => {
-    expect(TOPICS.map((t) => t.id)).toEqual(["hero", "about", "websites", "ai", "cyber", "contact"]);
+  it("lists seven topics in journey order", () => {
+    expect(TOPICS.map((t) => t.id)).toEqual(["hero", "about", "websites", "ai", "cyber", "school", "contact"]);
   });
 
   it("subject topics carry projects, others do not", () => {
@@ -15,6 +15,7 @@ describe("topics grid model", () => {
     expect(topicPanelCount("websites")).toBe(3); // cover + 2 projects
     expect(topicPanelCount("ai")).toBe(3);
     expect(topicPanelCount("cyber")).toBe(2); // cover + 1 project
+    expect(topicPanelCount("school")).toBe(4); // cover + 3 projects
     expect(topicPanelCount("hero")).toBe(1);
     expect(topicPanelCount("about")).toBe(1);
   });

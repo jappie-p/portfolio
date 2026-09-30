@@ -1,0 +1,23 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - VPN_SERVICE_PROVIDER=mullvad
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=${MULLVAD_PRIVKEY}
+      - WIREGUARD_ADDRESSES=${MULLVAD_IPV4}
+      - FIREWALL_OUTBOUND_SUBNETS=${LAN_SUBNET},${TAILNET_RANGE}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "https://am.i.mullvad.net/connected"]
+      interval: 60s
+
+  sabnzbd:
+    image: lscr.io/linuxserver/sabnzbd:latest
+    network_mode: "service:gluetun"
+    depends_on:
+      gluetun:
+        condition: service_healthy

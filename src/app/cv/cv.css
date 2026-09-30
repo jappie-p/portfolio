@@ -1,0 +1,25 @@
+/* Route-scoped overrides for /cv/[lang]. Global CSS can be imported from any
+   page or component, not just the root layout, and every rule here is keyed
+   off :has(.cv-root) or the .cv-mono class so nothing leaks once the route
+   unmounts (see the CSS guide in node_modules/next/dist/docs). */
+
+html:has(.cv-root) {
+  scroll-snap-type: none;
+  background: #14181d;
+}
+
+@media print {
+  html:has(.cv-root),
+  body:has(.cv-root) {
+    background: #ffffff;
+  }
+}
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+.cv-mono {
+  font-family: "Geist Mono CV", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}

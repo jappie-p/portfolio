@@ -1,13 +1,31 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { displayFont, bodyFont } from "@/lib/fonts";
-import { Providers } from "./providers";
+import { SITE } from "@/data/site";
 import "./globals.css";
 
+const title = "Jasper Pathuis, developer";
+const description =
+  "Portfolio van Jasper Pathuis. Game-artist die developer werd en complete producten bouwt: hostingplatforms, webshops, AI-assistenten en homelab-infrastructuur.";
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://jasper.hyphosting.com"),
-  title: "Jasper Pathuis — Developer",
-  description:
-    "Game artist turned developer. A journey through the web, AI and security projects I build.",
+  metadataBase: new URL(SITE.url),
+  title,
+  description,
+  authors: [{ name: SITE.name, url: SITE.github }],
+  openGraph: {
+    type: "website",
+    siteName: SITE.name,
+    title,
+    description,
+    locale: "nl_NL",
+    alternateLocale: "en_US",
+  },
+  twitter: { card: "summary_large_image", title, description },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#05080d",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
@@ -16,7 +34,7 @@ export default function RootLayout({
   return (
     <html lang="nl" className={`${displayFont.variable} ${bodyFont.variable} antialiased`}>
       <body>
-        <Providers>{children}</Providers>
+        {children}
       </body>
     </html>
   );

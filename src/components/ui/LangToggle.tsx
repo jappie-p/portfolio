@@ -12,7 +12,7 @@ export function LangToggle() {
           type="button"
           aria-pressed={locale === l}
           onClick={() => set(l)}
-          className={`rounded-full px-3 py-1 ${locale === l ? "bg-leaf text-white" : "text-ink-dim"}`}
+          className={`rounded-full px-3 py-1 transition-colors ${locale === l ? "bg-leaf font-medium text-[#04130a]" : "text-ink-dim hover:text-ink"}`}
         >
           {l.toUpperCase()}
         </button>

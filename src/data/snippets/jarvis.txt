@@ -1,0 +1,25 @@
+function stripStegoChars(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/[\u200b-\u200f\u202a-\u202e\u2060-\u206f\ufff0-\uffff]/g, '')
+    .replace(/[\u{E0000}-\u{E007F}]/gu, '');
+}
+
+// Escape angle brackets in the body so a smuggled `</UNTRUSTED_EMAIL_BODY>`
+// can't break out of the fence we wrap around it.
+function escapeFenceBreakers(text) {
+  if (!text) return '';
+  return String(text).replace(/</g, '‹').replace(/>/g, '›');
+}
+
+function sanitizeUntrustedText(input, { maxLen = MAX_LEN_DEFAULT, html = false } = {}) {
+  if (input == null) return '';
+  let t = html ? stripHtmlSafe(input) : String(input);
+  t = stripStegoChars(t);
+  t = escapeFenceBreakers(t);
+  t = t.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  if (t.length > maxLen) {
+    t = t.slice(0, maxLen) + `\n\n[truncated — ${t.length - maxLen} chars omitted]`;
+  }
+  return t;
+}

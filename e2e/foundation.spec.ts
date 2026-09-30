@@ -3,24 +3,25 @@ import { test, expect } from "@playwright/test";
 test("defaults to Dutch and persists an English toggle", async ({ page }) => {
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("lang", "nl");
-  await expect(page.getByText("Game-artist die developer werd")).toBeVisible();
-  await page.getByRole("button", { name: "EN", exact: true }).click();
+  await expect(page.getByText("Van game-artist naar developer").first()).toBeVisible();
+  await page.locator("header").getByRole("button", { name: "EN", exact: true }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await expect(page.getByText("Game artist turned developer")).toBeVisible();
+  await expect(page.getByText("From game artist to developer").first()).toBeVisible();
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
 });
 
 test("nav reaches every section", async ({ page }) => {
   await page.goto("/");
-  for (const id of ["websites", "ai", "cyber", "about", "contact"]) {
+  for (const id of ["about", "websites", "ai", "cyber", "school", "contact"]) {
     await page.locator(`[data-nav="${id}"]`).click();
     await expect(page.locator(`[data-section="${id}"]`)).toBeInViewport({ timeout: 5000 });
   }
 });
 
-test("makes no sound on arrival", async ({ page }) => {
+test("makes no sound: no audio at all, and every video is muted", async ({ page }) => {
   await page.goto("/");
-  const media = await page.evaluate(() => document.querySelectorAll("audio,video").length);
-  expect(media).toBe(0);
+  await expect(page.locator("audio")).toHaveCount(0);
+  const unmuted = await page.evaluate(() => [...document.querySelectorAll("video")].filter((v) => !v.muted).length);
+  expect(unmuted).toBe(0);
 });

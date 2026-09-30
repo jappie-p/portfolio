@@ -1,0 +1,22 @@
+/**
+ * Project WGS84 (lat,lng) to SVG (x,y) using two calibration points.
+ * Assumes a small terrain (<2 km) where a linear two-point fit is sufficient.
+ */
+export function gpsToSvg(
+  lat: number,
+  lng: number,
+  refs: [GpsReferencePoint, GpsReferencePoint],
+): { x: number; y: number } {
+  const [a, b] = refs
+  const dLat = b.lat - a.lat
+  const dLng = b.lng - a.lng
+  const dX = b.svgX - a.svgX
+  const dY = b.svgY - a.svgY
+  // Two-axis linear fit. We assume one ref is roughly NW and the other SE.
+  const tLat = dLat === 0 ? 0 : (lat - a.lat) / dLat
+  const tLng = dLng === 0 ? 0 : (lng - a.lng) / dLng
+  return {
+    x: a.svgX + tLng * dX,
+    y: a.svgY + tLat * dY,
+  }
+}

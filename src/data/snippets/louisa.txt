@@ -1,0 +1,16 @@
+// Auto-darken a chosen colour just enough that white text stays readable
+// (WCAG AA, 4.5:1), so no colour choice can make a button invisible.
+function luminance(c) {
+  var a = c.map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+  return 0.2126 * a[0] + 0.7152 * a[1] + 0.0722 * a[2];
+}
+// Darken (keeping hue) until white text reaches 4.5:1 contrast.
+function ensureReadable(hex) {
+  try {
+    var c = hexToRgb(hex), guard = 0;
+    while (1.05 / (luminance(c) + 0.05) < 4.5 && guard++ < 40) {
+      c = [c[0] * 0.92, c[1] * 0.92, c[2] * 0.92];
+    }
+    return rgbToHex(c);
+  } catch (e) { return hex; }
+}

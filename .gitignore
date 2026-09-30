@@ -43,3 +43,8 @@ yarn-debug.log*
 yarn-error.log*
 test-results/
 playwright-report/
+
+# contact form inbox (local dev)
+.data/
+# unused assets kept locally, out of the repo and out of public/
+.archive/

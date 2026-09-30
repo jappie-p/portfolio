@@ -1,0 +1,28 @@
+// 5-second cooldown after 3 failed attempts
+if (record.count > CONFIG.COOLDOWN_AFTER && record.count <= CONFIG.MAX_ATTEMPTS_PER_IP) {
+    if (record.cooldownUntil && now < record.cooldownUntil) {
+        const remaining = Math.ceil((record.cooldownUntil - now) / 1000);
+        return res.status(429).json({
+            error: `Too many attempts. Try again in ${remaining} seconds.`,
+            retry_after: remaining
+        });
+    }
+    // Set cooldown for next attempt
+    record.cooldownUntil = now + CONFIG.COOLDOWN_DURATION;
+}
+
+// Block if too many attempts
+if (record.count > CONFIG.MAX_ATTEMPTS_PER_IP) {
+    record.blocked = true;
+    record.blockedUntil = now + CONFIG.IP_BLOCK_DURATION;
+
+    // Ban IP if they keep trying
+    if (record.count > CONFIG.MAX_ATTEMPTS_PER_IP * 3) {
+        banIP(ip, 'Excessive login attempts');
+    }
+
+    return res.status(429).json({
+        error: 'Too many login attempts. Try again in 15 minutes.',
+        retry_after: 900
+    });
+}
