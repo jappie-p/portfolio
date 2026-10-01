@@ -274,7 +274,11 @@ body {
 .hero-name .split-char { background-image: var(--hero-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
 /* the opening plays on load, no scroll needed */
-.hero-intro > * { animation: rise-in 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+/* the intro starts a hair above invisible, not at 0: Chrome only counts text as
+   painted once it shows, and the lead under the name is the first screen's
+   largest paint, so a fade from 0 would hold that measure back by seconds */
+@keyframes hero-rise { from { opacity: 0.01; transform: translateY(18px); } }
+.hero-intro > * { animation: hero-rise 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .hero-intro > :nth-child(1) { animation-delay: 0.05s; }
 .hero-intro > :nth-child(3) { animation-delay: 0.55s; }
 .hero-intro > :nth-child(4) { animation-delay: 0.7s; }

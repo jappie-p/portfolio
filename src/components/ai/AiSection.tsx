@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SplitText } from "@/components/ui/SplitText";
 import dynamic from "next/dynamic";
-import { invalidate } from "@react-three/fiber";
+import { redraw } from "@/lib/redraw";
 import { prefersReducedMotion } from "@/lib/motion";
 import { hasHardwareWebGL } from "@/lib/webgl";
 import { onScreen } from "@/lib/scene";
@@ -58,7 +58,7 @@ export function AiSection() {
     let raf = 0;
     const compute = () => {
       progress.current = trackProgress(track.scrollLeft, track.scrollWidth, track.clientWidth);
-      if (mode === "still") invalidate();
+      if (mode === "still") redraw();
     };
     const onScroll = () => {
       if (raf) return;
