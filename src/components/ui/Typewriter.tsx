@@ -2,15 +2,19 @@
 import { useEffect, useState } from "react";
 import { prefersReducedMotion } from "@/lib/motion";
 
-/** Types the text out once, with a blinking caret, then leaves the full text.
- *  Screen readers and reduced motion get the whole line at once. */
+/** Types the text out once over a dimmed copy of itself, with a blinking
+ *  caret. Screen readers and reduced motion get the whole line at once. */
 export function Typewriter({ text, delay = 700, cps = 45 }: { text: string; delay?: number; cps?: number }) {
-  const [shown, setShown] = useState(text.length);
+  // the whole line paints at once (dimmed), so it is readable before any
+  // script runs and counts for first paint; the typing lights it up
+  const [shown, setShown] = useState(0);
   useEffect(() => {
-    if (prefersReducedMotion()) return;
+    if (prefersReducedMotion()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShown(text.length);
+      return;
+    }
     let i = 0;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setShown(0);
     let timer = 0;
     const start = window.setTimeout(() => {
       timer = window.setInterval(() => {
@@ -31,7 +35,7 @@ export function Typewriter({ text, delay = 700, cps = 45 }: { text: string; dela
       <span aria-hidden>
         {text.slice(0, shown)}
         <span className={`typewriter-caret ${typing ? "" : "typewriter-caret--done"}`}>▍</span>
-        <span className="invisible">{text.slice(shown)}</span>
+        <span className="typewriter-rest">{text.slice(shown)}</span>
       </span>
     </>
   );

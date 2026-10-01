@@ -1,0 +1,76 @@
+/* What I want to learn: stars not lit yet on a dotted path (see LearnPath).
+   Drawn in once per visit, like the constellations. */
+.trail {
+  fill: none;
+  stroke: rgba(166, 180, 191, 0.55);
+  stroke-width: 1.6;
+  stroke-dasharray: 0 7;
+  stroke-linecap: round;
+}
+.trailMask {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 14;
+}
+[data-sky="armed"] .trailMask { stroke-dasharray: 1; stroke-dashoffset: 1; }
+[data-sky="lit"] .trailMask {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 2.4s cubic-bezier(0.45, 0, 0.3, 1) 0.2s;
+}
+/* where I am now: lit */
+.now {
+  position: absolute;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, #f4fff8 0 35%, #86efac 70%);
+  box-shadow: 0 0 10px 2px rgba(74, 222, 128, 0.65), 0 0 34px 10px rgba(74, 222, 128, 0.18);
+  translate: -50% -50%;
+}
+/* a goal: a dim star in a dashed ring, not lit yet. Beside its copy on a
+   phone, above it on a wide screen. */
+.unlit {
+  position: absolute;
+  left: 0;
+  top: 0.05rem;
+  display: block;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--canvas) 62%, transparent 72%);
+  box-shadow: 0 0 22px rgba(140, 160, 205, 0.14);
+}
+@media (min-width: 64rem) {
+  .unlit {
+    position: relative;
+    top: 0;
+    margin-bottom: 1.25rem;
+  }
+}
+.unlit svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  fill: none;
+  stroke: rgba(166, 180, 191, 0.55);
+  stroke-width: 1;
+  stroke-dasharray: 1.6 2.9;
+}
+.unlit::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #8593a0;
+  box-shadow: 0 0 6px rgba(166, 180, 191, 0.35);
+}
+[data-sky="armed"] .now,
+[data-sky="armed"] .unlit { opacity: 0; scale: 0.3; }
+[data-sky="lit"] .now,
+[data-sky="lit"] .unlit {
+  transition: opacity 0.5s ease var(--d), scale 0.8s cubic-bezier(0.2, 1.5, 0.4, 1) var(--d);
+}

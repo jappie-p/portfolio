@@ -9,7 +9,18 @@ type Blurb = { title: string; text: string };
 export type Dictionary = {
   meta: { title: string; description: string };
   nav: { home: string; websites: string; ai: string; cyber: string; school: string; about: string; contact: string; menu: string; close: string };
-  hero: { name: string; role: string; identity: string; work: string; contact: string; scroll: string };
+  hero: {
+    name: string;
+    role: string;
+    identity: string;
+    work: string;
+    contact: string;
+    scroll: string;
+    /** name of the row of doors, one into every part of the site */
+    doors: string;
+    /** "Naar" + a part of the site, the name of each door */
+    enter: string;
+  };
   sections: Record<"websites" | "ai" | "cyber" | "school", { title: string; lead: string }>;
   about: {
     title: string;
@@ -30,6 +41,13 @@ export type Dictionary = {
     refsCta: string;
     moreTitle: string;
     moreLead: string;
+    /** what a star's size means, above the skill constellations */
+    skyLegend: string;
+    /** "1 project" and "4 projects" under a star */
+    skyProject: string;
+    skyProjects: string;
+    /** under a star no project on the page lists */
+    skyNone: string;
   };
   skills: Record<SkillGroupId, string>;
   softSkills: Record<SoftSkillId, Blurb>;
@@ -37,7 +55,16 @@ export type Dictionary = {
   archive: Record<ArchiveId, Blurb>;
   /** Per project: a one-liner, the facts, and three highlights for the case panel. */
   projects: Record<ProjectSlug, { blurb: string; role: string; what: string; did: string; h1: string; h2: string; h3: string }>;
-  school: { title: string; programme: string; extraTitle: string; extraText: string };
+  school: {
+    title: string;
+    programme: string;
+    extraTitle: string;
+    extraText: string;
+    /** The Zelda build, playable inside its panel. */
+    game: { play: string; stop: string; controls: string; loading: string; title: string };
+    /** Words on the kiosk's printed receipt; the menu keeps the kiosk's own words. */
+    receipt: { order: string; eatIn: string; total: string; thanks: string };
+  };
   work: {
     kinds: Record<ProjectKind, string>;
     solo: string;
@@ -75,6 +102,8 @@ export type Dictionary = {
     repo: string;
     built: string;
     top: string;
+    /** the footer's links to the earlier versions of this site, kept online to compare */
+    versions: string;
     region: string;
     mapLabel: string;
     mapAlt: string;
@@ -95,6 +124,11 @@ export type Dictionary = {
       errRate: string;
       privacy: string;
     };
+  };
+  /** Captions for the sideways chapters of the AI scene. */
+  aiStory: {
+    jarvis: { label: string; title: string; body: string };
+    gotoguy: { label: string; title: string; body: string };
   };
   /** Captions for the sideways chapters of the cyber scene. */
   cyberStory: {

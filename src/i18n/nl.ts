@@ -24,6 +24,8 @@ export const nl: Dictionary = {
     work: "Bekijk mijn werk",
     contact: "Contact",
     scroll: "scroll",
+    doors: "Werelden in deze site",
+    enter: "Naar",
   },
   sections: {
     websites: { title: "Websites", lead: "Producten die mensen echt gebruiken." },
@@ -51,6 +53,10 @@ export const nl: Dictionary = {
     refsCta: "Vraag een referentie aan",
     moreTitle: "Meer werk",
     moreLead: "Kleinere dingen die ik bouwde, naast school en werk.",
+    skyLegend: "Hoe groter de ster, hoe meer van mijn projecten ermee gebouwd zijn. Kies er een om te zien welke.",
+    skyProject: "project",
+    skyProjects: "projecten",
+    skyNone: "Staat in geen projectstack hier",
   },
   skills: {
     frontend: "Frontend",
@@ -158,6 +164,14 @@ export const nl: Dictionary = {
     programme: "Creative Software Development, Grafisch Lyceum Utrecht",
     extraTitle: "Berlijn excursie-app",
     extraText: "Een iOS-app met eigen CMS voor een schoolreis naar Berlijn, gebouwd in de ontwikkelweek van twee dagen.",
+    game: {
+      play: "Speel hier",
+      stop: "Stoppen",
+      controls: "WASD lopen · spatie slaan · E praten",
+      loading: "Game laden",
+      title: "Zelda Remote Controller, speelbaar in je browser",
+    },
+    receipt: { order: "Bestelling", eatIn: "Hier opeten", total: "Totaal", thanks: "Bedankt en eet smakelijk!" },
   },
   work: {
     kinds: { company: "Eigen bedrijf", work: "Werkervaring", client: "Klantopdracht", personal: "Eigen project", school: "Schoolproject" },
@@ -208,6 +222,7 @@ export const nl: Dictionary = {
     repo: "Code van deze site",
     built: "Gebouwd door Jasper Pathuis",
     top: "Terug naar boven",
+    versions: "Eerdere versies",
     region: "Regio Utrecht, Nederland",
     mapLabel: "Utrecht, NL",
     mapAlt: "Wereldkaart waarop Utrecht in Nederland is gemarkeerd",
@@ -227,6 +242,18 @@ export const nl: Dictionary = {
       errMessage: "Schrijf minstens een paar woorden.",
       errRate: "Je stuurde net al een bericht. Probeer het zo nog eens.",
       privacy: "Ik gebruik je gegevens alleen om je te antwoorden.",
+    },
+  },
+  aiStory: {
+    jarvis: {
+      label: "01 · Jarvis",
+      title: "Leest mee, plant mee",
+      body: "Mail, agenda en de app komen binnen bij Jarvis. Claude denkt mee, en wat telt krijg ik als melding.",
+    },
+    gotoguy: {
+      label: "02 · Go to Guy",
+      title: "Eén brein voor het team",
+      body: "Mail, agenda, uren en CRM praten via één AI-bridge. Agents pakken het routinewerk op.",
     },
   },
   cyberStory: {

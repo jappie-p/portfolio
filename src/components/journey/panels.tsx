@@ -41,11 +41,26 @@ export function ProjectTrack({ label, children, ref }: { label: string; children
   );
 }
 
-/** One horizontally-snapping panel inside a project track. */
-export function ProjectPanel({ label, className = "", children }: { label: string; className?: string; children: ReactNode }) {
+/** One horizontally-snapping panel inside a project track, optionally with
+ *  its own art behind the copy (see Backdrop). On a short screen the panel
+ *  scrolls on its own, and the art spans the whole sheet, not one screen. */
+export function ProjectPanel({
+  label,
+  className = "",
+  backdrop,
+  children,
+}: {
+  label: string;
+  className?: string;
+  backdrop?: ReactNode;
+  children: ReactNode;
+}) {
   return (
-    <div data-panel className="project-panel" role="group" aria-roledescription="slide" aria-label={label} tabIndex={-1}>
-      <div className={`flex min-h-full w-full flex-col items-center justify-center px-6 pb-20 pt-24 sm:px-12 ${className}`}>{children}</div>
+    <div data-panel className="project-panel relative" role="group" aria-roledescription="slide" aria-label={label} tabIndex={-1}>
+      <div className="relative flex min-h-full flex-col">
+        {backdrop}
+        <div className={`relative z-10 flex w-full flex-1 flex-col items-center justify-center px-6 pb-20 pt-24 sm:px-12 ${className}`}>{children}</div>
+      </div>
     </div>
   );
 }

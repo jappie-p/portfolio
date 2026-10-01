@@ -8,6 +8,6 @@ test("without a hardware GPU the cyber topic shows the poster and still tells th
   await gotoCyber(page);
   const section = page.locator('[data-section="cyber"]');
   await expect(section.locator("canvas")).toHaveCount(0);
-  await expect(section.locator('[style*="firewall-poster.jpg"]')).toHaveCount(1);
+  await expect(section.locator('[style*="firewall-poster.webp"]')).toHaveCount(1);
   await expect(section.locator(".project-panel")).toHaveCount(4);
 });

@@ -20,7 +20,7 @@ export function Trailer({ name, label, className = "" }: { name: string; label: 
     }
     const io = new IntersectionObserver(
       ([e]) => {
-        if (e.isIntersecting) v.play().catch(() => setManual(true));
+        if (e.isIntersecting && e.intersectionRatio >= 0.35) v.play().catch(() => setManual(true));
         else v.pause();
       },
       { threshold: 0.35 },
@@ -37,7 +37,7 @@ export function Trailer({ name, label, className = "" }: { name: string; label: 
       loop
       playsInline
       preload="none"
-      poster={`${src}.jpg`}
+      poster={`${src}.webp`}
       controls={manual}
       aria-label={label}
       className={`block aspect-[16/10] h-auto w-full bg-black object-cover ${className}`}

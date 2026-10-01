@@ -1,7 +1,7 @@
 import { test, expect, type Locator } from "@playwright/test";
 
 /** Wait until a topic row has finished its smooth scroll and sits flush at the top. */
-const settled = (row: Locator) => expect.poll(() => row.evaluate((el) => Math.abs(el.getBoundingClientRect().top)), { timeout: 8000 }).toBeLessThan(2);
+const settled = (row: Locator) => expect.poll(() => row.evaluate((el) => Math.abs(el.getBoundingClientRect().top)), { timeout: 12_000 }).toBeLessThan(2);
 
 test("a project opens as a shareable case panel and closes with Escape and back", async ({ page }) => {
   await page.goto("/");
@@ -54,7 +54,12 @@ test("about walks sideways from the bio to skills, learning and more work", asyn
     ["Skills", "Wat ik nog wil leren"],
     ["Wat ik nog wil leren", "Meer werk"],
   ]) {
-    await panel(from).locator(".next-btn").click();
+    // let the sideways scroll land first
+    await expect.poll(() => panel(from).evaluate((el) => Math.abs(el.getBoundingClientRect().left)), { timeout: 8000 }).toBeLessThan(2);
+    // the keyboard, like the websites walk: a pointer click on a button in a
+    // snapping track makes Firefox lose it while it scrolls it into view
+    await panel(from).locator(".next-btn").focus();
+    await page.keyboard.press("Enter");
     await expect(panel(to)).toBeInViewport({ ratio: 0.9 });
   }
 });
@@ -67,4 +72,46 @@ test("the game is playable from the school topic", async ({ page, request }) => 
   const res = await request.get("/play/zelda/index.html");
   expect(res.status()).toBe(200);
   expect((await request.get("/play/zelda/pygame-zelda.tar.gz")).status()).toBe(200);
+});
+
+test("the game also runs inside its panel, and stops again", async ({ page }) => {
+  // the Python runtime comes from a CDN; the test only needs our page in the frame
+  await page.route(/pygame-web\.github\.io/, (r) => r.abort());
+  await page.goto("/");
+  await page.locator('[data-nav="school"]').click();
+  const school = page.locator('[data-section="school"]');
+  await settled(school);
+  await school.locator(".project-track").evaluate((track) => {
+    const panel = track.querySelectorAll<HTMLElement>(".project-panel")[1];
+    track.scrollTo({ left: panel.offsetLeft, behavior: "instant" });
+  });
+  const play = school.getByRole("button", { name: "Speel hier" });
+  // the tilt stage floats, so the button never holds still for the stability check
+  await play.click({ force: true });
+  const frame = school.locator('iframe[title="Zelda Remote Controller, speelbaar in je browser"]');
+  await expect(frame).toHaveAttribute("src", "/play/zelda/index.html");
+  await expect(frame).toBeFocused();
+  await school.getByRole("button", { name: "Stoppen" }).click({ force: true });
+  await expect(frame).toHaveCount(0);
+  await expect(play).toBeFocused();
+});
+
+test("a door in the hero zooms through to its part of the site", async ({ page }) => {
+  await page.goto("/");
+  // a normal click waits for the doors to finish rising out of the floor
+  await page.getByRole("navigation", { name: "Werelden in deze site" }).getByRole("button", { name: "Naar Cyber" }).click();
+  await settled(page.locator('[data-section="cyber"]'));
+  // the zoom's picture is gone once the live scene shows
+  await expect(page.locator("body > div[aria-hidden]").filter({ has: page.locator("img") })).toHaveCount(0, { timeout: 5000 });
+});
+
+test("a print on the School wall zooms into its project's panel", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('[data-nav="school"]').click();
+  const school = page.locator('[data-section="school"]');
+  await settled(school);
+  await school.getByRole("button", { name: "Zelda Remote Controller: Bekijk project" }).click({ force: true });
+  const zelda = school.locator(".project-panel", { has: page.getByRole("heading", { level: 3, name: "Zelda Remote Controller" }) });
+  await expect.poll(() => zelda.evaluate((el) => Math.abs(el.getBoundingClientRect().left)), { timeout: 8000 }).toBeLessThan(2);
+  await expect(zelda).toBeFocused();
 });

@@ -40,7 +40,7 @@ describe("project data", () => {
   it("ships every trailer as mp4, webm and a poster", () => {
     for (const p of Object.values(PROJECTS)) {
       if (!p.trailer) continue;
-      for (const ext of ["mp4", "webm", "jpg"]) {
+      for (const ext of ["mp4", "webm", "webp"]) {
         const file = path.join(PUBLIC, "trailers", `${p.trailer}.${ext}`);
         expect(existsSync(file), file).toBe(true);
         expect(statSync(file).size).toBeLessThan(3_000_000);

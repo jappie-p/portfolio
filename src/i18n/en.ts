@@ -24,6 +24,8 @@ export const en: Dictionary = {
     work: "See my work",
     contact: "Contact",
     scroll: "scroll",
+    doors: "Worlds on this site",
+    enter: "Go to",
   },
   sections: {
     websites: { title: "Websites", lead: "Products people actually use." },
@@ -50,6 +52,10 @@ export const en: Dictionary = {
     refsCta: "Ask for a reference",
     moreTitle: "More work",
     moreLead: "Smaller things I built alongside school and work.",
+    skyLegend: "The bigger the star, the more of my projects are built with it. Pick one to see which.",
+    skyProject: "project",
+    skyProjects: "projects",
+    skyNone: "Not in any project stack here",
   },
   skills: {
     frontend: "Frontend",
@@ -157,6 +163,14 @@ export const en: Dictionary = {
     programme: "Creative Software Development, Grafisch Lyceum Utrecht",
     extraTitle: "Berlin field trip app",
     extraText: "An iOS app with its own CMS for a school trip to Berlin, built during a two-day development week.",
+    game: {
+      play: "Play here",
+      stop: "Stop",
+      controls: "WASD to walk · space to swing · E to talk",
+      loading: "Loading the game",
+      title: "Zelda Remote Controller, playable in your browser",
+    },
+    receipt: { order: "Order", eatIn: "Eat in", total: "Total", thanks: "Thank you, enjoy your meal!" },
   },
   work: {
     kinds: { company: "Own company", work: "Work experience", client: "Client work", personal: "Personal project", school: "School project" },
@@ -207,6 +221,7 @@ export const en: Dictionary = {
     repo: "Code of this site",
     built: "Built by Jasper Pathuis",
     top: "Back to top",
+    versions: "Earlier versions",
     region: "Utrecht area, the Netherlands",
     mapLabel: "Utrecht, NL",
     mapAlt: "World map with Utrecht in the Netherlands marked",
@@ -226,6 +241,18 @@ export const en: Dictionary = {
       errMessage: "Write at least a few words.",
       errRate: "You just sent a message. Try again in a bit.",
       privacy: "I only use your details to reply to you.",
+    },
+  },
+  aiStory: {
+    jarvis: {
+      label: "01 · Jarvis",
+      title: "Reads along, plans along",
+      body: "Mail, the calendar and the app flow into Jarvis. Claude thinks along, and what matters comes back to me as a notification.",
+    },
+    gotoguy: {
+      label: "02 · Go to Guy",
+      title: "One brain for the team",
+      body: "Mail, calendar, hours and CRM talk through one AI bridge. Agents pick up the routine work.",
     },
   },
   cyberStory: {

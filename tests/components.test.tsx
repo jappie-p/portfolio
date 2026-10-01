@@ -3,6 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { TopicRow } from "@/components/journey/panels";
 import { Nav } from "@/components/ui/Nav";
 import { CyberSection } from "@/components/cyber/CyberSection";
+import { AiSection } from "@/components/ai/AiSection";
 import { About } from "@/components/sections/About";
 import { School } from "@/components/sections/School";
 import { Contact } from "@/components/sections/Contact";
@@ -26,7 +27,7 @@ describe("CyberSection", () => {
   it("server-renders as a one-screen topic with the poster floor, never a canvas or video", () => {
     expect(html).toContain('data-section="cyber"');
     expect(html).toContain("topic-row");
-    expect(html).toContain("firewall-poster.jpg");
+    expect(html).toContain("firewall-poster.webp");
     expect(html).not.toContain("<canvas");
     expect(html).not.toContain("<video");
   });
@@ -37,6 +38,20 @@ describe("CyberSection", () => {
     }
     expect(html.indexOf("DDoS-aanval")).toBeLessThan(html.indexOf("De muur houdt stand"));
     expect(html.indexOf("De muur houdt stand")).toBeLessThan(html.indexOf("Homelab"));
+  });
+});
+
+describe("AiSection", () => {
+  const html = renderToStaticMarkup(<AiSection />);
+  it("server-renders the poster, never a canvas", () => {
+    expect(html).toContain('data-section="ai"');
+    expect(html).toContain("ai-poster.webp");
+    expect(html).not.toContain("<canvas");
+  });
+  it("plays three chapters sideways: the cover, Jarvis, Go to Guy", () => {
+    expect(html.match(/class="project-panel/g)).toHaveLength(3);
+    expect(html.indexOf("Leest mee, plant mee")).toBeLessThan(html.indexOf("Eén brein voor het team"));
+    for (const name of ["Jarvis", "Go to Guy"]) expect(html).toContain(name);
   });
 });
 

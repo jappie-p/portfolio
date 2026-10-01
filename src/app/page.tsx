@@ -7,13 +7,14 @@ import { RevealObserver } from "@/components/journey/RevealObserver";
 import { Hero } from "@/components/sections/Hero";
 import { About } from "@/components/sections/About";
 import { Websites } from "@/components/sections/Websites";
-import { Ai } from "@/components/sections/Ai";
+import { AiSection } from "@/components/ai/AiSection";
 import { CyberSection } from "@/components/cyber/CyberSection";
 import { School } from "@/components/sections/School";
 import { Contact } from "@/components/sections/Contact";
 import { CaseOverlay } from "@/components/work/CaseOverlay";
 import { highlightedSnippets } from "@/lib/highlight";
 import { LangSync } from "@/i18n/useT";
+import { CursorRing } from "@/components/ui/CursorRing";
 import { SITE, BASE_PATH } from "@/data/site";
 import { SKILLS } from "@/data/skills";
 
@@ -44,7 +45,7 @@ export default function Home() {
         <Hero />
         <About />
         <Websites />
-        <Ai />
+        <AiSection />
         <CyberSection />
         <School />
         <Contact />
@@ -53,6 +54,7 @@ export default function Home() {
       <RevealObserver />
       <ProgressRail />
       <CaseOverlay snippets={highlightedSnippets()} />
+      <CursorRing />
     </>
   );
 }

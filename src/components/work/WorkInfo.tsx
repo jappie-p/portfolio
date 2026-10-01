@@ -1,5 +1,6 @@
 "use client";
 import { PROJECT_NAMES, type ProjectSlug } from "@/lib/chapters";
+import { SplitText } from "@/components/ui/SplitText";
 import { PROJECTS } from "@/data/projects";
 import { BASE_PATH } from "@/data/site";
 import { useT } from "@/i18n/useT";
@@ -15,7 +16,7 @@ export function WorkInfo({ slug, className = "" }: { slug: ProjectSlug; classNam
   return (
     <div data-reveal className={`flex max-w-md flex-col items-start ${className}`}>
       <ProjectMeta slug={slug} />
-      <h3 className="headline mt-4 text-5xl text-ink sm:text-6xl">{PROJECT_NAMES[slug]}</h3>
+      <SplitText as="h3" text={PROJECT_NAMES[slug]} className="headline mt-4 text-5xl text-ink sm:text-6xl" />
       <p className="mt-3 text-sm text-ink-faint">
         {t.work.role}: <span className="text-ink-dim">{c.role}</span>
       </p>

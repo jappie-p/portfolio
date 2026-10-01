@@ -1,0 +1,243 @@
+/* The receipt printer: a slot in a graphite housing and warm thermal paper
+   feeding up out of it. Everything is in em, so the whole piece scales with
+   one font-size on the root.
+   Layered with the site's components so utilities on the root (position,
+   font-size) win, as they do for .glass or .label. */
+
+@layer components {
+  .root {
+    --paper: #f4f0e6;
+    --ink: rgba(33, 30, 27, 0.9);
+    --tooth: 0.42em;
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 10px;
+    line-height: 1.45;
+    font-family: "HH Receipt Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    font-variant-ligatures: none;
+    user-select: none;
+  }
+
+  /* Only the bottom edge clips: that is the slot. Above and beside it the paper
+     and its shadow are free, so it can be torn off and lifted away. */
+  .feed {
+    position: relative;
+    width: 26em;
+    clip-path: inset(-100vh -100vw 0 -100vw);
+  }
+
+  .lift {
+    filter: drop-shadow(0 0.9em 1.4em rgba(0, 0, 0, 0.45)) drop-shadow(0 0.15em 0.25em rgba(0, 0, 0, 0.3));
+    will-change: transform, opacity;
+    transform-origin: 50% 100%;
+  }
+
+  .paper {
+    position: relative;
+    padding: 1.7em 1.5em 2.4em;
+    color: var(--ink);
+    background:
+      /* the room's lamps warm its upper left */
+      linear-gradient(115deg, rgba(255, 186, 110, 0.1), transparent 45%),
+      /* the top of the strip curls back, away from the light */
+      linear-gradient(180deg, rgba(90, 70, 40, 0.16), transparent 3.5em),
+      /* and it bows a little across its width */
+      linear-gradient(90deg, rgba(90, 70, 40, 0.09), transparent 12%, transparent 88%, rgba(90, 70, 40, 0.1)),
+      var(--grain),
+      var(--paper);
+    /* torn edges: teeth along the top and the bottom */
+    -webkit-mask:
+      conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(var(--tooth) * 2) var(--tooth) repeat-x,
+      conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(var(--tooth) * 2) var(--tooth) repeat-x,
+      linear-gradient(#000 0 0) center / 100% calc(100% - var(--tooth) * 2 + 1px) no-repeat;
+    mask:
+      conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) top / calc(var(--tooth) * 2) var(--tooth) repeat-x,
+      conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(var(--tooth) * 2) var(--tooth) repeat-x,
+      linear-gradient(#000 0 0) center / 100% calc(100% - var(--tooth) * 2 + 1px) no-repeat;
+  }
+
+  /* thermal print is never quite black, and bleeds a hair into the paper */
+  .paper > * {
+    text-shadow: 0 0 0.04em rgba(33, 30, 27, 0.45);
+  }
+
+  /* and the head runs a touch cooler across one band of the strip */
+  .paper::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg, transparent 38%, color-mix(in srgb, var(--paper) 30%, transparent) 50%, transparent 62%);
+  }
+
+  .logo {
+    display: block;
+    width: 5.2em;
+    height: auto;
+    margin: 0 auto 0.5em;
+    color: var(--ink);
+  }
+
+  .brand {
+    font-weight: 700;
+    font-size: 1.5em;
+    letter-spacing: 0.08em;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  .tagline {
+    margin-top: 0.15em;
+    text-align: center;
+    letter-spacing: 0.22em;
+    font-size: 0.92em;
+  }
+
+  .rule {
+    height: 1.3em;
+    background: repeating-linear-gradient(90deg, var(--ink) 0 0.36em, transparent 0.36em 0.62em) center / 100% 1px no-repeat;
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 1em;
+  }
+
+  .row > :first-child {
+    min-width: 0;
+  }
+
+  .row > :last-child {
+    flex: none;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .total {
+    font-weight: 700;
+    font-size: 1.3em;
+    letter-spacing: 0.02em;
+  }
+
+  .barcode {
+    height: 3.4em;
+    margin: 0.5em 1.4em 0;
+    background-repeat: no-repeat;
+  }
+
+  /* EAN layout: the first digit outside the bars, a group under each half */
+  .digits {
+    display: grid;
+    grid-template-columns: 1.2em 1fr 1fr;
+    margin: 0.15em 1.4em 0 0.2em;
+    font-size: 0.86em;
+    letter-spacing: 0.14em;
+    text-align: center;
+  }
+
+  .thanks {
+    margin-top: 1em;
+    text-align: center;
+    letter-spacing: 0.06em;
+  }
+
+  /* --- the printer ----------------------------------------------------------- */
+
+  .printer {
+    position: relative;
+    z-index: 1;
+    width: 30em;
+    height: 4.2em;
+    margin-top: -0.55em;
+    border-radius: 0.9em 0.9em 1.3em 1.3em;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.07), transparent 38%),
+      linear-gradient(180deg, #1d242d, #0e1318);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      inset 0 -0.3em 0.6em rgba(0, 0, 0, 0.45),
+      0 1.6em 2.4em rgba(0, 0, 0, 0.55);
+  }
+
+  /* the mouth: a dark slit with a serrated tear bar over its front lip */
+  .slot {
+    position: absolute;
+    left: 1.6em;
+    right: 1.6em;
+    top: 0.35em;
+    height: 0.7em;
+    border-radius: 0.35em;
+    background: linear-gradient(180deg, #020304, #0a0d11 70%, #141a21);
+    box-shadow: inset 0 0.18em 0.3em rgba(0, 0, 0, 0.9), 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .slot::after {
+    content: "";
+    position: absolute;
+    left: 0.6em;
+    right: 0.6em;
+    bottom: -0.3em;
+    height: 0.34em;
+    background:
+      conic-gradient(from -45deg at bottom, #0000, #b8c2cc 1deg 89deg, #0000 90deg) bottom / 0.42em 0.21em repeat-x,
+      linear-gradient(180deg, #d3dbe2, #7e8a95) top / 100% 0.14em no-repeat;
+    opacity: 0.55;
+  }
+
+  /* the paper throws a shadow on the housing just under where it comes out */
+  .slot::before {
+    content: "";
+    position: absolute;
+    left: 2.2em;
+    right: 2.2em;
+    top: 0.5em;
+    height: 1.4em;
+    background: radial-gradient(60% 100% at 50% 0%, rgba(0, 0, 0, 0.55), transparent 70%);
+  }
+
+  .led {
+    position: absolute;
+    right: 2em;
+    bottom: 1.05em;
+    width: 0.55em;
+    height: 0.55em;
+    border-radius: 50%;
+    background: #8cc63f;
+    box-shadow: 0 0 0.5em 0.1em rgba(140, 198, 63, 0.75);
+    opacity: 0.45;
+  }
+
+  .button {
+    position: absolute;
+    left: 2em;
+    bottom: 0.85em;
+    width: 2.4em;
+    height: 0.9em;
+    border-radius: 0.45em;
+    background: linear-gradient(180deg, #252d37, #151a20);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 1px 1px rgba(0, 0, 0, 0.6);
+  }
+
+  .root[data-phase="feed"] .led {
+    opacity: 1;
+    animation: blink 0.24s steps(1) infinite;
+  }
+
+  .root[data-paused] .led {
+    animation-play-state: paused;
+  }
+
+  @keyframes blink {
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .root[data-phase="feed"] .led {
+      animation: none;
+    }
+  }
+}

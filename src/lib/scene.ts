@@ -18,13 +18,28 @@ export function useSceneMode(): SceneMode {
   return mode;
 }
 
+/** Reduced motion as state: false on the server and the first render. */
+export function useStill(): boolean {
+  const [still, setStill] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setStill(prefersReducedMotion());
+  }, []);
+  return still;
+}
+
+/** An observer entry with some actual area on screen. */
+export const onScreen = (e: IntersectionObserverEntry) => e.isIntersecting && e.intersectionRatio > 0;
+
 /** Whether an element is on screen (grown by `margin`), for pausing render loops. */
 export function useInView(ref: RefObject<Element | null>, margin = "0px"): boolean {
   const [inView, setInView] = useState(false);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const io = new IntersectionObserver((entries) => setInView(entries.some((e) => e.isIntersecting)), { rootMargin: margin });
+    // a panel that only touches the viewport's edge (the ones beside the
+    // current panel do, exactly) "intersects" with zero area: not on screen
+    const io = new IntersectionObserver((entries) => setInView(entries.some(onScreen)), { rootMargin: margin, threshold: [0, 0.001] });
     io.observe(el);
     return () => io.disconnect();
   }, [ref, margin]);
@@ -45,11 +60,17 @@ export function useNearOnce(ref: RefObject<Element | null>, margin = "100% 0px")
   return near;
 }
 
-/** Scroll to a topic, entering it at its first panel. */
-export function jumpTo(id: TopicId) {
+/** Scroll to a topic, entering it at its first panel (or at `panel`).
+ *  `instant` skips the smooth scroll, for when a zoom already covers the move. */
+export function jumpTo(id: TopicId, { panel = 0, instant = false }: { panel?: number; instant?: boolean } = {}) {
   const row = document.querySelector<HTMLElement>(`[data-section="${id}"]`);
   if (!row) return;
-  row.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
-  row.querySelector<HTMLElement>(".project-track")?.scrollTo({ left: 0 });
+  const behavior = instant || prefersReducedMotion() ? "instant" : "smooth";
+  row.scrollIntoView({ behavior, block: "start" });
+  const track = row.querySelector<HTMLElement>(".project-track");
+  const target = track?.querySelectorAll<HTMLElement>(".project-panel")[panel];
+  track?.scrollTo({ left: target?.offsetLeft ?? 0, behavior });
+  // keyboard users land where they went
+  if (instant) (target ?? row).focus({ preventScroll: true });
 }
 

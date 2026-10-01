@@ -44,6 +44,8 @@ export function ContactForm() {
       if (res.ok) {
         el.reset();
         setStatus("sent");
+        // the skyline behind the form lights its beacon for the reader
+        window.dispatchEvent(new Event("contact:sent"));
       } else setStatus(res.status === 429 ? "rate" : "error");
     } catch {
       setStatus("error");

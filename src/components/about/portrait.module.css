@@ -1,0 +1,43 @@
+/* The portrait in starlight (see Portrait). */
+.portrait {
+  position: relative;
+  width: min(100%, 30rem);
+  aspect-ratio: 4 / 5;
+  /* a rim of cool light round the figure, strongest from above... */
+  filter: drop-shadow(0 -1px 1px rgba(200, 220, 255, 0.32)) drop-shadow(0 -6px 22px rgba(110, 145, 215, 0.2));
+  /* ...then the shoulders and the bottom of the frame dissolve into the sky */
+  -webkit-mask-image: radial-gradient(96% 88% at 50% 20%, #000 54%, rgba(0, 0, 0, 0.5) 72%, transparent 88%);
+  mask-image: radial-gradient(96% 88% at 50% 20%, #000 54%, rgba(0, 0, 0, 0.5) 72%, transparent 88%);
+}
+/* the figure alone: the matte lines up with the photo's cover crop */
+.cutout {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-size: cover;
+  mask-size: cover;
+  -webkit-mask-position: 50% 28%;
+  mask-position: 50% 28%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+.photo {
+  filter: saturate(0.72) contrast(1.06) brightness(0.83);
+}
+/* cool the figure: the face keeps most of its colour, the body falls into shadow */
+.tone {
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: multiply;
+  background:
+    radial-gradient(44% 38% at 50% 40%, #edf1f8, #b7c3dc 72%, transparent 100%),
+    linear-gradient(180deg, #c9d4e8 0%, #b3c1dc 40%, #6c7fa6 72%, #27344f 100%);
+}
+/* starlight from above catches the hair, and a little from the right */
+.starlight {
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(42% 22% at 56% 6%, rgba(170, 200, 255, 0.3), transparent 72%),
+    linear-gradient(270deg, rgba(120, 160, 230, 0.14), transparent 38%);
+}

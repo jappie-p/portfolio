@@ -1,21 +1,22 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { SplitText } from "@/components/ui/SplitText";
 import dynamic from "next/dynamic";
 import { invalidate } from "@react-three/fiber";
 import { prefersReducedMotion } from "@/lib/motion";
 import { hasHardwareWebGL } from "@/lib/webgl";
+import { onScreen } from "@/lib/scene";
 import { PROJECT_NAMES } from "@/lib/chapters";
 import { ProjectTrack } from "@/components/journey/panels";
 import { useT } from "@/i18n/useT";
 import { Chapter } from "./Chapter";
-import { OpenCaseButton } from "@/components/work/CaseOverlay";
-import { ProjectMeta } from "@/components/work/ProjectMeta";
+import { ProjectCard } from "@/components/work/ProjectCard";
 import { trackProgress } from "./lib/scene-math";
 
 // the scene loads only on the client, in its own chunk
 const CyberCanvas = dynamic(() => import("./CyberCanvas").then((m) => m.CyberCanvas), { ssr: false });
 
-const POSTER = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/firewall-poster.jpg`;
+const POSTER = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/firewall-poster.webp`;
 
 /**
  * Cyber topic: one screen like the other topics, with a live WebGL firewall
@@ -71,18 +72,18 @@ export function CyberSection() {
     };
   }, [mode]);
 
-  // mount the canvas a screen early and pause it far away; power on once properly in view
+  // mount the canvas a screen early, draw only while on screen, power on once properly in view
   useEffect(() => {
     const section = sectionRef.current;
     if (mode === "poster" || !section) return;
     const near = new IntersectionObserver(
       (entries) => {
-        const n = entries.some((e) => e.isIntersecting);
-        if (n) setMounted(true);
-        setActive(n);
+        if (entries.some(onScreen)) setMounted(true);
       },
-      { rootMargin: "100% 0px 100% 0px" },
+      { rootMargin: "100% 0px 100% 0px", threshold: [0, 0.001] },
     );
+    // draw only while some of it is actually on screen
+    const shown = new IntersectionObserver((entries) => setActive(entries.some(onScreen)), { threshold: [0, 0.001] });
     const seen = new IntersectionObserver(
       (entries) => {
         if (!entries.some((e) => e.isIntersecting)) return;
@@ -92,9 +93,11 @@ export function CyberSection() {
       { threshold: 0.6 },
     );
     near.observe(section);
+    shown.observe(section);
     seen.observe(section);
     return () => {
       near.disconnect();
+      shown.disconnect();
       seen.disconnect();
     };
   }, [mode]);
@@ -119,27 +122,22 @@ export function CyberSection() {
       <ProjectTrack label={s.title} ref={trackRef}>
         <Chapter label={s.title} next={t.ui.scrollSideways}>
           <p className="label text-white/70">{t.nav.cyber}</p>
-          <h2 className="headline mt-3 text-4xl text-white sm:text-5xl">{s.title}</h2>
+          <SplitText as="h2" text={s.title} className="headline mt-3 text-4xl text-white sm:text-5xl" />
           <p className="mt-3 text-base text-white/80 sm:text-lg">{s.lead}</p>
         </Chapter>
         <Chapter label={story.attack.title} next={t.ui.next}>
           <p className="label text-rose-300">{story.attack.label}</p>
-          <h3 className="headline mt-3 text-4xl text-white sm:text-5xl">{story.attack.title}</h3>
+          <SplitText as="h3" text={story.attack.title} className="headline mt-3 text-4xl text-white sm:text-5xl" />
           <p className="mt-3 text-base text-white/80 sm:text-lg">{story.attack.body}</p>
         </Chapter>
         <Chapter label={story.defense.title} next={t.ui.next}>
           <p className="label text-cyan-300">{story.defense.label}</p>
-          <h3 className="headline mt-3 text-4xl text-white sm:text-5xl">{story.defense.title}</h3>
+          <SplitText as="h3" text={story.defense.title} className="headline mt-3 text-4xl text-white sm:text-5xl" />
           <p className="mt-3 text-base text-white/80 sm:text-lg">{story.defense.body}</p>
         </Chapter>
         <Chapter label={PROJECT_NAMES.homelab} align="end">
           <p className="label text-emerald-300">{story.secure.label}</p>
-          <div className="glass mt-4 max-w-sm p-8 [text-shadow:none]">
-            <ProjectMeta slug="homelab" />
-            <h3 className="headline mt-3 text-4xl text-ink">{PROJECT_NAMES.homelab}</h3>
-            <p className="mt-3 leading-relaxed text-ink-dim">{t.projects.homelab.blurb}</p>
-            <OpenCaseButton slug="homelab" className="mt-6" />
-          </div>
+          <ProjectCard slug="homelab" className="mt-4" />
         </Chapter>
       </ProjectTrack>
     </section>

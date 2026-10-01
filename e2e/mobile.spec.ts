@@ -29,3 +29,11 @@ test("a case panel opens as a sheet and closes again", async ({ page }) => {
   await dialog.getByRole("button", { name: /Sluiten/ }).click();
   await expect(dialog).toBeHidden();
 });
+
+test("the game's trailer plays without a play button, since the game needs a keyboard", async ({ page }) => {
+  await page.goto("/");
+  const school = page.locator('[data-section="school"]');
+  await school.scrollIntoViewIfNeeded();
+  await expect(school.getByRole("button", { name: "Speel hier" })).toBeHidden();
+  await expect(school.locator("video").first()).toBeAttached();
+});

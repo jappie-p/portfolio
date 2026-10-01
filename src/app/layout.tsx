@@ -33,6 +33,12 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="nl" className={`${displayFont.variable} ${bodyFont.variable} antialiased`}>
+      <head>
+        {/* without scripts nothing gets typed out, so show the hero line in full */}
+        <noscript>
+          <style>{".typewriter-rest{opacity:1}"}</style>
+        </noscript>
+      </head>
       <body>
         {children}
       </body>

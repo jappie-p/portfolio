@@ -25,6 +25,7 @@ uniform float uHorizon;
 uniform float uSpeed;
 uniform vec3 uNear;
 uniform vec3 uFar;
+uniform float uBoot;
 varying vec2 vUv;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -83,6 +84,13 @@ void main() {
 
     float lit = (line + halo) * (0.16 + 0.72 * fog) * (1.0 + scan * 1.6 + spot * 3.0);
     lit += on * breathe * fog * 0.55 * smoothstep(0.0, 0.5, e);
+    // power-on: the light climbs the screen from your feet to the horizon,
+    // a bright front leading it (measured on screen, where depth bunches up)
+    float b = uBoot * uBoot * (3.0 - 2.0 * uBoot);
+    float front = uHorizon * (1.0 - b);
+    float powered = smoothstep(front - 0.004, front + 0.02, d);
+    float wave = exp(-pow((d - front) * 70.0, 2.0)) * (1.0 - b) * 2.4;
+    lit = lit * powered + (line + halo + 0.15) * wave;
     col += lc * lit * nearFade;
     col += uNear * spot * 0.08 * nearFade;
   }
@@ -91,11 +99,10 @@ void main() {
 }
 `;
 
-export type HexTone = "hero" | "contact";
+export type HexTone = "hero";
 
 const TONES: Record<HexTone, { near: string; far: string; horizon: number; speed: number }> = {
   hero: { near: "#4ade80", far: "#22d3ee", horizon: 0.29, speed: 0.55 },
-  contact: { near: "#5eead4", far: "#4ade80", horizon: 0.15, speed: -0.35 },
 };
 
 function Floor({ tone, still }: { tone: HexTone; still: boolean }) {
@@ -114,6 +121,7 @@ function Floor({ tone, still }: { tone: HexTone; still: boolean }) {
         uSpeed: { value: t.speed },
         uNear: { value: new THREE.Color(t.near) },
         uFar: { value: new THREE.Color(t.far) },
+        uBoot: { value: 0 },
       },
       depthTest: false,
       depthWrite: false,
@@ -141,7 +149,14 @@ function Floor({ tone, still }: { tone: HexTone; still: boolean }) {
   }, [mat, still, tone]);
 
   useFrame((_, delta) => {
-    if (!still) mat.uniforms.uTime.value += Math.min(delta, 0.05);
+    const dt = Math.min(delta, 0.05);
+    if (still) {
+      mat.uniforms.uBoot.value = 1;
+      return;
+    }
+    mat.uniforms.uTime.value += dt;
+    // the floor powers on the first time it plays (the loop only runs on screen)
+    mat.uniforms.uBoot.value = Math.min(1, mat.uniforms.uBoot.value + dt / 1.9);
   });
 
   return (

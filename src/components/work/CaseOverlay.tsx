@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { SplitText } from "@/components/ui/SplitText";
 import { PROJECT_NAMES, type ProjectSlug } from "@/lib/chapters";
 import { PROJECTS } from "@/data/projects";
 import { BASE_PATH, SITE } from "@/data/site";
@@ -118,7 +119,7 @@ export function CaseOverlay({ snippets }: { snippets: Partial<Record<ProjectSlug
 
         <ProjectMeta slug={slug} />
         <h2 id="case-title" className="headline mt-3 text-4xl text-ink sm:text-6xl">
-          {name}
+          <SplitText intro text={name} />
         </h2>
         <p className="mt-3 text-ink-dim">
           <span className="text-ink-faint">{t.work.role}: </span>

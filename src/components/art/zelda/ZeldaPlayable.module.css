@@ -1,0 +1,59 @@
+/* Link's walk cycle from public/art/zelda/link.png: eight 18x26 cells, drawn
+   at 4x with crisp pixels. */
+.walker {
+  display: block;
+  width: 72px;
+  height: 104px;
+  background-repeat: no-repeat;
+  background-size: 576px 312px;
+  image-rendering: pixelated;
+  animation: walk 0.72s steps(8) infinite;
+}
+@keyframes walk {
+  to { background-position: -576px 0; }
+}
+
+/* An ALttP-style meter: a pale frame, a dark well, a green bar that fills in steps. */
+.meter {
+  display: block;
+  width: 168px;
+  height: 14px;
+  padding: 2px;
+  background: #070b12;
+  box-shadow: 0 0 0 2px #e6dcc0, 0 0 0 4px #10161e;
+}
+.fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(#b8f7cf 0 34%, #4ade80 34% 100%);
+  animation: fill 2.6s steps(14) infinite;
+}
+@keyframes fill {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+/* once the game is up the loader fades out; nothing in it keeps ticking */
+.done .walker, .done .fill {
+  animation-play-state: paused;
+}
+
+/* the controls chip over the running game: stays a while, then gets out of the way */
+.hint {
+  animation: hint 10s ease forwards;
+}
+@keyframes hint {
+  0%, 82% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* reduced motion: a standing Link, a meter part way, and the chip simply stays */
+@media (prefers-reduced-motion: reduce) {
+  .walker, .fill, .hint { animation: none; }
+  .fill { width: 40%; }
+}
+
+/* the game needs a keyboard: on touch-only screens the trailer just plays */
+@media (hover: none), (pointer: coarse) {
+  .play { display: none; }
+}

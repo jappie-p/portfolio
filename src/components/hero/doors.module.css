@@ -1,0 +1,208 @@
+/* The hero's doors: tall arches standing on the honeycomb floor, each a
+   window into one part of the site, spilling its light on the floor. */
+
+.doors {
+  position: absolute;
+  inset-inline: 0;
+  bottom: var(--floor, 15dvh);
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  perspective: 1100px;
+  perspective-origin: 50% 0%;
+  pointer-events: none;
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: clamp(9px, 2.3vw, 40px);
+  padding: 0 16px;
+  transform-style: preserve-3d;
+  transform: rotateX(calc(var(--py, 0) * -5deg)) rotateY(calc(var(--px, 0) * 7deg));
+  transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+  --w: clamp(46px, 12.4vw, 168px);
+}
+
+/* the row bows toward you: the outer doors stand nearer and turn inward */
+.slot {
+  position: relative;
+  width: var(--w);
+  pointer-events: auto;
+  transform-style: preserve-3d;
+  transform: rotateY(calc(var(--t) * -16deg)) translateZ(calc(var(--t) * var(--t) * 70px)) translateY(calc(var(--t) * var(--t) * 12px));
+}
+
+/* the floor line: a door rises out of it, so nothing shows below it */
+.rise {
+  display: block;
+  clip-path: inset(-80px -80px 0 -80px);
+}
+
+.door {
+  display: block;
+  width: 100%;
+  cursor: pointer;
+  translate: 0 var(--lift, 0px);
+  transition: translate 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.6s;
+  animation: rise 1.2s cubic-bezier(0.16, 0.9, 0.2, 1) both;
+  animation-delay: calc(900ms + var(--i) * 110ms);
+}
+@keyframes rise {
+  from {
+    transform: translateY(104%);
+  }
+}
+
+.arch {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1.75;
+  overflow: hidden;
+  border-radius: 999px 999px 3px 3px;
+  background: #05080d;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--hue) 55%, transparent),
+    0 0 22px color-mix(in srgb, var(--hue) 34%, transparent),
+    0 0 70px color-mix(in srgb, var(--hue) 16%, transparent);
+  transition: box-shadow 0.6s;
+}
+/* glass: a sheen from above, and the world's own light pooling at the sill */
+.arch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), transparent 26%),
+    radial-gradient(90% 30% at 50% 104%, color-mix(in srgb, var(--hue) 40%, transparent), transparent 70%);
+  /* light leaking in around the frame, the world's own colour */
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--hue) 60%, transparent),
+    inset 0 0 22px color-mix(in srgb, var(--hue) 32%, transparent),
+    inset 0 0 14px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.world {
+  object-fit: cover;
+  filter: brightness(1.18) saturate(1.15);
+  scale: 1.14;
+  translate: calc(var(--px, 0) * -14px) calc(var(--py, 0) * -6px);
+  transition: translate 0.9s cubic-bezier(0.2, 0.8, 0.2, 1), scale 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* the door mirrored in the glossy floor */
+.reflection {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  aspect-ratio: 1 / 1.75;
+  overflow: hidden;
+  border-radius: 999px 999px 3px 3px;
+  transform: scaleY(-1);
+  opacity: 0.26;
+  filter: blur(2px) saturate(1.2);
+  mask-image: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent 42%);
+  pointer-events: none;
+  animation: show 1.2s ease both;
+  animation-delay: calc(1300ms + var(--i) * 110ms);
+}
+
+/* light spilling onto the floor in front of the door */
+.pool {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 300%;
+  height: calc(var(--w) * 0.7);
+  translate: -50% -50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--hue) 60%, transparent), color-mix(in srgb, var(--hue) 14%, transparent) 55%, transparent);
+  mix-blend-mode: screen;
+  opacity: 0.6;
+  transition: opacity 0.6s;
+  pointer-events: none;
+  animation: show 1.4s ease both;
+  animation-delay: calc(1200ms + var(--i) * 110ms);
+}
+@keyframes show {
+  from {
+    opacity: 0;
+  }
+}
+
+.label {
+  position: absolute;
+  top: calc(100% + 26px);
+  left: 50%;
+  display: flex;
+  gap: 8px;
+  translate: -50% 0;
+  white-space: nowrap;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  opacity: 0.8;
+  transition: color 0.4s, opacity 0.4s;
+  pointer-events: none;
+}
+.num {
+  color: color-mix(in srgb, var(--hue) 75%, white);
+}
+
+/* pointing at a door: it steps up and brightens, the others step back */
+.slot:hover,
+.slot:focus-within {
+  --lift: -12px;
+}
+.slot:hover .arch,
+.slot:focus-within .arch {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--hue) 85%, transparent),
+    0 0 30px color-mix(in srgb, var(--hue) 55%, transparent),
+    0 0 110px color-mix(in srgb, var(--hue) 28%, transparent);
+}
+.slot:hover .world {
+  scale: 1.22;
+}
+.slot:hover .pool,
+.slot:focus-within .pool {
+  opacity: 1;
+}
+.slot:hover .label,
+.slot:focus-within .label {
+  color: var(--ink);
+  opacity: 1;
+}
+.row:has(.slot:hover) .slot:not(:hover) .door {
+  filter: brightness(0.55) saturate(0.85);
+}
+.door:focus-visible {
+  outline: none;
+}
+.door:focus-visible .arch {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 5px;
+}
+
+@media (max-width: 639px) {
+  .label {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .door,
+  .reflection,
+  .pool {
+    animation: none;
+  }
+  .row,
+  .world {
+    transition: none;
+  }
+}
