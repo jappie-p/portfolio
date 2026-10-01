@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// Lets Jasper flip between the v1 world-walkthrough (/) and the v2
-// scrub-choreographed cut (/v2) to compare. Remove once a winner is chosen.
+// Lets Jasper flip between the v1 world-walkthrough and the v2
+// scrub-choreographed cut to compare, and jump to v3 and the live site.
 export default function VersionToggle() {
   const pathname = usePathname();
   const onV2 = pathname?.startsWith("/v2");
@@ -27,12 +27,18 @@ export default function VersionToggle() {
       >
         v2
       </Link>
-      {/* v3 lives in a separate app at /v3, so use a plain anchor for a hard nav. */}
+      {/* v3 and the live site are separate apps, so plain anchors for a hard nav. */}
       <a
         href="/v3"
         className="rounded-full px-3 py-1 text-bone-faint transition-colors hover:text-bone"
       >
         v3
+      </a>
+      <a
+        href="/"
+        className="rounded-full px-3 py-1 text-bone-faint transition-colors hover:text-bone"
+      >
+        live
       </a>
     </div>
   );

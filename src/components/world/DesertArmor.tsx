@@ -5,7 +5,7 @@ import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import { Box3, Group, PointLight, Vector3 } from "three";
 
-const MODEL = "/models/desert-armor.glb";
+const MODEL = `${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/models/desert-armor.glb`;
 const TARGET_SIZE = 4.2; // normalize the model's largest dimension so it always fits the hero frame
 
 // The hero centerpiece: a self-made Desert Armor model floating beside the
