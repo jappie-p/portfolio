@@ -60,17 +60,63 @@ export function useNearOnce(ref: RefObject<Element | null>, margin = "100% 0px")
   return near;
 }
 
+let landing = () => {};
+
 /** Scroll to a topic, entering it at its first panel (or at `panel`).
- *  `instant` skips the smooth scroll, for when a zoom already covers the move. */
+ *  `instant` skips the smooth scroll, for when a zoom already covers the move.
+ *  While it glides, snapping is off: a section waking up on the way changes
+ *  the layout, and a snapping page re-snaps and drops the scroll. So it also
+ *  checks that it lands, picks the glide up again if something stopped it,
+ *  and steps aside the moment the reader scrolls or types themselves. */
 export function jumpTo(id: TopicId, { panel = 0, instant = false }: { panel?: number; instant?: boolean } = {}) {
   const row = document.querySelector<HTMLElement>(`[data-section="${id}"]`);
   if (!row) return;
-  const behavior = instant || prefersReducedMotion() ? "instant" : "smooth";
-  row.scrollIntoView({ behavior, block: "start" });
+  const smooth = !(instant || prefersReducedMotion());
+  const behavior = smooth ? "smooth" : "instant";
+  landing();
+  const html = document.documentElement;
+  if (smooth) html.classList.add("jumping");
+  // line the row's sideways track up first, at once (the row is still off
+  // screen): a second smooth scroll would abort the page's glide in Chrome
   const track = row.querySelector<HTMLElement>(".project-track");
   const target = track?.querySelectorAll<HTMLElement>(".project-panel")[panel];
-  track?.scrollTo({ left: target?.offsetLeft ?? 0, behavior });
+  const left = target?.offsetLeft ?? 0;
+  if (track && Math.abs(track.scrollLeft - left) > 1) track.scrollTo({ left, behavior: "instant" });
+  row.scrollIntoView({ behavior, block: "start" });
   // keyboard users land where they went
   if (instant) (target ?? row).focus({ preventScroll: true });
+  if (!smooth) return;
+
+  let raf = 0;
+  let frames = 0;
+  let last = Number.NaN;
+  let stalled = 0;
+  let retries = 0;
+  const inputs = ["wheel", "touchstart", "keydown"] as const;
+  const stop = () => {
+    cancelAnimationFrame(raf);
+    for (const e of inputs) window.removeEventListener(e, stop);
+    html.classList.remove("jumping");
+    landing = () => {};
+  };
+  const check = () => {
+    const top = row.getBoundingClientRect().top;
+    if (Math.abs(top) < 1 || ++frames > 150) {
+      if (Math.abs(top) >= 1) row.scrollIntoView({ behavior: "instant", block: "start" });
+      stop();
+      return;
+    }
+    stalled = Math.abs(top - last) < 0.5 ? stalled + 1 : 0;
+    last = top;
+    if (stalled > 6 && retries < 2) {
+      row.scrollIntoView({ behavior: "smooth", block: "start" });
+      stalled = 0;
+      retries += 1;
+    }
+    raf = requestAnimationFrame(check);
+  };
+  for (const e of inputs) window.addEventListener(e, stop, { passive: true });
+  landing = stop;
+  raf = requestAnimationFrame(check);
 }
 

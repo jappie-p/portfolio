@@ -36,7 +36,7 @@ export default function RootLayout({
       <head>
         {/* without scripts nothing gets typed out, so show the hero line in full */}
         <noscript>
-          <style>{".typewriter-rest{opacity:1}"}</style>
+          <style>{".typewriter-rest{opacity:1}[data-load] .hero-name{--fill:1!important}[data-load] .hero-name .split-char{-webkit-text-stroke-color:transparent!important}.scroll-cue{opacity:1!important}"}</style>
         </noscript>
       </head>
       <body>

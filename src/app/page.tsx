@@ -14,7 +14,7 @@ import { Contact } from "@/components/sections/Contact";
 import { CaseOverlay } from "@/components/work/CaseOverlay";
 import { highlightedSnippets } from "@/lib/highlight";
 import { LangSync } from "@/i18n/useT";
-import { CursorRing } from "@/components/ui/CursorRing";
+import { MagneticButtons } from "@/components/ui/MagneticButtons";
 import { SITE, BASE_PATH } from "@/data/site";
 import { SKILLS } from "@/data/skills";
 
@@ -54,7 +54,7 @@ export default function Home() {
       <RevealObserver />
       <ProgressRail />
       <CaseOverlay snippets={highlightedSnippets()} />
-      <CursorRing />
+      <MagneticButtons />
     </>
   );
 }

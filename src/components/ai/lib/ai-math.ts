@@ -67,13 +67,14 @@ export function aiCameraPose(p: number, aspect: number): AiCameraPose {
   const [angle, dist, height, lx, ly, lz, roll] = sampleKeys(p);
   const { fov, dolly } = lensForAspect(aspect);
   const a = (angle * Math.PI) / 180;
-  const r = dist * dolly;
-  // portrait screens have no room beside the copy: the copy sits low, so the
-  // camera centres the core and looks under it, lifting it into the top third
+  // portrait screens have no room beside the copy: the copy fills the lower
+  // half, so the camera steps back a little, centres the core and looks well
+  // under it, keeping the whole scene (pipes and hub) in the top half
   const portrait = aspect < 1;
+  const r = dist * dolly * (portrait ? 1.17 : 1);
   return {
     position: [Math.sin(a) * r, height + (dolly - 1) * 1.2, Math.cos(a) * r],
-    target: [portrait ? lx * 0.12 : lx, ly - (portrait ? 3.4 : 0), lz],
+    target: [portrait ? lx * 0.12 : lx, ly - (portrait ? 6.9 : 0), lz],
     fov,
     roll: (roll * Math.PI) / 180,
   };

@@ -96,13 +96,22 @@ test("the game also runs inside its panel, and stops again", async ({ page }) =>
   await expect(play).toBeFocused();
 });
 
-test("a door in the hero zooms through to its part of the site", async ({ page }) => {
+test("the first screen builds from sketch to render, and a key fast-forwards it", async ({ page }) => {
+  // look as soon as the page arrives: the build-up runs from hydration, and
+  // some engines fire "load" only once it is well under way
+  await page.goto("/", { waitUntil: "commit" });
+  const build = page.locator("[data-load]");
+  await expect(build).toHaveAttribute("data-load", "sketch");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Jasper");
+  // a key only fast-forwards once the page is live
+  await page.waitForFunction(() => document.documentElement.classList.contains("reveal-armed"));
+  await page.keyboard.press("Shift");
+  await expect(build).toHaveAttribute("data-load", "done", { timeout: 5000 });
+});
+
+test("left alone, the build-up finishes by itself", async ({ page }) => {
   await page.goto("/");
-  // a normal click waits for the doors to finish rising out of the floor
-  await page.getByRole("navigation", { name: "Werelden in deze site" }).getByRole("button", { name: "Naar Cyber" }).click();
-  await settled(page.locator('[data-section="cyber"]'));
-  // the zoom's picture is gone once the live scene shows
-  await expect(page.locator("body > div[aria-hidden]").filter({ has: page.locator("img") })).toHaveCount(0, { timeout: 5000 });
+  await expect(page.locator("[data-load]")).toHaveAttribute("data-load", "done", { timeout: 10_000 });
 });
 
 test("a print on the School wall zooms into its project's panel", async ({ page }) => {

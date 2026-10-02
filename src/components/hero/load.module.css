@@ -1,0 +1,88 @@
+/* The build-up's counter at the foot of the first screen. */
+
+@property --done {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+.load {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 22px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  pointer-events: none;
+  transition: opacity 0.7s ease, translate 0.7s ease;
+}
+.gone {
+  opacity: 0;
+  translate: 0 8px;
+}
+
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.4s ease;
+}
+/* a hairline between the stages that fills as each one completes */
+.steps li + li::before {
+  content: "";
+  width: 34px;
+  height: 1px;
+  margin-right: 6px;
+  background: linear-gradient(90deg, var(--leaf) var(--done), rgba(255, 255, 255, 0.12) var(--done));
+  transition: --done 0.6s ease;
+}
+.num {
+  color: rgba(255, 255, 255, 0.28);
+}
+.now {
+  color: var(--ink);
+}
+.now .num {
+  color: var(--cyber-cyan-hi);
+}
+.done {
+  color: var(--leaf);
+}
+.done .num {
+  color: var(--leaf);
+}
+.done + li::before {
+  --done: 100%;
+}
+
+.count {
+  min-width: 3ch;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 480px) {
+  .load {
+    gap: 14px;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+  }
+  .steps {
+    gap: 8px;
+  }
+  .steps li + li::before {
+    width: 14px;
+  }
+}

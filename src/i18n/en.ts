@@ -24,8 +24,7 @@ export const en: Dictionary = {
     work: "See my work",
     contact: "Contact",
     scroll: "scroll",
-    doors: "Worlds on this site",
-    enter: "Go to",
+    load: { sketch: "Sketch", wire: "Wireframe", render: "Render" },
   },
   sections: {
     websites: { title: "Websites", lead: "Products people actually use." },

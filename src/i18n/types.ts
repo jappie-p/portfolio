@@ -16,10 +16,8 @@ export type Dictionary = {
     work: string;
     contact: string;
     scroll: string;
-    /** name of the row of doors, one into every part of the site */
-    doors: string;
-    /** "Naar" + a part of the site, the name of each door */
-    enter: string;
+    /** the first screen's build-up, counted off at its foot */
+    load: { sketch: string; wire: string; render: string };
   };
   sections: Record<"websites" | "ai" | "cyber" | "school", { title: string; lead: string }>;
   about: {

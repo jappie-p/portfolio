@@ -24,8 +24,7 @@ export const nl: Dictionary = {
     work: "Bekijk mijn werk",
     contact: "Contact",
     scroll: "scroll",
-    doors: "Werelden in deze site",
-    enter: "Naar",
+    load: { sketch: "Schets", wire: "Wireframe", render: "Render" },
   },
   sections: {
     websites: { title: "Websites", lead: "Producten die mensen echt gebruiken." },

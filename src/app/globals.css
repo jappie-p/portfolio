@@ -30,6 +30,20 @@
 /* The document is the vertical scroller (scroll-snap on html). Its background
    is a deep gradient with two soft colour glows and a faint grid, the texture
    the hex scenes grow out of. */
+/* Only words can be selected and copied: pictures, scenes, device frames and
+   controls never light up in a selection. */
+img, picture, video, canvas, svg, iframe, button, [aria-hidden="true"], .tilt-stage {
+  -webkit-user-select: none;
+  user-select: none;
+}
+img { -webkit-user-drag: none; }
+/* split headlines: the visible letters are what you select and copy; the
+   screen reader's copy stays out of the selection so nothing doubles up */
+.split-host > [aria-hidden="true"] { -webkit-user-select: text; user-select: text; }
+.split-host > .sr-only { -webkit-user-select: none; user-select: none; }
+
+/* while jumpTo glides somewhere, no snapping: a re-snap would drop the glide */
+html.jumping { scroll-snap-type: none; }
 html {
   color-scheme: dark;
   scroll-snap-type: y mandatory;
@@ -109,7 +123,7 @@ body {
   font-size: 0.9rem;
   font-weight: 500;
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease, translate 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-  /* magnetic: CursorRing leans the button toward the pointer */
+  /* magnetic: MagneticButtons leans the button toward the pointer */
   translate: var(--mx, 0) var(--my, 0);
 }
 .btn:active { transform: scale(0.97); }
@@ -261,8 +275,10 @@ body {
 .case-panel { animation: rise-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 
 /* --- Hero --- */
+/* how much of the name's fill shows: the build-up starts it as an outline */
+@property --fill { syntax: "<number>"; inherits: true; initial-value: 1; }
 .hero-name {
-  --hero-grad: linear-gradient(180deg, #ffffff 35%, #a7f3c6 115%);
+  --hero-grad: linear-gradient(180deg, rgb(255 255 255 / var(--fill)) 35%, rgb(167 243 198 / var(--fill)) 115%);
   background: var(--hero-grad);
   -webkit-background-clip: text;
   background-clip: text;
@@ -272,6 +288,20 @@ body {
 /* split into letters, each letter carries the gradient (the host would leave a ghost) */
 .hero-name.split-host { background: none; }
 .hero-name .split-char { background-image: var(--hero-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* the build-up: the name is pencilled, then wired, then filled (LoadIn) */
+[data-load] .hero-name { transition: --fill 1s ease; }
+[data-load] .hero-name .split-char { -webkit-text-stroke: 1px transparent; transition: -webkit-text-stroke-color 0.6s ease; }
+[data-load="sketch"] .hero-name,
+[data-load="wire"] .hero-name { --fill: 0; }
+[data-load="sketch"] .hero-name .split-char { -webkit-text-stroke-color: rgba(233, 228, 216, 0.6); }
+[data-load="wire"] .hero-name .split-char { -webkit-text-stroke-color: rgba(95, 227, 239, 0.9); }
+[data-load="done"] .scroll-cue { opacity: 1; }
+.scroll-cue { opacity: 0; transition: opacity 0.8s ease 0.3s; }
+@media (prefers-reduced-motion: reduce) {
+  [data-load] .hero-name { --fill: 1; }
+  [data-load] .hero-name .split-char { -webkit-text-stroke-color: transparent; }
+}
 
 /* the opening plays on load, no scroll needed */
 /* the intro starts a hair above invisible, not at 0: Chrome only counts text as
@@ -300,25 +330,6 @@ body {
 .split-intro .split-char { animation: char-rise 1s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(var(--split-delay, 0ms) + var(--i) * 45ms); }
 @keyframes char-rise { from { transform: translateY(105%); } }
 
-/* --- Cursor: a soft ring trailing the mouse, swelling over what you can click --- */
-.cursor-ring {
-  position: fixed;
-  left: 0;
-  top: 0;
-  z-index: 90;
-  width: 34px;
-  height: 34px;
-  margin: -17px 0 0 -17px;
-  border-radius: 999px;
-  border: 1.5px solid rgba(134, 239, 172, 0.55);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s ease, scale 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.3s ease, border-color 0.3s ease;
-  will-change: translate;
-}
-.cursor-ring[data-shown] { opacity: 1; }
-.cursor-ring[data-hover] { scale: 1.7; background-color: rgba(74, 222, 128, 0.1); border-color: rgba(74, 222, 128, 0.85); }
-.cursor-ring[data-press] { scale: 0.85; }
 .typewriter-caret { color: var(--leaf); margin-left: 1px; animation: blink 1s steps(1) infinite; }
 .typewriter-caret--done { animation-duration: 1.2s; }
 @keyframes blink { 50% { opacity: 0; } }

@@ -1,0 +1,162 @@
+import { pose, project, type Pose } from "./path";
+
+/** The gallery as a room, in metres: the wall is the plane z = 0 facing +z,
+ *  the floor is y = 0, and the works hang along x. The camera walks from
+ *  station to station. On a wide screen the walk starts at the entrance,
+ *  looking down the wall past the exhibition title; in a narrow room the
+ *  title sits above the works and the walk starts at the first one. */
+
+export type WorkId = "zelda" | "kiosk" | "festival" | "berlijn";
+
+export type Work = {
+  id: WorkId;
+  /** centre on the wall */
+  x: number;
+  y: number;
+  /** the picture, the mat around it, the frame's face, and how far it stands off the wall */
+  w: number;
+  h: number;
+  mat: number;
+  frame: number;
+  depth: number;
+};
+
+export type Room = {
+  narrow: boolean;
+  /** the walk's vertical field of view, degrees (the entrance opens wider) */
+  fov: number;
+  works: Work[];
+  stations: Pose[];
+  /** the work each station looks at; -1 for the entrance */
+  faces: number[];
+  /** per work, where the camera ends up when it steps right up to it */
+  close: Pose[];
+  /** how far the wall moves on screen per station, as a share of the view's
+   *  width: drags use it so the wall keeps up with the finger */
+  stride: number;
+};
+
+export const ORDER: WorkId[] = ["zelda", "kiosk", "festival", "berlijn"];
+
+/** The three projects as large square prints; the Berlijn app as a small card. */
+const PRINT = { w: 1.22, h: 1.22, mat: 0.15, frame: 0.042, depth: 0.05 };
+const CARD = { w: 0.56, h: 0.75, mat: 0.085, frame: 0.03, depth: 0.04 };
+
+export const outerW = (w: Work) => w.w + 2 * (w.mat + w.frame);
+export const outerH = (w: Work) => w.h + 2 * (w.mat + w.frame);
+/** How far the frame's lip stands proud of the mat: the face sits this far behind its front. */
+export const LIP = 0.018;
+
+/** Below this width-to-height ratio the room narrows: phones, portrait tablets. */
+export const NARROW = 0.9;
+/** The entrance's lens, wide enough to take in the ceiling track. */
+const ENTRANCE_FOV = 47;
+
+const tan = (deg: number) => Math.tan((deg * Math.PI) / 360);
+
+/** The works left to right, `gap` between frames (`cardGap` before the card). */
+function hang(gap: number, cardGap: number): Work[] {
+  const works: Work[] = [];
+  let x = 0;
+  ORDER.forEach((id, i) => {
+    const kind = id === "berlijn" ? CARD : PRINT;
+    const w: Work = { id, x: 0, y: id === "berlijn" ? 1.47 : 1.52, ...kind };
+    if (i > 0) {
+      const prev = works[i - 1];
+      x += outerW(prev) / 2 + (id === "berlijn" ? cardGap : gap) + outerW(w) / 2;
+    }
+    w.x = x;
+    works.push(w);
+  });
+  return works;
+}
+
+/** The entrance: back and to the left, turned down the wall, standing
+ *  just far enough left that the first frame starts where the copy ends
+ *  (`clear`, in NDC across the view). */
+function entrance(first: Work, z: number, aspect: number, clear: number): Pose {
+  // a wider lens than the walk's, up to the lamps on the ceiling track; it
+  // narrows as you step in
+  const p = pose(first.x - 5, 1.42, z, 0.56, 0, 0.02, ENTRANCE_FOV);
+  const edge = [0, 0, 0];
+  let lo = first.x - 10;
+  let hi = first.x - 1;
+  for (let i = 0; i < 24; i++) {
+    p.x = (lo + hi) / 2;
+    project(p, aspect, 1, first.x - outerW(first) / 2, first.y + outerH(first) / 2, first.depth, edge);
+    // further left puts the frame further right
+    if ((edge[0] / aspect) * 2 - 1 < clear) hi = p.x;
+    else lo = p.x;
+  }
+  return p;
+}
+
+/** Wide screens: big prints at eye height, an entrance view down the wall. */
+function wide(aspect: number, clear: number): Room {
+  const fov = 38;
+  const t = tan(fov);
+  const f = 1 / t;
+  const works = hang(1.8, 1.3);
+  const stations: Pose[] = [];
+  const faces: number[] = [];
+  const close: Pose[] = [];
+  const eye = 1.5;
+  for (const [i, w] of works.entries()) {
+    const share = w.id === "berlijn" ? 0.4 : 0.46;
+    // tall enough to fill most of the height, never too wide to fit
+    const d = Math.max(outerH(w) / (share * 2 * t), outerW(w) / (0.6 * 2 * t * aspect));
+    // a lens shift that keeps a strip of floor along the bottom, as far as
+    // that leaves the work near the middle (the card is seen closer up)
+    stations.push(pose(w.x, eye, d, 0, 0, Math.min(-0.78 + (f * eye) / d, 0.1), fov));
+    faces.push(i);
+    // right up to it: the picture fills the screen (or, for the card, most of it)
+    const fill = w.id === "berlijn" ? outerH(w) / (0.82 * 2 * t) : Math.max(w.h / (2 * t), w.w / (2 * t * aspect));
+    close.push(pose(w.x, w.y, fill, 0, 0, 0, fov));
+  }
+  stations.unshift(entrance(works[0], stations[0].z + 0.55, aspect, clear));
+  faces.unshift(-1);
+  const stride = (works[1].x - works[0].x) / (2 * t * aspect * stations[1].z);
+  return { narrow: false, fov, works, stations, faces, close, stride };
+}
+
+/** Narrow screens: a closer, tighter room. The copy sits above the works,
+ *  so each one hangs in the band between the copy's last line (`below`, in
+ *  NDC) and room for its label, as large as the band and the width allow;
+ *  the lens shifts the horizon instead of tilting the camera, so the frames
+ *  stay square. */
+function narrow(aspect: number, below: number, ndcPerPx: number): Room {
+  const fov = 56;
+  const t = tan(fov);
+  const works = hang(0.8, 0.7);
+  const stations: Pose[] = [];
+  const faces: number[] = [];
+  const close: Pose[] = [];
+  for (const [i, w] of works.entries()) {
+    const card = w.id === "berlijn";
+    const top = Math.min(below - 0.06, 0.5);
+    // under it, room for its label (the card's tells its story) and the
+    // progress dots at the foot of the screen
+    const bottom = -1 + (card ? 196 : 124) * ndcPerPx;
+    const d = Math.max(outerW(w) / ((card ? 0.6 : 0.8) * 2 * t * aspect), outerH(w) / (Math.max(top - bottom, 0.3) * t));
+    stations.push(pose(w.x, w.y, d, 0, 0, (top + bottom) / 2, fov));
+    faces.push(i);
+    const fill = card ? outerW(w) / (0.9 * 2 * t * aspect) : w.w / (2 * t * aspect);
+    close.push(pose(w.x, w.y, fill, 0, 0, 0, fov));
+  }
+  const stride = (works[1].x - works[0].x) / (2 * t * aspect * stations[0].z);
+  return { narrow: true, fov, works, stations, faces, close, stride };
+}
+
+/** Where the copy ends, in NDC across the view: its right edge (a wide wall
+ *  starts the walk with the first work beyond it) and its last line (a
+ *  narrow room hangs the works below it); and how much NDC a CSS pixel of
+ *  the view's height is, for the labels' room. */
+export type Clearance = { right: number; below: number; ndcPerPx: number };
+
+/** The room for a view of this shape (width over height). */
+export function roomFor(aspect: number, clear: Clearance = { right: 0.08, below: 0.12, ndcPerPx: 2 / 844 }): Room {
+  return aspect < NARROW ? narrow(aspect, clear.below, clear.ndcPerPx) : wide(aspect, clear.right);
+}
+
+/** The station that stands in front of a work. */
+export const stationOf = (room: Room, work: number) => room.faces.indexOf(work);

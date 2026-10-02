@@ -3,11 +3,9 @@ import { useRef, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { KioskReceipt } from "@/components/art/kiosk/KioskReceipt";
 import { ZeldaPlayable } from "@/components/art/zelda/ZeldaPlayable";
-import { GalleryWall, PosterWall, WallNote } from "@/components/school/PosterWall";
+import { SchoolCover } from "@/components/school/gallery/SchoolCover";
 import { Backdrop } from "@/components/journey/Backdrop";
 import { TopicRow, ProjectTrack, ProjectPanel } from "@/components/journey/panels";
-import { SplitText } from "@/components/ui/SplitText";
-import { NextButton } from "@/components/ui/NextButton";
 import { BrowserFrame, KioskFrame, PhoneFrame } from "@/components/work/Frames";
 import { TiltStage } from "@/components/work/TiltStage";
 import { Trailer } from "@/components/work/Trailer";
@@ -96,9 +94,10 @@ const ART: Record<SchoolSlug, (s: { active: boolean; still: boolean }) => ReactN
   festival: (s) => <FestivalBackdrop {...s} />,
 };
 
-/** School, sideways: a gallery wall with a print of every project's world,
- *  then one panel per project, in that world: the game's pixel dusk, the
- *  kiosk's restaurant, the festival's stage. A print zooms into its panel. */
+/** School, sideways: a gallery at night with a framed print of every
+ *  project's world, then one panel per project, in that world: the game's
+ *  pixel dusk, the kiosk's restaurant, the festival's stage. A print zooms
+ *  into its panel. */
 export function School() {
   const t = useT();
   const s = t.sections.school;
@@ -106,28 +105,7 @@ export function School() {
     <TopicRow id="school" label={s.title} className="overflow-hidden">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(50%_45%_at_25%_60%,rgba(74,222,128,0.07),transparent_70%)]" />
       <ProjectTrack label={s.title}>
-        <ProjectPanel label={t.school.title} backdrop={<GalleryWall />}>
-          <div className="flex w-full max-w-6xl flex-col">
-            <div className="flex items-start justify-between gap-10">
-              <div data-reveal className="flex flex-col items-start">
-                <p className="label text-leaf">{t.nav.school}</p>
-                <SplitText as="h2" text={t.school.title} className="headline mt-4 text-[clamp(2.25rem,7vw,4rem)] text-ink" />
-                <p className="mt-4 max-w-xl text-lg text-ink-dim">{s.lead}</p>
-                <p className="mt-2 text-sm text-ink-faint">{t.school.programme}</p>
-                <NextButton label={t.ui.scrollSideways} />
-              </div>
-              <div data-reveal className="hidden pt-6 sm:block">
-                <WallNote />
-              </div>
-            </div>
-            <div data-reveal className="mt-10 w-full">
-              <PosterWall />
-            </div>
-            <div data-reveal className="mt-8 sm:hidden">
-              <WallNote />
-            </div>
-          </div>
-        </ProjectPanel>
+        <SchoolCover />
 
         {SLUGS.map((slug) => {
           const Stage = STAGES[slug];
