@@ -22,10 +22,10 @@ export type Dictionary = {
     enter: string;
     again: string;
   };
-  /** The short how-to before the experience, step by step. */
+  /** The short how-to before the experience, step by step. Each `say` is
+   *  also what the narrator speaks (recorded with `npm run voice`). */
   tour: {
     title: string;
-    lead: string;
     skip: string;
     next: string;
     soundOn: string;
@@ -36,6 +36,13 @@ export type Dictionary = {
     side: TourStep;
     dive: TourStep;
     done: { title: string; say: string; go: string };
+  };
+  /** The narrator again, as Jarvis in the AI topic: a line per chapter. */
+  voice: {
+    ai: { cover: string; jarvis: string; gotoguy: string };
+    name: string;
+    listen: string;
+    mute: string;
   };
   nav: { home: string; websites: string; ai: string; cyber: string; school: string; about: string; contact: string; menu: string; close: string };
   hero: {

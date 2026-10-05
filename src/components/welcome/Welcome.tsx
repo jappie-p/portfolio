@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { LangSync, useLocale, useT } from "@/i18n/useT";
 import preview from "@/assets/welcome/experience.webp";
 import { enterExperience, tourDone } from "./enter";
-import { wakeSound } from "./sound";
+import { wakeAudio } from "@/lib/audio";
 import { wakeVoice } from "./voice";
 import s from "./welcome.module.css";
 
@@ -52,7 +52,7 @@ export function Welcome() {
   const go = () => router.push("/experience");
   // the how-to speaks: sound and voice wake up inside the click that opens it
   const tour = () => {
-    wakeSound();
+    wakeAudio();
     wakeVoice();
     setTouring(true);
   };

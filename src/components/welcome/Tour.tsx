@@ -3,7 +3,9 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 import { Typewriter } from "@/components/ui/Typewriter";
 import { useLocale, useT } from "@/i18n/useT";
 import { markTourDone } from "./enter";
-import { play, setSound, soundOn } from "./sound";
+import { setSound, soundOn } from "@/lib/audio";
+import { lineTexts } from "@/lib/voice-lines";
+import { play } from "./sound";
 import { TourMap, type Cell } from "./TourMap";
 import { hush, speak } from "./voice";
 import s from "./tour.module.css";
@@ -84,14 +86,16 @@ export function Tour({ onClose, onEnter }: { onClose: () => void; onEnter: (from
   }, []);
 
   const say = step === "done" ? tt.done.say : tt[step].say;
+  const line = `tour-${step}` as const;
+  const words = lineTexts(t)[line];
 
   // each step: the narrator reads its line; the last one is the way in
   useEffect(() => {
-    speak(locale, step, say);
+    speak(locale, line, words);
     if (step !== "done") return;
     markTourDone();
     go.current?.focus();
-  }, [step, locale, say]);
+  }, [step, locale, line, words]);
 
   // the narrator stops when the how-to closes
   useEffect(() => hush, []);
@@ -186,7 +190,7 @@ export function Tour({ onClose, onEnter }: { onClose: () => void; onEnter: (from
     setSound(!sound);
     setSoundState(!sound);
     if (sound) hush();
-    else speak(locale, step, say);
+    else speak(locale, line, words);
   };
 
   const pick = (i: number) => {

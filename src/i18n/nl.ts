@@ -19,7 +19,6 @@ export const nl: Dictionary = {
   },
   tour: {
     title: "Zo kijk je rond",
-    lead: "Drie korte stappen, dan ben je binnen.",
     skip: "Overslaan",
     next: "Volgende",
     soundOn: "Geluid aan",
@@ -30,7 +29,7 @@ export const nl: Dictionary = {
       title: "Omlaag voor het volgende onderwerp",
       mouse: "Scroll omlaag of druk op",
       touch: "Veeg omhoog",
-      say: "De onderwerpen staan onder elkaar. Scroll omlaag en je bent bij het volgende.",
+      say: "Hoi, welkom! Drie korte stappen, dan ben je binnen. De onderwerpen staan onder elkaar. Ga omlaag en je bent bij het volgende.",
     },
     side: {
       title: "Opzij voor de projecten",
@@ -42,13 +41,23 @@ export const nl: Dictionary = {
       title: "Klik op een werk om erin te stappen",
       mouse: "Klik op een van de werken",
       touch: "Tik op een van de werken",
-      say: "Bij School hangen de projecten in een galerij. Klik er een aan en je stapt erin. Daarna veeg je door naar het volgende.",
+      say: "Bij School hangen de projecten in een galerij. Kies er een en je stapt erin. Daarna ga je opzij naar het volgende.",
     },
     done: {
       title: "Klaar. Je weet genoeg.",
-      say: "Via het menu bovenaan kun je altijd overal heen.",
+      say: "Via het menu bovenaan kun je altijd overal heen. Veel plezier!",
       go: "Naar binnen",
     },
+  },
+  voice: {
+    ai: {
+      cover: "Hoi, ik ben Jarvis, de AI-assistent die Jasper zelf heeft gebouwd. Ga opzij, dan laat ik je zien wat ik doe.",
+      jarvis: "Alles komt bij mij binnen: zijn mail, zijn agenda en de app. Claude denkt met me mee, en wat telt, stuur ik hem als melding.",
+      gotoguy: "Bij Go to Guy bouwt Jasper één brein voor het hele team. Mail, agenda, uren en CRM praten via één AI-bridge, en agents pakken het routinewerk op.",
+    },
+    name: "Jarvis",
+    listen: "Hoor Jarvis",
+    mute: "Zet Jarvis stil",
   },
   nav: {
     home: "Start",

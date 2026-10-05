@@ -19,7 +19,6 @@ export const en: Dictionary = {
   },
   tour: {
     title: "How to look around",
-    lead: "Three quick steps, then you're in.",
     skip: "Skip",
     next: "Next",
     soundOn: "Sound on",
@@ -30,7 +29,7 @@ export const en: Dictionary = {
       title: "Down for the next topic",
       mouse: "Scroll down or press",
       touch: "Swipe up",
-      say: "The topics sit one below the other. Scroll down and you're at the next one.",
+      say: "Hi, welcome! Three quick steps and you're in. The topics sit one below the other. Go down and you're at the next one.",
     },
     side: {
       title: "Sideways for the projects",
@@ -42,13 +41,23 @@ export const en: Dictionary = {
       title: "Click a work to step inside",
       mouse: "Click one of the works",
       touch: "Tap one of the works",
-      say: "At School the projects hang in a gallery. Click one and you step inside. Then swipe on to the next.",
+      say: "At School the projects hang in a gallery. Pick one and you step inside. Then go sideways to the next.",
     },
     done: {
       title: "Done. You know enough.",
-      say: "The menu at the top takes you anywhere, at any time.",
+      say: "The menu at the top takes you anywhere, at any time. Have fun!",
       go: "Step inside",
     },
+  },
+  voice: {
+    ai: {
+      cover: "Hi, I'm Jarvis, the AI assistant Jasper built himself. Go sideways and I'll show you what I do.",
+      jarvis: "Everything comes in to me: his mail, his calendar and the app. Claude thinks along with me, and what matters, I send him as a notification.",
+      gotoguy: "At Go to Guy, Jasper is building one brain for the whole team. Mail, calendar, hours and CRM talk through one AI bridge, and agents pick up the routine work.",
+    },
+    name: "Jarvis",
+    listen: "Hear Jarvis",
+    mute: "Mute Jarvis",
   },
   nav: {
     home: "Start",

@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "cv": "node scripts/cv-pdf.mjs"
+    "cv": "node scripts/cv-pdf.mjs",
+    "voice": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/voice.mts"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
