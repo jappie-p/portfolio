@@ -3,11 +3,12 @@ import { useRef, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { KioskReceipt } from "@/components/art/kiosk/KioskReceipt";
 import { ZeldaPlayable } from "@/components/art/zelda/ZeldaPlayable";
+import { GuideNav } from "@/components/school/gallery/GuideNav";
 import { SchoolCover } from "@/components/school/gallery/SchoolCover";
 import { Backdrop } from "@/components/journey/Backdrop";
 import { TopicRow, ProjectTrack, ProjectPanel } from "@/components/journey/panels";
 import { BrowserFrame, KioskFrame, PhoneFrame } from "@/components/work/Frames";
-import { TiltStage } from "@/components/work/TiltStage";
+import { FloatStage } from "@/components/work/FloatStage";
 import { Trailer } from "@/components/work/Trailer";
 import { WorkInfo } from "@/components/work/WorkInfo";
 import { PROJECT_NAMES, TOPICS } from "@/lib/chapters";
@@ -35,7 +36,7 @@ function ZeldaStage() {
   const g = t.school.game;
   const p = PROJECTS.zelda;
   return (
-    <TiltStage className="relative w-full max-w-3xl">
+    <FloatStage className="relative w-full max-w-3xl">
       <BrowserFrame url={`${SITE.url}${BASE_PATH}${p.play!.replace("/index.html", "")}`}>
         <ZeldaPlayable
           poster={<Trailer name="zelda" label={`${t.work.video} ${PROJECT_NAMES.zelda}`} />}
@@ -46,7 +47,7 @@ function ZeldaStage() {
           loadingLabel={g.loading}
         />
       </BrowserFrame>
-    </TiltStage>
+    </FloatStage>
   );
 }
 
@@ -60,11 +61,11 @@ function KioskStage() {
   const [start, menu] = PROJECTS.kiosk.screens!;
   return (
     <div ref={ref} className="w-full max-w-lg">
-      <TiltStage className="w-full" innerClassName="flex items-end justify-center gap-6">
+      <FloatStage className="w-full" innerClassName="flex items-end justify-center gap-6">
         <KioskFrame src={start} alt={PROJECT_NAMES.kiosk} sizes="(min-width: 1024px) 15vw, 40vw" className="w-[44%] -translate-y-6" />
         <KioskFrame src={menu} alt="" sizes="(min-width: 1024px) 15vw, 40vw" className="w-[44%]" />
         <KioskReceipt labels={t.school.receipt} active={active} still={still} className="absolute bottom-[-2%] -right-[3%] text-[5.2px] sm:-right-[12%] sm:text-[7.4px]" />
-      </TiltStage>
+      </FloatStage>
     </div>
   );
 }
@@ -73,11 +74,11 @@ function KioskStage() {
 function FestivalStage() {
   const [home, schedule, map] = PROJECTS.festival.screens!;
   return (
-    <TiltStage className="w-full max-w-xl" innerClassName="relative flex h-[440px] items-center justify-center sm:h-[540px]">
+    <FloatStage className="w-full max-w-xl" innerClassName="relative flex h-[440px] items-center justify-center sm:h-[540px]">
       <PhoneFrame src={map} alt="" sizes="(min-width: 1024px) 12vw, 30vw" className="absolute left-[6%] top-1/2 w-[31%] -translate-y-1/2 rotate-[-8deg] opacity-80" />
       <PhoneFrame src={schedule} alt="" sizes="(min-width: 1024px) 12vw, 30vw" className="absolute right-[6%] top-1/2 w-[31%] -translate-y-1/2 rotate-[8deg] opacity-80" />
       <PhoneFrame src={home} alt={PROJECT_NAMES.festival} sizes="(min-width: 1024px) 14vw, 36vw" className="relative z-10 w-[36%]" />
-    </TiltStage>
+    </FloatStage>
   );
 }
 
@@ -96,8 +97,9 @@ const ART: Record<SchoolSlug, (s: { active: boolean; still: boolean }) => ReactN
 
 /** School, sideways: a gallery at night with a framed print of every
  *  project's world, then one panel per project, in that world: the game's
- *  pixel dusk, the kiosk's restaurant, the festival's stage. A print zooms
- *  into its panel. */
+ *  pixel dusk, the kiosk's restaurant, the festival's stage. A print opens
+ *  into its panel, and from one project the way on goes back through the
+ *  gallery to the next (GuideNav, while the live gallery runs). */
 export function School() {
   const t = useT();
   const s = t.sections.school;
@@ -121,6 +123,7 @@ export function School() {
           );
         })}
       </ProjectTrack>
+      <GuideNav />
     </TopicRow>
   );
 }

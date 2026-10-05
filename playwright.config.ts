@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 // Runs against a production build on PORT (default 3000), or reuses a server
 // already listening there. Desktop specs run in all three engines; phone specs
-// on an iPhone-sized WebKit. The live-WebGL cyber spec needs installed Chrome.
+// on an iPhone-sized WebKit. The live-WebGL specs (*-gpu) need installed Chrome.
 const PORT = Number(process.env.PORT) || 3000;
 
 export default defineConfig({
@@ -14,8 +14,8 @@ export default defineConfig({
   use: { baseURL: `http://localhost:${PORT}` },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } }, testIgnore: /mobile\.spec/ },
-    { name: "firefox", use: { ...devices["Desktop Firefox"], viewport: { width: 1440, height: 900 } }, testIgnore: /mobile\.spec|cyber-gpu/ },
-    { name: "webkit", use: { ...devices["Desktop Safari"], viewport: { width: 1440, height: 900 } }, testIgnore: /mobile\.spec|cyber-gpu/ },
+    { name: "firefox", use: { ...devices["Desktop Firefox"], viewport: { width: 1440, height: 900 } }, testIgnore: /mobile\.spec|-gpu\.spec/ },
+    { name: "webkit", use: { ...devices["Desktop Safari"], viewport: { width: 1440, height: 900 } }, testIgnore: /mobile\.spec|-gpu\.spec/ },
     { name: "mobile", use: { ...devices["iPhone 13"] }, testMatch: /mobile\.spec/ },
   ],
   webServer: {

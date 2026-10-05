@@ -160,3 +160,32 @@ export function roomFor(aspect: number, clear: Clearance = { right: 0.08, below:
 
 /** The station that stands in front of a work. */
 export const stationOf = (room: Room, work: number) => room.faces.indexOf(work);
+
+/** The exhibition: each print hangs on its own stretch of painted wall with
+ *  its name lettered on it, the way a show marks its sections; the card's
+ *  corner keeps the bare wall. Colours in sRGB. */
+export type Bay = { work: number; from: number; to: number; paint: string; ink: string; title: string };
+
+const SECTIONS: Partial<Record<WorkId, Pick<Bay, "paint" | "ink" | "title">>> = {
+  // the dusk green of the trees in the game's night, lettered in its gold
+  zelda: { paint: "#174a43", ink: "#ead690", title: "ZELDA" },
+  // fired clay, lettered in receipt paper
+  kiosk: { paint: "#7e3725", ink: "#f2e4c9", title: "KIOSK" },
+  // the stage at night, in the pink of its heart
+  festival: { paint: "#4c1f6c", ink: "#f6a6cf", title: "FESTIVAL" },
+};
+
+/** Each stretch runs halfway to the works either side (the first reaches as
+ *  far out to its left as to its right). */
+export function baysOf(room: Room): Bay[] {
+  const { works } = room;
+  const left = (w: Work) => w.x - outerW(w) / 2;
+  const right = (w: Work) => w.x + outerW(w) / 2;
+  return works.flatMap((w, i) => {
+    const section = SECTIONS[w.id];
+    if (!section) return [];
+    const to = i + 1 < works.length ? (right(w) + left(works[i + 1])) / 2 : right(w) + 0.9;
+    const from = i > 0 ? (right(works[i - 1]) + left(w)) / 2 : left(w) - (to - right(w));
+    return [{ work: i, from, to, ...section }];
+  });
+}

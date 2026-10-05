@@ -1,13 +1,21 @@
 import * as THREE from "three";
 import { stationOf, type Room } from "../layout";
-import { lerpPose, makePath, pose, type Pose } from "../path";
-import { ease, type Rig } from "../rig";
+import { cameraPose } from "../camera";
+import { pose, type Pose } from "../path";
+import { ease, inFront, type Rig } from "../rig";
 import { makeArtwork, type Artwork } from "./artwork";
+import { makeFestival } from "./breakout/festival";
+import { makeKiosk } from "./breakout/kiosk";
+import type { Breakout } from "./breakout/types";
+import { makeZelda } from "./breakout/zelda";
+import { exhibitUniforms, placeExhibit, titlesOf, type Exhibit } from "./exhibit";
 import { makeFloor } from "./floor";
-import { applySpots, shapeAt, sharedUniforms, spotsFor, type Spot } from "./lights";
+import { fontReady, letterTitles, type Lettering } from "./lettering";
+import { applySpots, shapeAt, sharedUniforms, smooth, spotsFor, type Spot } from "./lights";
 import { noiseTexture } from "./noise";
 import { MIRRORED, Reflector } from "./reflector";
 import { Rigging } from "./rigging";
+import { Shades } from "./shadows";
 import { cardTexture, drawCard, type CardCopy } from "./textures";
 import type { Trailer } from "./video";
 import { frameSlots, makeWall, placeFrames } from "./wall";
@@ -15,10 +23,6 @@ import { frameSlots, makeWall, placeFrames } from "./wall";
 export type Pictures = { zelda: THREE.Texture; kiosk: THREE.Texture; festival: THREE.Texture };
 /** Which slice of each 16:10 world the square prints show (u offset, width). */
 export type Crops = Record<keyof Pictures, number>;
-
-const LOOK_X = 0.16;
-const LOOK_YAW = 0.022;
-const LOOK_PITCH = 0.012;
 
 /** A light coming on: a quick strike, a dip, then it settles at full. */
 export function strike(t: number) {
@@ -29,6 +33,10 @@ export function strike(t: number) {
 }
 
 const leanState = () => ({ x: 0, y: 0, lift: 0, glow: 0 });
+
+/** Stepping right up to a work, the room goes down around it: the other
+ *  spots dim by this much, the haze in every beam by this much. */
+const DIM = { spots: 0.78, haze: 0.85 };
 
 /** Point a three.js camera along a pose: the maths project() in path.ts mirrors. */
 function aim(cam: THREE.PerspectiveCamera, p: Pose, aspect: number) {
@@ -54,16 +62,20 @@ export class GalleryScene {
   room: Room;
   private readonly slots = frameSlots();
   private spots: Spot[] = [];
-  private path: (s: number, out: Pose) => Pose;
   private art: Artwork[] = [];
   private readonly rigging = new Rigging(this.shared, this.slots);
+  private readonly shades = new Shades();
+  private lettering: Lettering | null = null;
+  private exhibit: Exhibit | null = null;
+  private breakouts: (Breakout | null)[] = [];
   private leans = Array.from({ length: 4 }, leanState);
   private level = [0, 0, 0, 0, 0];
+  private haze = 1;
   private time = 0;
   private boot = -1;
-  private readonly walk = pose(0, 0, 0);
   private card: THREE.CanvasTexture | null = null;
   private readonly owned: THREE.Texture[] = [];
+  private disposed = false;
 
   constructor(
     room: Room,
@@ -73,7 +85,6 @@ export class GalleryScene {
     private readonly copy: CardCopy,
   ) {
     this.room = room;
-    this.path = makePath(room.stations);
   }
 
   /** The build, one step per call: the caller yields to the page in between. */
@@ -82,7 +93,22 @@ export class GalleryScene {
     this.owned.push(noise);
     this.shared.uNoise.value = noise;
     yield;
-    const wall = makeWall(this.shared, this.slots);
+    const lettering = letterTitles(titlesOf(this.room), anisotropy);
+    this.lettering = lettering;
+    this.owned.push(lettering.texture);
+    this.exhibit = exhibitUniforms(lettering.texture);
+    // set again in the display font, should it still be on its way
+    const font = fontReady();
+    if (!font.ready)
+      font.loaded
+        .then(() => {
+          if (this.disposed) return;
+          lettering.redraw();
+          this.layout(this.room);
+        })
+        .catch(() => {});
+    yield;
+    const wall = makeWall(this.shared, this.slots, this.exhibit, this.shades);
     wall.layers.enable(MIRRORED);
     this.scene.add(wall, makeFloor(this.shared, this.reflector), this.rigging.group);
     yield;
@@ -93,12 +119,31 @@ export class GalleryScene {
       const map = w.id === "berlijn" ? this.card : this.pictures[w.id];
       const crop = w.id === "berlijn" ? new THREE.Vector4(0, 0, 1, 1) : new THREE.Vector4(this.crops[w.id], 0, 0.625, 1);
       const video = w.id === "zelda" && this.trailer ? this.trailer : undefined;
-      const a = makeArtwork(w, this.shared, { spot: i + 1, map, crop, video });
+      const a = makeArtwork(w, this.shared, { spot: i + 1, map, crop, video, shades: this.shades.uniforms });
       a.frame.layers.enable(MIRRORED);
       a.face.layers.enable(MIRRORED);
       this.art.push(a);
       this.scene.add(a.group);
       yield;
+    }
+    // what breaks out of the prints, hung in their groups so it leans with them
+    for (const a of this.art) {
+      const id = a.work.id;
+      const shades = this.shades.uniforms;
+      const b =
+        id === "zelda"
+          ? makeZelda(this.shared, a, shades)
+          : id === "kiosk"
+            ? makeKiosk(this.shared, a, shades, anisotropy, this.copy.receipt)
+            : id === "festival"
+              ? makeFestival(this.shared, a, shades)
+              : null;
+      if (b) {
+        a.group.add(...b.parts);
+        this.owned.push(...(b.textures ?? []));
+      }
+      this.breakouts.push(b);
+      if (b) yield;
     }
     this.layout(this.room);
   }
@@ -119,6 +164,8 @@ export class GalleryScene {
         yield;
       }
       parts.forEach((p) => (p.visible = true));
+      this.shades.render(gl, this.scene);
+      yield;
       this.shared.uScreen.value = 0;
       this.reflector.render(gl, this.scene, this.camera);
       this.shared.uScreen.value = 1;
@@ -138,7 +185,6 @@ export class GalleryScene {
   /** Hang the works and aim the lights for a room (the view changed shape). */
   layout(room: Room) {
     this.room = room;
-    this.path = makePath(room.stations);
     this.spots = spotsFor(room);
     room.works.forEach((w, i) => {
       const a = this.art[i];
@@ -147,14 +193,20 @@ export class GalleryScene {
       a.uniforms.uNorm.value = 1 / Math.max(shapeAt(this.spots[i + 1], new THREE.Vector3(w.x, w.y, w.depth)), 1e-4);
     });
     this.rigging.hang(room, this.spots);
+    this.shades.place(room);
+    this.breakouts.forEach((b) => b?.fit?.(room.narrow));
+    if (this.exhibit && this.lettering) placeExhibit(this.exhibit, room, this.lettering);
     applySpots(this.shared, this.spots, this.level);
   }
 
-  /** Redraw the Berlijn card in the reader's language. */
+  /** Redraw what the room prints in the reader's language: the Berlijn card
+   *  and the kiosk's receipt. */
   setCopy(copy: CardCopy) {
-    if (!this.card) return;
-    drawCard(this.card.image as HTMLCanvasElement, copy);
-    this.card.needsUpdate = true;
+    if (this.card) {
+      drawCard(this.card.image as HTMLCanvasElement, copy);
+      this.card.needsUpdate = true;
+    }
+    this.breakouts.forEach((b) => b?.setCopy?.(copy));
   }
 
   /** Off screen: the loop stops, so stop the trailer too. */
@@ -172,18 +224,8 @@ export class GalleryScene {
     this.time += dt;
     this.shared.uTime.value = this.time;
     if (rig.room !== this.room) this.layout(rig.room);
-    const p = this.path(rig.pos, this.walk);
-    // the head: a small turn toward the mouse, the eye shifting the other
-    // way, and the faint sway of someone standing still
-    const sway = this.time * 0.5;
-    p.x += rig.look.x * LOOK_X + Math.sin(sway * 0.9) * 0.012;
-    p.y += -rig.look.y * 0.05 + Math.sin(sway * 1.3 + 1) * 0.006;
-    p.yaw += rig.look.x * LOOK_YAW + Math.sin(sway * 0.7 + 2) * 0.0012;
-    p.pitch -= rig.look.y * LOOK_PITCH;
-    const d = rig.dolly;
-    if (d.work >= 0 && d.t > 0) lerpPose(p, this.room.close[d.work], ease(d.t), this.pose);
-    else Object.assign(this.pose, p);
-
+    // the camera itself is the walk's (see camera.ts)
+    cameraPose(rig, this.time, w / Math.max(h, 1), this.pose);
     aim(this.camera, this.pose, w / Math.max(h, 1));
 
     const k = 1 - Math.exp(-dt * 7);
@@ -199,17 +241,26 @@ export class GalleryScene {
       a.group.position.z = a.work.depth / 2 + l.lift * 0.035;
       lift.push(l.lift * 0.035);
       a.uniforms.uGlare.value.set(0.5 + l.x * 0.42, 0.5 - l.y * 0.42, 0.3 + 0.7 * l.lift);
-      a.uniforms.uRaw.value = d.work === i && this.room.works[i].id !== "berlijn" ? Math.max(0, (d.t - 0.55) / 0.45) : 0;
+      a.uniforms.uRaw.value = this.room.works[i].id !== "berlijn" ? Math.max(0, (inFront(rig, i) - 0.55) / 0.45) : 0;
     });
     placeFrames(this.slots, this.room, lift);
 
+    // stepping up to a work the room goes down around it: every other spot
+    // dims, its own holds, and the haze thins in all the beams. Read off how
+    // near the camera is to each work, so a glide hands the light from one to
+    // the next as smoothly as it moves.
+    const near = this.art.map((_, i) => inFront(rig, i));
+    const all = Math.min(near.reduce((sum, n) => sum + n, 0), 1);
     this.spots.forEach((s, i) => {
       const on = this.boot < 0 ? 0 : strike(this.time - this.boot - 0.15 - i * 0.26);
-      this.level[i] = on * (s.work >= 0 ? 1 + 0.38 * this.leans[s.work].glow : 1);
+      const others = all - (s.work >= 0 ? near[s.work] : 0);
+      this.level[i] = on * (s.work >= 0 ? 1 + 0.38 * this.leans[s.work].glow : 1) * (1 - DIM.spots * smooth(0.05, 0.9, others));
       const a = s.work >= 0 ? this.art[s.work] : null;
       if (a) a.uniforms.uLevel.value = this.level[i];
     });
+    this.haze = 1 - DIM.haze * smooth(0.05, 0.85, all);
     applySpots(this.shared, this.spots, this.level);
+    this.breakouts.forEach((b, i) => b?.update(this.time, near[i]));
 
     // the trailer plays while the Zelda print is anywhere near the view
     const zelda = stationOf(this.room, 0);
@@ -218,7 +269,8 @@ export class GalleryScene {
 
   render(gl: THREE.WebGLRenderer, buffer: THREE.Vector2) {
     gl.getDrawingBufferSize(buffer);
-    this.rigging.light(this.level, buffer.y / (2 * Math.tan((this.camera.fov * Math.PI) / 360)));
+    this.rigging.light(this.level, buffer.y / (2 * Math.tan((this.camera.fov * Math.PI) / 360)), this.haze);
+    this.shades.render(gl, this.scene);
     this.reflector.setSize(buffer.x, buffer.y);
     this.shared.uScreen.value = 0;
     this.reflector.render(gl, this.scene, this.camera);
@@ -228,6 +280,8 @@ export class GalleryScene {
   }
 
   dispose() {
+    this.disposed = true;
+    this.shades.dispose();
     this.scene.traverse((o) => {
       const m = o as THREE.Mesh;
       if (!m.isMesh && !(o as THREE.Points).isPoints) return;

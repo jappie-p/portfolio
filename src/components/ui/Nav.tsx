@@ -30,7 +30,7 @@ export function Nav() {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+    <header className="fixed inset-x-0 top-0 z-50 flex [view-transition-name:site-nav] items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
       <button
         type="button"
         data-nav="hero"

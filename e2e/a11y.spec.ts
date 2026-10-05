@@ -12,20 +12,20 @@ const audit = async (page: Page, include?: string) => {
 };
 
 test("the page passes WCAG 2.1 AA checks", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/experience");
   await page.waitForTimeout(1500);
   expect(await audit(page)).toEqual([]);
 });
 
 test("the page passes in English too", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("lang", "en"));
-  await page.goto("/");
+  await page.goto("/experience");
   await page.waitForTimeout(1500);
   expect(await audit(page)).toEqual([]);
 });
 
 test("an open case panel passes", async ({ page }) => {
-  await page.goto("/?case=hyphosting");
+  await page.goto("/experience?case=hyphosting");
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible({ timeout: 15_000 });
   // let the open animation finish: mid-fade the colours are half transparent

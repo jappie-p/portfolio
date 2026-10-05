@@ -5,12 +5,12 @@ import { hasHardwareWebGL } from "@/lib/webgl";
 import { LouisaBackdrop2D } from "./LouisaBackdrop2D";
 import type { BackdropProps } from "./lib/types";
 
-const LouisaCanvas = dynamic(() => import("./louisa3d/LouisaCanvas").then((m) => m.LouisaCanvas), { ssr: false });
+const StonesCanvas = dynamic(() => import("./louisa-stones/StonesCanvas").then((m) => m.StonesCanvas), { ssr: false });
 
-/** Louisa Edelstenen's world: inside a geode, in real 3D. Faceted amethyst
- *  and milky rose quartz grow from polished agate walls, refracting the light
- *  behind them; labradorite slabs turn and flash; facets glint as they sway.
- *  Without a hardware GPU it falls back to the Canvas 2D geode. */
+/** Louisa Edelstenen's world: a studio still life of what she sells most, on
+ *  dark slate. A backlit agate slice, an amethyst cluster, labradorite, rose
+ *  quartz and a clear quartz point, lit by softboxes and shot with a shallow
+ *  depth of field. Without a hardware GPU it falls back to the Canvas 2D geode. */
 export function LouisaBackdrop({ active, still, className = "" }: BackdropProps) {
   const [mode, setMode] = useState<"3d" | "2d" | null>(null);
   const [host, setHost] = useState<HTMLDivElement | null>(null);
@@ -26,7 +26,7 @@ export function LouisaBackdrop({ active, still, className = "" }: BackdropProps)
     <div ref={setHost} aria-hidden className={`pointer-events-none absolute inset-0 overflow-hidden bg-[#05080d] ${className}`}>
       {mode === "3d" && host && (
         <div className={`absolute inset-0 ${still ? "" : "transition-opacity duration-700 ease-out"}`} style={{ opacity: ready ? 1 : 0 }}>
-          <LouisaCanvas active={active} still={still} host={host} onReady={() => setReady(true)} />
+          <StonesCanvas active={active} still={still} host={host} onReady={() => setReady(true)} />
         </div>
       )}
     </div>

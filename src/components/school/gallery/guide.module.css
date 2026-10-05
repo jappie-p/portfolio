@@ -1,0 +1,370 @@
+/* Inside a School project: the prints either side peeking in at the edges,
+   the way back into the gallery, and the first-time swipe hint. Laid over
+   the row, above its panels; only the controls take the pointer. */
+
+.nav {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+.nav > * {
+  pointer-events: auto;
+}
+
+/* --- the prints either side: a framed thumbnail at the edge of the screen;
+   on a wide screen with a mouse its name slides out on hover --- */
+.peek {
+  position: absolute;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.55rem;
+  color: var(--ink);
+  background: rgba(10, 14, 20, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  translate: 0 -50%;
+  transition:
+    transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.peek:hover {
+  background: rgba(14, 20, 28, 0.82);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+.peek:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+.next {
+  right: 0;
+  border-right: 0;
+  border-radius: 16px 0 0 16px;
+  /* only the arrow and the print show until you reach for it */
+  transform: translateX(calc(100% - 7.6rem));
+}
+.prev {
+  left: 0;
+  border-left: 0;
+  border-radius: 0 16px 16px 0;
+  transform: translateX(calc(-100% + 7.6rem));
+  opacity: 0.78;
+}
+.peek:hover,
+.peek:focus-visible {
+  transform: none;
+  opacity: 1;
+}
+.thumb {
+  position: relative;
+  flex: none;
+  width: 4rem;
+  height: 4rem;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #0b0f14;
+  /* a frame and mat, like the prints on the wall */
+  box-shadow:
+    0 0 0 3px #e9e4d8,
+    0 0 0 5px #111418,
+    0 6px 18px rgba(0, 0, 0, 0.5);
+}
+.thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* the Berlijn card at the end of the wall: a small paper card */
+.card {
+  width: 2.9rem;
+  height: 3.9rem;
+  background: linear-gradient(160deg, #f1ece1, #d9d2c4);
+}
+.words {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  max-width: 11rem;
+  text-align: left;
+}
+.kicker {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.name {
+  margin-top: 0.2rem;
+  font-family: var(--font-display), sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.chev {
+  padding: 0 0.35rem;
+  font-size: 1.1rem;
+  color: var(--leaf);
+}
+.next .chev {
+  animation: lean 1.8s ease-in-out infinite;
+}
+@keyframes lean {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+}
+
+/* --- back into the gallery, and where you are --- */
+.foot {
+  position: absolute;
+  left: 1.5rem;
+  bottom: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.out {
+  padding: 0.5rem 1rem 0.5rem 0.8rem;
+  font-size: 0.85rem;
+}
+.icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+.count {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--ink-faint);
+}
+
+/* --- the first time: how to go on. A touch point sliding across on touch
+   screens, the arrow keys elsewhere; it rests once you have swiped --- */
+.hint {
+  position: absolute;
+  left: 50%;
+  bottom: 3.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--ink);
+  white-space: nowrap;
+  background: rgba(10, 14, 20, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  translate: -50% 0;
+  pointer-events: none;
+  animation:
+    hint-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 1.2s both,
+    hint-out 0.6s ease 9s forwards;
+}
+@keyframes hint-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes hint-out {
+  to {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.touch {
+  position: relative;
+  width: 3.4rem;
+  height: 1rem;
+}
+.dot {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 0.85rem;
+  height: 0.85rem;
+  margin-top: -0.425rem;
+  border-radius: 50%;
+  background: var(--leaf);
+  box-shadow: 0 0 14px rgba(74, 222, 128, 0.7);
+  animation: swipe 1.9s cubic-bezier(0.5, 0, 0.2, 1) 1.4s infinite;
+}
+/* the trail behind the touch point */
+.dot::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, rgba(74, 222, 128, 0.7), transparent);
+  animation: trail 1.9s cubic-bezier(0.5, 0, 0.2, 1) 1.4s infinite;
+}
+@keyframes swipe {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  62% {
+    transform: translateX(-2.5rem);
+    opacity: 1;
+  }
+  80%,
+  100% {
+    transform: translateX(-2.5rem);
+    opacity: 0;
+  }
+}
+@keyframes trail {
+  0%,
+  12% {
+    width: 0;
+  }
+  62% {
+    width: 2.2rem;
+  }
+  100% {
+    width: 0;
+  }
+}
+.keys {
+  display: flex;
+  gap: 0.3rem;
+}
+.keys kbd {
+  display: grid;
+  place-items: center;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  padding: 0 0.3rem;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom-width: 2px;
+}
+.keys kbd:last-child {
+  color: #04130a;
+  background: var(--leaf);
+  border-color: var(--leaf);
+  animation: press 1.9s ease-in-out 1.4s infinite;
+}
+@keyframes press {
+  0%,
+  55%,
+  100% {
+    transform: none;
+  }
+  62% {
+    transform: translateY(1px) scale(0.94);
+  }
+}
+
+/* touch screens: swipe; a mouse or trackpad: the keys, or two fingers */
+.keys,
+.trackpad {
+  display: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .touch,
+  .swipe {
+    display: none;
+  }
+  .keys,
+  .trackpad {
+    display: flex;
+  }
+}
+
+/* narrow screens and touch: a bar along the foot of the screen, the way
+   back on the left and the next print on the right, over a fade so the
+   page scrolling under it stays quiet; the one before is left to the swipe */
+@media (max-width: 1023px), (hover: none) {
+  .nav::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 5.5rem;
+    pointer-events: none;
+    background: linear-gradient(to top, rgba(5, 8, 13, 0.92) 35%, rgba(5, 8, 13, 0));
+  }
+  .peek,
+  .foot {
+    z-index: 1;
+  }
+  .peek {
+    top: auto;
+    bottom: 0.9rem;
+    translate: none;
+    gap: 0.6rem;
+    padding: 0.4rem;
+  }
+  .next {
+    right: 1rem;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    transform: none;
+  }
+  .prev {
+    display: none;
+  }
+  .next .words {
+    display: none;
+  }
+  .thumb {
+    width: 2.6rem;
+    height: 2.6rem;
+  }
+  .card {
+    width: 2rem;
+    height: 2.6rem;
+  }
+  .foot {
+    left: 1rem;
+    bottom: 1rem;
+  }
+  .count {
+    display: none;
+  }
+  .hint {
+    bottom: 4.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hint,
+  .dot,
+  .dot::after,
+  .keys kbd:last-child,
+  .next .chev {
+    animation: none;
+  }
+  .peek {
+    transition: none;
+  }
+}

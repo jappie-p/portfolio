@@ -37,8 +37,8 @@ export type GalleryCanvasProps = {
   onReady: () => void;
   /** after each frame, with the camera's pose and the view's size in CSS pixels */
   onFrame: (pose: Pose, w: number, h: number) => void;
-  /** the camera has stepped right up to a work */
-  onArrive: (work: number) => void;
+  /** a guided glide has arrived */
+  onArrive: () => void;
   onLost: () => void;
 };
 
@@ -118,7 +118,7 @@ function Stage({ rig, active, copy, pictures, crops, trailer, onReady, onFrame, 
     scene.frame(rig, dt, w, h);
     scene.render(gl, buffer.current);
     calls.current.onFrame(scene.pose, w, h);
-    if (arrived) calls.current.onArrive(rig.dolly.work);
+    if (arrived) calls.current.onArrive();
   }, 1);
 
   return null;

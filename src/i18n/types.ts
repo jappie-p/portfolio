@@ -6,8 +6,37 @@ import type { LearnId, SkillGroupId, SoftSkillId } from "@/data/skills";
 
 type Blurb = { title: string; text: string };
 
+type TourStep = { title: string; mouse: string; touch: string; say: string };
+
 export type Dictionary = {
   meta: { title: string; description: string };
+  /** The plain front door: how would you like to look around. */
+  welcome: {
+    kicker: string;
+    title: string;
+    simpleTitle: string;
+    simpleText: string;
+    soon: string;
+    richTitle: string;
+    richText: string;
+    enter: string;
+    again: string;
+  };
+  /** The short how-to before the experience, step by step. */
+  tour: {
+    title: string;
+    lead: string;
+    skip: string;
+    next: string;
+    soundOn: string;
+    soundOff: string;
+    step: string;
+    you: string;
+    down: TourStep;
+    side: TourStep;
+    dive: TourStep;
+    done: { title: string; say: string; go: string };
+  };
   nav: { home: string; websites: string; ai: string; cyber: string; school: string; about: string; contact: string; menu: string; close: string };
   hero: {
     name: string;
@@ -62,6 +91,8 @@ export type Dictionary = {
     game: { play: string; stop: string; controls: string; loading: string; title: string };
     /** Words on the kiosk's printed receipt; the menu keeps the kiosk's own words. */
     receipt: { order: string; eatIn: string; total: string; thanks: string };
+    /** The way between the projects inside the gallery. */
+    guide: { gallery: string; back: string; next: string; prev: string; swipe: string; keys: string };
   };
   work: {
     kinds: Record<ProjectKind, string>;

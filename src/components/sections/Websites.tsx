@@ -6,7 +6,7 @@ import { TopicRow, ProjectTrack, ProjectPanel } from "@/components/journey/panel
 import { SplitText } from "@/components/ui/SplitText";
 import { NextButton } from "@/components/ui/NextButton";
 import { BrowserFrame, PhoneFrame } from "@/components/work/Frames";
-import { TiltStage } from "@/components/work/TiltStage";
+import { FloatStage } from "@/components/work/FloatStage";
 import { Trailer } from "@/components/work/Trailer";
 import { WorkInfo } from "@/components/work/WorkInfo";
 import { PROJECT_NAMES, TOPICS } from "@/lib/chapters";
@@ -34,13 +34,13 @@ const ART: Record<SiteSlug, (s: { active: boolean; still: boolean }) => ReactNod
   louisa: (s) => <LouisaBackdrop {...s} />,
 };
 
-/** The live site in a browser, its phone version leaning in front, tilting toward the pointer. */
+/** The live site in a browser, its phone version leaning in front. */
 function SiteStage({ slug, priority = false }: { slug: SiteSlug; priority?: boolean }) {
   const t = useT();
   const p = PROJECTS[slug];
   if (!p.shots || !p.live) return null;
   return (
-    <TiltStage className="relative w-full max-w-3xl">
+    <FloatStage className="relative w-full max-w-3xl">
       {p.trailer ? (
         <BrowserFrame url={p.live}>
           <Trailer name={p.trailer} label={`${t.work.video} ${PROJECT_NAMES[slug]}`} />
@@ -54,7 +54,7 @@ function SiteStage({ slug, priority = false }: { slug: SiteSlug; priority?: bool
         sizes="(min-width: 1024px) 12vw, 24vw"
         className="absolute -bottom-8 -right-3 w-[23%] [transform:translateZ(60px)] sm:-right-8"
       />
-    </TiltStage>
+    </FloatStage>
   );
 }
 

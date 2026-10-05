@@ -4,7 +4,7 @@ import { test, expect, type Locator } from "@playwright/test";
 const settled = (row: Locator) => expect.poll(() => row.evaluate((el) => Math.abs(el.getBoundingClientRect().top)), { timeout: 12_000 }).toBeLessThan(2);
 
 test("a project opens as a shareable case panel and closes with Escape and back", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/experience");
   await page.locator('[data-nav="websites"]').click();
   const websites = page.locator('[data-section="websites"]');
   await settled(websites);
@@ -30,12 +30,12 @@ test("a project opens as a shareable case panel and closes with Escape and back"
   await expect(page).not.toHaveURL(/case=/);
 
   // a shared link opens the case straight away
-  await page.goto("/?case=louisa");
+  await page.goto("/experience?case=louisa");
   await expect(page.getByRole("dialog").getByRole("heading", { level: 2, name: "Louisa Edelstenen" })).toBeVisible({ timeout: 15_000 });
 });
 
 test("the case panel keeps focus inside while open", async ({ page }) => {
-  await page.goto("/?case=zelda");
+  await page.goto("/experience?case=zelda");
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible({ timeout: 15_000 });
   for (let i = 0; i < 12; i++) await page.keyboard.press("Tab");
@@ -43,7 +43,7 @@ test("the case panel keeps focus inside while open", async ({ page }) => {
 });
 
 test("about walks sideways from the bio to skills, learning and more work", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/experience");
   await page.locator('[data-nav="about"]').click();
   const about = page.locator('[data-section="about"]');
   await settled(about);
@@ -65,7 +65,7 @@ test("about walks sideways from the bio to skills, learning and more work", asyn
 });
 
 test("the game is playable from the school topic", async ({ page, request }) => {
-  await page.goto("/");
+  await page.goto("/experience");
   await page.locator('[data-nav="school"]').click();
   const play = page.locator('[data-section="school"] a', { hasText: "Speel in je browser" });
   await expect(play).toHaveAttribute("href", "/play/zelda/index.html");
@@ -77,7 +77,7 @@ test("the game is playable from the school topic", async ({ page, request }) => 
 test("the game also runs inside its panel, and stops again", async ({ page }) => {
   // the Python runtime comes from a CDN; the test only needs our page in the frame
   await page.route(/pygame-web\.github\.io/, (r) => r.abort());
-  await page.goto("/");
+  await page.goto("/experience");
   await page.locator('[data-nav="school"]').click();
   const school = page.locator('[data-section="school"]');
   await settled(school);
@@ -86,7 +86,7 @@ test("the game also runs inside its panel, and stops again", async ({ page }) =>
     track.scrollTo({ left: panel.offsetLeft, behavior: "instant" });
   });
   const play = school.getByRole("button", { name: "Speel hier" });
-  // the tilt stage floats, so the button never holds still for the stability check
+  // the stage floats, so the button never holds still for the stability check
   await play.click({ force: true });
   const frame = school.locator('iframe[title="Zelda Remote Controller, speelbaar in je browser"]');
   await expect(frame).toHaveAttribute("src", "/play/zelda/index.html");
@@ -99,7 +99,7 @@ test("the game also runs inside its panel, and stops again", async ({ page }) =>
 test("the first screen builds from sketch to render, and a key fast-forwards it", async ({ page }) => {
   // look as soon as the page arrives: the build-up runs from hydration, and
   // some engines fire "load" only once it is well under way
-  await page.goto("/", { waitUntil: "commit" });
+  await page.goto("/experience", { waitUntil: "commit" });
   const build = page.locator("[data-load]");
   await expect(build).toHaveAttribute("data-load", "sketch");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Jasper");
@@ -110,12 +110,12 @@ test("the first screen builds from sketch to render, and a key fast-forwards it"
 });
 
 test("left alone, the build-up finishes by itself", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/experience");
   await expect(page.locator("[data-load]")).toHaveAttribute("data-load", "done", { timeout: 10_000 });
 });
 
 test("a print on the School wall zooms into its project's panel", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/experience");
   await page.locator('[data-nav="school"]').click();
   const school = page.locator('[data-section="school"]');
   await settled(school);

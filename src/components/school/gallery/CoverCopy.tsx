@@ -4,8 +4,9 @@ import { NextButton } from "@/components/ui/NextButton";
 import { useT } from "@/i18n/useT";
 import { PosterWall, WallNote } from "../PosterWall";
 
-/** The exhibition's title and copy: the section heading, on the wall. */
-export function CoverCopy() {
+/** The exhibition's title and copy: the section heading, on the wall.
+ *  `onNext` is the live gallery's own way on (into its first print). */
+export function CoverCopy({ onNext }: { onNext?: () => void }) {
   const t = useT();
   return (
     <div data-reveal className="flex flex-col items-start">
@@ -13,7 +14,7 @@ export function CoverCopy() {
       <SplitText as="h2" text={t.school.title} className="headline mt-4 text-[clamp(2.25rem,7vw,4rem)] text-ink" />
       <p className="mt-4 max-w-xl text-lg text-ink-dim">{t.sections.school.lead}</p>
       <p className="mt-2 text-sm text-ink-faint">{t.school.programme}</p>
-      <NextButton label={t.ui.scrollSideways} />
+      <NextButton label={t.ui.scrollSideways} onNext={onNext} />
     </div>
   );
 }

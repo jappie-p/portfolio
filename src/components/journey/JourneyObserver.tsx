@@ -86,6 +86,8 @@ export function JourneyObserver() {
         rows[Math.max(topic - 1, 0)]?.scrollIntoView({ behavior: "smooth", block: "start" });
         e.preventDefault();
       } else if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        // a guided row (the School gallery) moves sideways its own way
+        if (row?.hasAttribute("data-guided")) return;
         const track = trackOf(row);
         const panels = panelsOf(row);
         if (!track || panels.length < 2) return;

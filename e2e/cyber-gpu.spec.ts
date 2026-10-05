@@ -5,7 +5,7 @@ import { gotoCyber, renderer, SOFTWARE } from "./cyber-helpers";
 test.use({ channel: "chrome" });
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/experience");
   const r = await renderer(page);
   test.skip(SOFTWARE.test(r), `no hardware GPU here (${r})`);
 });
@@ -39,7 +39,7 @@ test("cyber scene renders live WebGL and plays its chapters sideways", async ({ 
 test("reduced motion still renders the scene, one frame per chapter", async ({ browser }) => {
   const ctx = await browser.newContext({ reducedMotion: "reduce" });
   const page = await ctx.newPage();
-  await page.goto("/");
+  await page.goto("/experience");
   await gotoCyber(page);
   const section = page.locator('[data-section="cyber"]');
   await expect(section.locator("canvas")).toBeVisible({ timeout: 20_000 });

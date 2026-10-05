@@ -1,0 +1,526 @@
+/* The how-to: white like the front door, a tilted map of the site in the
+   middle like a level map, the move to make underneath. */
+
+.tour {
+  --paper: #ffffff;
+  --ink: #0c0f13;
+  --ink-2: #5a606a;
+  --ink-3: #686e77;
+  --line: #e7e7e3;
+  --go: #16a34a;
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+  /* the moves are read here, the page itself does not scroll */
+  touch-action: none;
+  overscroll-behavior: none;
+  outline: none;
+  animation: tour-in 0.45s ease both;
+}
+@keyframes tour-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* --- the top: what this is, the steps, sound and skip --- */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem clamp(1rem, 4vw, 2.5rem);
+}
+.head {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.title {
+  font-family: var(--font-display), sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.pips {
+  display: flex;
+  gap: 0.35rem;
+  list-style: none;
+}
+.pips li {
+  width: 1.5rem;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--line);
+  transition: background-color 0.35s ease;
+}
+.pips li[data-now] {
+  background: #b9bdc3;
+}
+.pips li[data-on] {
+  background: var(--go);
+}
+.tools {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.tool {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-2);
+}
+.tool svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.skip {
+  padding: 0.45rem 0.95rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--ink-2);
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+.tool:hover,
+.skip:hover {
+  color: var(--ink);
+  border-color: #cfcfca;
+}
+.tool:focus-visible,
+.skip:focus-visible,
+.next:focus-visible,
+.go:focus-visible,
+button.print:focus-visible {
+  outline: 2px solid var(--go);
+  outline-offset: 3px;
+}
+
+/* --- the map --- */
+.stage {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  overflow: hidden;
+  perspective: 1500px;
+}
+.board {
+  --tw: 4.6rem;
+  --th: calc(var(--tw) * 0.625);
+  --gap: 0.55rem;
+  --label: 5.8rem;
+  position: relative;
+  display: grid;
+  gap: var(--gap);
+  transform: rotateX(28deg) rotateZ(-4deg);
+  transform-style: preserve-3d;
+  animation: board-in 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s both;
+}
+@keyframes board-in {
+  from {
+    opacity: 0;
+    transform: rotateX(48deg) rotateZ(-8deg) translateY(30px);
+  }
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+}
+.label {
+  flex: none;
+  width: var(--label);
+  padding-right: 0.35rem;
+  text-align: right;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.tile {
+  position: relative;
+  flex: none;
+  width: var(--tw);
+  height: var(--th);
+  border-radius: 0.5rem;
+  background: radial-gradient(120% 100% at 30% 12%, color-mix(in srgb, var(--tint) 32%, #0b1017), #070a0f 72%);
+  box-shadow:
+    0 12px 18px -12px rgba(12, 15, 19, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+  transition:
+    transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
+    filter 0.45s ease;
+  animation: tile-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) calc(0.2s + var(--i) * 70ms) both;
+}
+@keyframes tile-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) translateZ(30px);
+  }
+}
+/* a project's panel: a little lighter than its topic's cover */
+.tile:not(.cover) {
+  background: radial-gradient(120% 100% at 70% 20%, color-mix(in srgb, var(--tint) 20%, #0e141c), #080b10 75%);
+}
+.tile[data-here] {
+  transform: translateZ(10px);
+}
+/* the hero: the field's glowing horizon */
+.tile[data-topic="hero"]::before {
+  content: "";
+  position: absolute;
+  inset: 52% 0 0;
+  border-radius: 0 0 0.5rem 0.5rem;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--tint) 60%, transparent), transparent 35%),
+    repeating-linear-gradient(90deg, rgba(74, 222, 128, 0.22) 0 1px, transparent 1px 6px);
+  opacity: 0.8;
+}
+/* all done: the rows light up, top to bottom */
+.row[data-lit] .tile {
+  animation: lit 1s ease calc(var(--i) * 90ms) both;
+}
+@keyframes lit {
+  40% {
+    filter: brightness(1.9) saturate(1.3);
+    transform: translateZ(8px);
+  }
+}
+
+/* the gallery's little prints; in the third step they ask to be picked */
+.prints {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12%;
+}
+.print {
+  position: relative;
+  width: 21%;
+  aspect-ratio: 1;
+  padding: 0;
+  border-radius: 1px;
+  background: #e9e4d8;
+  box-shadow: 0 0 0 1.5px #15181d;
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.print::after {
+  content: "";
+  position: absolute;
+  inset: 18%;
+  background: linear-gradient(135deg, #34d399, #0ea5e9);
+}
+.print:nth-child(2)::after {
+  background: linear-gradient(135deg, #fb923c, #16a34a);
+}
+.print:nth-child(3)::after {
+  background: linear-gradient(135deg, #ec4899, #8b5cf6);
+}
+button.print {
+  cursor: pointer;
+  animation: beckon 1.6s ease-in-out infinite;
+}
+button.print:nth-child(2) {
+  animation-delay: 0.2s;
+}
+button.print:nth-child(3) {
+  animation-delay: 0.4s;
+}
+@keyframes beckon {
+  50% {
+    box-shadow:
+      0 0 0 1.5px #15181d,
+      0 0 0 4px rgba(34, 197, 94, 0.6);
+  }
+}
+.print[data-picked] {
+  z-index: 2;
+  transform: scale(2.4);
+}
+
+/* where you are */
+.frame {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--tw);
+  height: var(--th);
+  border-radius: 0.6rem;
+  box-shadow:
+    0 0 0 2px #22c55e,
+    0 0 26px rgba(34, 197, 94, 0.55);
+  transform: translate(calc(var(--label) + var(--gap) + var(--col) * (var(--tw) + var(--gap))), calc(var(--row) * (var(--th) + var(--gap)))) translateZ(14px);
+  transition: transform 0.75s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+.you {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 6px);
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  /* deep enough for small white letters */
+  background: #15803d;
+  color: #fff;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  translate: -50% 0;
+}
+
+/* --- the move to make --- */
+.panel {
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(40rem, 100% - 2rem);
+  padding-bottom: clamp(1.2rem, 4vh, 2.8rem);
+  text-align: center;
+}
+.count {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.ask {
+  margin-top: 0.5rem;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(1.45rem, 3.4vw, 2.15rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+.check {
+  display: inline-grid;
+  place-items: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  margin-left: 0.6rem;
+  border-radius: 999px;
+  background: var(--go);
+  color: #fff;
+  font-size: 1rem;
+  vertical-align: 0.15em;
+  animation: pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+@keyframes pop {
+  from {
+    transform: scale(0);
+  }
+}
+.how {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.75rem;
+  font-size: 0.95rem;
+  color: var(--ink-2);
+}
+.key {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.9rem;
+  height: 1.9rem;
+  border: 1px solid #d8d8d3;
+  border-bottom-width: 3px;
+  border-radius: 0.45rem;
+  background: #fafaf8;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--ink);
+  animation: press 1.5s ease-in-out infinite;
+}
+@keyframes press {
+  0%,
+  60%,
+  100% {
+    transform: none;
+  }
+  70% {
+    transform: translateY(2px);
+    border-bottom-width: 1px;
+  }
+}
+.gesture {
+  position: relative;
+  width: 2.2rem;
+  height: 1.8rem;
+}
+.gesture span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0.8rem;
+  height: 0.8rem;
+  margin: -0.4rem 0 0 -0.4rem;
+  border-radius: 999px;
+  background: var(--go);
+  box-shadow: 0 0 12px rgba(22, 163, 74, 0.6);
+}
+.gesture[data-way="up"] span {
+  animation: g-up 1.6s ease-in-out infinite;
+}
+.gesture[data-way="side"] span {
+  animation: g-side 1.6s ease-in-out infinite;
+}
+.gesture[data-way="tap"] span {
+  animation: g-tap 1.4s ease-in-out infinite;
+}
+@keyframes g-up {
+  0% {
+    transform: translateY(0.6rem);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(-0.6rem);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-0.6rem);
+    opacity: 0;
+  }
+}
+@keyframes g-side {
+  0% {
+    transform: translateX(0.8rem);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  70% {
+    transform: translateX(-0.8rem);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-0.8rem);
+    opacity: 0;
+  }
+}
+@keyframes g-tap {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(0.7);
+  }
+}
+.say {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  max-width: 34rem;
+  margin-top: 1rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  text-align: left;
+  color: var(--ink-2);
+}
+/* the narrator's line types onto a blank line, like a game's subtitles
+   (the dimmed preview the hero uses is too faint to read on white) */
+.say :global(.typewriter-rest) {
+  opacity: 0;
+}
+.mic {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.22rem;
+  fill: none;
+  stroke: var(--go);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+.next {
+  margin-top: 0.9rem;
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--ink-2);
+  animation: tour-in 0.4s ease both;
+}
+.go {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.1rem;
+  padding: 0.85rem 1.5rem;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: pop 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) 0.2s both;
+}
+.go:hover {
+  transform: translateY(-2px);
+}
+.go span {
+  color: #4ade80;
+}
+
+/* phones: a smaller, flatter map */
+@media (max-width: 640px) {
+  .board {
+    --tw: 2.75rem;
+    --gap: 0.4rem;
+    --label: 4rem;
+    transform: rotateX(18deg) rotateZ(-3deg);
+  }
+  .label {
+    font-size: 0.5rem;
+    letter-spacing: 0.1em;
+  }
+  .head .title {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour,
+  .board,
+  .tile,
+  .row[data-lit] .tile,
+  button.print,
+  .key,
+  .gesture span,
+  .check,
+  .go,
+  .next {
+    animation: none;
+  }
+  .frame,
+  .print,
+  .tile {
+    transition: none;
+  }
+}

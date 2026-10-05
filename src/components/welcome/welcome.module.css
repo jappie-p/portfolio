@@ -1,0 +1,268 @@
+/* The front door: white, quiet, two choices. The experience behind it is
+   all dark, so its card carries a small window into that dark. */
+
+.page {
+  --paper: #ffffff;
+  --ink: #0c0f13;
+  --ink-2: #5a606a;
+  --ink-3: #686e77;
+  --line: #e7e7e3;
+  --go: #15803d;
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.4rem clamp(1rem, 4vw, 2.5rem);
+}
+.mark {
+  font-family: var(--font-display), sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.langs {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+.langs button {
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-2);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+.langs button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.body {
+  width: 100%;
+  max-width: 56rem;
+  margin: auto;
+  padding: 2rem clamp(1rem, 4vw, 2.5rem) 4rem;
+}
+.kicker {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.title {
+  margin-top: 0.9rem;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(2.4rem, 6.2vw, 4.4rem);
+  font-weight: 600;
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-top: 2.75rem;
+}
+@media (max-width: 719px) {
+  .choices {
+    grid-template-columns: 1fr;
+  }
+  /* the experience first, on a phone */
+  .rich {
+    order: -1;
+  }
+}
+
+.choice {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0.9rem 0.9rem 1.4rem;
+  border: 1px solid var(--line);
+  border-radius: 1.4rem;
+  background: var(--paper);
+  text-align: left;
+  transition:
+    transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.2s ease;
+}
+.rich:hover {
+  transform: translateY(-4px);
+  border-color: #d2d2cd;
+  box-shadow: 0 34px 60px -34px rgba(12, 15, 19, 0.38);
+}
+.rich:focus-visible {
+  outline: 2px solid var(--go);
+  outline-offset: 4px;
+}
+.simple {
+  color: var(--ink-2);
+}
+
+/* the experience's window: the hero's field at night */
+.shot,
+.sheet {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 0.95rem;
+}
+.shot {
+  background: #05080d;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+.shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.rich:hover .shot img {
+  transform: scale(1.05);
+}
+/* the simple version: a plain sheet with lines of text */
+.sheet {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0 14%;
+  background: #f6f6f3;
+  box-shadow: inset 0 0 0 1px #ededea;
+}
+.sheet i {
+  display: block;
+  height: 0.5rem;
+  border-radius: 99px;
+  background: #e2e2de;
+}
+.sheet i:nth-child(1) {
+  width: 46%;
+  height: 0.8rem;
+  background: #d5d5d0;
+}
+.sheet i:nth-child(2) {
+  width: 92%;
+}
+.sheet i:nth-child(3) {
+  width: 78%;
+}
+.sheet i:nth-child(4) {
+  width: 64%;
+}
+
+.badge {
+  position: absolute;
+  top: 1.6rem;
+  right: 1.6rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.name {
+  margin: 1.2rem 0.4rem 0;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.45rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.simple .name {
+  color: var(--ink-2);
+}
+.text {
+  margin: 0.35rem 0.4rem 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1.1rem 0.4rem 0;
+  font-weight: 600;
+  color: var(--ink);
+}
+.arrow {
+  color: var(--go);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.rich:hover .arrow {
+  transform: translateX(4px);
+}
+
+.again {
+  margin-top: 1.4rem;
+  font-size: 0.9rem;
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--line);
+}
+.again:hover {
+  color: var(--ink);
+}
+
+/* a quiet arrival: one after another, rising a little */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+.kicker,
+.title,
+.choice,
+.again {
+  animation: rise 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.title {
+  animation-delay: 0.06s;
+}
+.choice {
+  animation-delay: 0.14s;
+}
+.choice + .choice {
+  animation-delay: 0.22s;
+}
+.again {
+  animation-delay: 0.3s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kicker,
+  .title,
+  .choice,
+  .again {
+    animation: none;
+  }
+  .choice,
+  .shot img,
+  .arrow {
+    transition: none;
+  }
+}

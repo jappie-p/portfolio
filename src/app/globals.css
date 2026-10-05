@@ -32,7 +32,7 @@
    the hex scenes grow out of. */
 /* Only words can be selected and copied: pictures, scenes, device frames and
    controls never light up in a selection. */
-img, picture, video, canvas, svg, iframe, button, [aria-hidden="true"], .tilt-stage {
+img, picture, video, canvas, svg, iframe, button, [aria-hidden="true"], .float-stage {
   -webkit-user-select: none;
   user-select: none;
 }
@@ -41,6 +41,9 @@ img { -webkit-user-drag: none; }
    screen reader's copy stays out of the selection so nothing doubles up */
 .split-host > [aria-hidden="true"] { -webkit-user-select: text; user-select: text; }
 .split-host > .sr-only { -webkit-user-select: none; user-select: none; }
+
+/* the front door is a plain white page: no dark sky, no snapping */
+html:has(.welcome-page) { background: #fff; color-scheme: light; scroll-snap-type: none; }
 
 /* while jumpTo glides somewhere, no snapping: a re-snap would drop the glide */
 html.jumping { scroll-snap-type: none; }
@@ -221,6 +224,28 @@ body {
 }
 .project-panel::-webkit-scrollbar { display: none; }
 
+/* The School row while its gallery guides it: the track never slides by
+   itself, every sideways move goes back through the gallery (see
+   school/gallery/swipe.ts); up and down still scroll the page. */
+.topic-row[data-guided] .project-track { overflow-x: hidden; touch-action: pan-y; }
+.topic-row[data-guided] .project-panel { touch-action: pan-y; }
+
+/* Passing between a print and its project (school/gallery/transit.ts): on a
+   wide screen the print covers its own slice of the panel, so the two just
+   cross-fade; in a narrow room the old view grows past you or shrinks back
+   into the print while the new one settles. */
+html[data-passage]::view-transition-old(root),
+html[data-passage]::view-transition-new(root) {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+html[data-passage="in-zoom"]::view-transition-old(root) { animation-name: passage-past; }
+html[data-passage="out-zoom"]::view-transition-old(root) { animation-name: passage-back; }
+html[data-passage$="-zoom"]::view-transition-new(root) { animation-name: passage-settle; }
+@keyframes passage-past { to { opacity: 0; transform: scale(1.12); } }
+@keyframes passage-back { to { opacity: 0; transform: scale(0.9); } }
+@keyframes passage-settle { from { opacity: 0; transform: scale(1.05); } }
+
 /* --- Rise-in: once JS runs (.reveal-armed on <html>), the direct children of
    every [data-reveal] rise in one after another when their panel is in view
    ([data-on], set by RevealObserver). Without JS everything simply shows. */
@@ -242,25 +267,12 @@ body {
 .reveal-armed [data-on] [data-reveal] > :nth-child(n + 6),
 .reveal-armed [data-on][data-reveal] > :nth-child(n + 6) { transition-delay: 350ms; }
 
-/* --- Screenshot stages: tilt toward the pointer, glare follows it, idle float.
-   The float uses the separate `translate` property so it never fights the tilt. */
-.tilt-stage { perspective: 1400px; }
-.tilt-inner {
+/* --- Screenshot stages: an idle float, in a little depth for the phone frame */
+.float-stage { perspective: 1400px; }
+.float-inner {
   position: relative;
   transform-style: preserve-3d;
-  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
   animation: float 7s ease-in-out infinite;
-}
-.tilt-glare {
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  border-radius: 16px;
-  background: radial-gradient(600px circle at var(--gx, 50%) var(--gy, 50%), rgba(255, 255, 255, 0.12), transparent 45%);
-  opacity: var(--glare, 0);
-  transition: opacity 0.3s ease;
-  mix-blend-mode: screen;
 }
 @keyframes float {
   0%, 100% { translate: 0 0; }

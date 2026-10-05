@@ -54,7 +54,7 @@ export function sharedUniforms() {
 
 export type Shared = ReturnType<typeof sharedUniforms>;
 
-const smooth = (a: number, b: number, x: number) => {
+export const smooth = (a: number, b: number, x: number) => {
   const t = Math.min(Math.max((x - a) / (b - a), 0), 1);
   return t * t * (3 - 2 * t);
 };

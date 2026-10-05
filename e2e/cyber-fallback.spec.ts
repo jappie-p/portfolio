@@ -3,7 +3,7 @@ import { gotoCyber, renderer, SOFTWARE } from "./cyber-helpers";
 
 // Playwright's headless shell renders WebGL in software (SwiftShader).
 test("without a hardware GPU the cyber topic shows the poster and still tells the story sideways", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/experience");
   test.skip(!SOFTWARE.test(await renderer(page)), "this browser has a GPU");
   await gotoCyber(page);
   const section = page.locator('[data-section="cyber"]');

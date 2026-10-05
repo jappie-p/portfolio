@@ -5,7 +5,7 @@ import { test, expect } from "@playwright/test";
 test.use({ extraHTTPHeaders: { "cf-connecting-ip": `203.0.113.${Math.floor(Math.random() * 250) + 1}` } });
 
 test("the contact form checks the fields, then sends", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/experience");
   await page.locator('[data-nav="contact"]').click();
   const form = page.locator('[data-section="contact"] form');
 

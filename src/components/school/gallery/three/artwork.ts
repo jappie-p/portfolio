@@ -3,6 +3,7 @@ import { LIP, outerH, outerW, type Work } from "../layout";
 import { HEAD, LIGHT, OUT, VERT } from "./glsl";
 import type { Shared } from "./lights";
 import { FACE_FRAG } from "./face";
+import type { Shades } from "./shadows";
 
 const FRAME_FRAG = /* glsl */ `${HEAD}
 in vec3 vWorld;
@@ -55,6 +56,8 @@ export type ArtworkOptions = {
   /** the slice of the texture the picture shows: offset and size, in uv */
   crop: THREE.Vector4;
   video?: { texture: THREE.Texture; homography: THREE.Matrix3; mix: { value: number } };
+  /** the shadows of whatever breaks out of the prints */
+  shades: Shades["uniforms"];
 };
 
 /**
@@ -80,6 +83,7 @@ export function makeArtwork(work: Work, shared: Shared, opts: ArtworkOptions) {
   const fh = outerH(work) - 2 * work.frame;
   const uniforms = {
     ...shared,
+    ...opts.shades,
     uSpot: { value: opts.spot },
     uMap: { value: opts.map },
     uCrop: { value: opts.crop },

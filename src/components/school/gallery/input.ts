@@ -10,10 +10,8 @@ export type InputOptions = {
   width: () => number;
   /** the gallery is the panel in front of you (for the arrow keys) */
   engaged: () => boolean;
-  /** stepping up to a work, or zooming into one: hands off */
+  /** stepping up to a work, or passing into one: hands off */
   busy: () => boolean;
-  /** pulled past the last work: on to the next panel */
-  onEdge: () => void;
   /** the keys walked to another station */
   onStep: (station: number) => void;
 };
@@ -25,8 +23,7 @@ const QUIET_MS = 150;
 /**
  * The walk's inputs. Only clearly sideways input walks: a swipe or shift
  * wheel, a drag, the arrow keys; anything vertical scrolls the page as ever.
- * At either end the next sideways gesture is left to the track, so the row
- * still slides on to the projects.
+ * At either end the next sideways gesture is left alone.
  */
 export function bindInput(o: InputOptions): () => void {
   const { rig, panel, surface } = o;
@@ -90,7 +87,7 @@ export function bindInput(o: InputOptions): () => void {
     if (drag.on) {
       const moved = -(e.clientX - drag.x) / stride();
       const flick = Math.max(-1, Math.min(1, drag.v * 0.14)) + Math.sign(moved) * (Math.abs(moved) > 0.08 ? 0.3 : 0);
-      if (settle(rig, flick) > 0.16 && e.type === "pointerup") o.onEdge();
+      settle(rig, flick);
       swallow = true;
       window.setTimeout(() => (swallow = false), 0);
       surface.toggleAttribute("data-dragging", false);

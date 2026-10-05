@@ -11,6 +11,16 @@ const NEAR = "#4ade80";
 const FAR = "#22d3ee";
 const PENCIL = "#e9e4d8";
 const WIRE = "#5fe3ef";
+/** How far back the columns stand; past them, and to either side, the floor runs on. */
+const FAR_Z = -58;
+/** The height the columns settle to at the edges of their patch, the floor's own. */
+const FLOOR_H = 1.1;
+
+const clamp01 = (x: number) => Math.min(Math.max(x, 0), 1);
+const smooth = (a: number, b: number, x: number) => {
+  const t = clamp01((x - a) / (b - a));
+  return t * t * (3 - 2 * t);
+};
 
 /** "#4ade80" as linear-light RGB, the space the shaders mix in. */
 function linear(hex: string): [number, number, number] {
@@ -96,10 +106,12 @@ export class HexField {
 
   private setup() {
     const { gl } = this;
-    for (const name of ["uViewProj", "uTime", "uRise", "uStage", "uMouse", "uHalfWidth", "uCam", "uPass", "uDraw", "uBg", "uNear", "uFar", "uPencil", "uWire"]) {
+    for (const name of ["uViewProj", "uTime", "uRise", "uStage", "uMouse", "uHalfWidth", "uCam", "uPass", "uDraw", "uBg", "uNear", "uFar", "uPencil", "uWire", "uRegion", "uFloorH", "uSettle", "uHorizon", "uGlow", "uViewH"]) {
       this.u[name] = gl.getUniformLocation(this.field, name);
     }
-    for (const name of ["uHorizon", "uGlow", "uBg", "uNear", "uFar"]) this.su[name] = gl.getUniformLocation(this.sky, name);
+    for (const name of ["uHorizon", "uGlow", "uBg", "uNear", "uFar", "uPencil", "uWire", "uInvViewProj", "uCam", "uRegion", "uHalfWidth", "uFloorY", "uTime", "uStage", "uDraw"]) {
+      this.su[name] = gl.getUniformLocation(this.sky, name);
+    }
 
     // the column template, shared by every instance
     const tpl = prism();
@@ -133,10 +145,13 @@ export class HexField {
     gl.uniform3fv(this.u.uFar, linear(FAR));
     gl.uniform3fv(this.u.uPencil, linear(PENCIL));
     gl.uniform3fv(this.u.uWire, linear(WIRE));
+    gl.uniform1f(this.u.uFloorH, FLOOR_H);
     gl.useProgram(this.sky);
     gl.uniform3fv(this.su.uBg, linear(BG));
     gl.uniform3fv(this.su.uNear, linear(NEAR));
     gl.uniform3fv(this.su.uFar, linear(FAR));
+    gl.uniform3fv(this.su.uPencil, linear(PENCIL));
+    gl.uniform3fv(this.su.uWire, linear(WIRE));
   }
 
   private buffer(target: number, data: Float32Array) {
@@ -165,7 +180,8 @@ export class HexField {
     this.eye = tall ? [0, 5, 18] : [0, 4.6, 14];
 
     // a new grid for the new shape
-    const inst = columns(this.halfWidth, -70, tall ? 9 : 8);
+    const near = tall ? 9 : 8;
+    const inst = columns(this.halfWidth, FAR_Z, near);
     this.instances = inst.length / 3;
     gl.bindVertexArray(this.vao);
     this.buffer(gl.ARRAY_BUFFER, inst);
@@ -175,6 +191,13 @@ export class HexField {
     gl.bindVertexArray(null);
     // drop the previous instance buffer
     if (this.buffers.length > 3) gl.deleteBuffer(this.buffers.splice(2, 1)[0]);
+    gl.useProgram(this.field);
+    gl.uniform3f(this.u.uRegion, this.halfWidth, FAR_Z, near);
+    // a narrow patch settles over a shorter way, or nothing would stand at full height
+    gl.uniform1f(this.u.uSettle, Math.min(14, this.halfWidth * 0.4));
+    gl.uniform1f(this.u.uViewH, canvas.height);
+    gl.useProgram(this.sky);
+    gl.uniform3f(this.su.uRegion, this.halfWidth, FAR_Z, near);
     this.camera();
   }
 
@@ -196,8 +219,12 @@ export class HexField {
     gl.uniform1f(this.u.uHalfWidth, this.halfWidth);
     // where the floor meets the sky, on screen
     const [, hy] = project(this.viewProj, 0, 0, -2000);
+    gl.uniform1f(this.u.uHorizon, hy * 0.5 + 0.5);
     gl.useProgram(this.sky);
     gl.uniform1f(this.su.uHorizon, hy * 0.5 + 0.5);
+    if (this.inverse) gl.uniformMatrix4fv(this.su.uInvViewProj, false, this.inverse);
+    gl.uniform3f(this.su.uCam, eye[0], eye[1], eye[2]);
+    gl.uniform1f(this.su.uHalfWidth, this.halfWidth);
   }
 
   /** The pointer, in CSS pixels on the canvas, or null when it leaves. */
@@ -244,15 +271,21 @@ export class HexField {
     gl.clearColor(0.0196, 0.0314, 0.051, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // the sky first, behind everything
+    // the sky and the floor around the columns first, behind everything
+    const glow = clamp01(state.stage - 1.2);
     gl.disable(gl.DEPTH_TEST);
     gl.disable(gl.BLEND);
     gl.useProgram(this.sky);
-    gl.uniform1f(this.su.uGlow, Math.min(1, Math.max(0, state.stage - 1.2)));
+    gl.uniform1f(this.su.uGlow, glow);
+    gl.uniform1f(this.su.uTime, this.time);
+    gl.uniform1f(this.su.uStage, state.stage);
+    gl.uniform1f(this.su.uDraw, state.draw);
+    gl.uniform1f(this.su.uFloorY, FLOOR_H * (0.05 + 0.95 * this.floorRise()));
     gl.bindVertexArray(this.skyVao);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
     gl.useProgram(this.field);
+    gl.uniform1f(this.u.uGlow, glow);
     gl.uniform1f(this.u.uTime, this.time);
     gl.uniform1f(this.u.uRise, state.rise);
     gl.uniform1f(this.u.uStage, state.stage);
@@ -273,6 +306,13 @@ export class HexField {
     gl.drawArraysInstanced(gl.TRIANGLES, 0, this.count, this.instances);
     gl.depthMask(true);
     gl.bindVertexArray(null);
+  }
+
+  /** How far the floor has risen: as the columns at the edge of their patch do. */
+  private floorRise() {
+    const { stage, rise } = this.state;
+    const r = clamp01((rise * 1.35 - 0.78) / 0.32);
+    return r * r * (3 - 2 * r) * smooth(1.55, 2, Math.min(Math.max(stage - 0.45, 0), 2));
   }
 
   dispose() {

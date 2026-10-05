@@ -4,7 +4,7 @@ import { test, expect, type Page } from "@playwright/test";
 // against the live page. Each test names the form line it proves.
 
 const openCase = async (page: Page, slug: string) => {
-  await page.goto(`/?case=${slug}`);
+  await page.goto(`/experience?case=${slug}`);
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible({ timeout: 15_000 });
   return dialog;
@@ -12,7 +12,7 @@ const openCase = async (page: Page, slug: string) => {
 
 test.describe("portfolio site (2.x)", () => {
   test("2.2.2 one language at a time: English shows no Dutch", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/experience");
     await page.locator("header").getByRole("button", { name: "EN", exact: true }).click();
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
     const text = await page.locator("#journey-root").innerText();
@@ -30,14 +30,14 @@ test.describe("portfolio site (2.x)", () => {
   });
 
   test("2.2.8 professional media only: GitHub, no social media", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/experience");
     const hrefs = await page.locator("a[href]").evaluateAll((as) => as.map((a) => (a as HTMLAnchorElement).href));
     expect(hrefs.some((h) => h.startsWith("https://github.com/jappie-p"))).toBe(true);
     expect(hrefs.filter((h) => /instagram|tiktok|facebook|snapchat|x\.com|twitter/.test(h))).toEqual([]);
   });
 
   test("2.5 nothing privacy-sensitive: no phone, address or date of birth", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/experience");
     const text = await page.locator("body").innerText();
     expect(text).not.toMatch(/\+31|\b06[- ]?\d{8}\b|Apollo|Soesterberg|12-09-2006|geboortedatum/i);
   });
@@ -45,13 +45,13 @@ test.describe("portfolio site (2.x)", () => {
 
 test.describe("home (3.x)", () => {
   test("3.1 name and what I do, first thing on the page", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/experience");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Jasper");
     await expect(page.getByText("Van game-artist naar developer").first()).toBeVisible();
   });
 
   test("3.3 every project area is one click from the menu", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/experience");
     for (const id of ["websites", "ai", "cyber", "school"]) await expect(page.locator(`header [data-nav="${id}"]`)).toBeVisible();
   });
 });
@@ -68,7 +68,7 @@ test.describe("projects (4.x)", () => {
   });
 
   test("4.2 school projects are labelled as such", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/experience");
     await page.locator('[data-nav="school"]').click();
     await expect(page.getByRole("heading", { level: 2, name: "Schoolprojecten" })).toBeVisible();
   });
@@ -96,7 +96,7 @@ test.describe("projects (4.x)", () => {
 
 test.describe("about (5)", () => {
   test("photo, story, why, skills hard and soft, learning, references and cv", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/experience");
     const about = page.locator('[data-section="about"]');
     await expect(about.getByRole("img", { name: "Portretfoto van Jasper Pathuis" })).toBeVisible();
     for (const text of ["Waarom ik dit doe", "Hard skills", "Soft skills", "Wat ik nog wil leren", "Referenties"]) {
@@ -108,7 +108,7 @@ test.describe("about (5)", () => {
 
 test.describe("contact (6)", () => {
   test("email, an online form and my region on a world map", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/experience");
     await page.locator('[data-nav="contact"]').click();
     const contact = page.locator('[data-section="contact"]');
     await expect(contact.getByRole("button", { name: /pathuisjasper@gmail\.com/ })).toBeVisible();

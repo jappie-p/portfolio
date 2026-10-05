@@ -3,9 +3,11 @@ import type { MouseEvent } from "react";
 import { prefersReducedMotion } from "@/lib/motion";
 
 /** "Scroll sideways" for everyone: moves the track to the next panel. Mouse
- *  wheels cannot scroll sideways, so every chapter offers this button too. */
-export function NextButton({ label, className = "" }: { label: string; className?: string }) {
+ *  wheels cannot scroll sideways, so every chapter offers this button too.
+ *  A row that moves on its own way (the School gallery) passes `onNext`. */
+export function NextButton({ label, className = "", onNext }: { label: string; className?: string; onNext?: () => void }) {
   const onClick = (e: MouseEvent<HTMLButtonElement>) => {
+    if (onNext) return onNext();
     const panel = e.currentTarget.closest<HTMLElement>(".project-panel");
     const next = panel?.nextElementSibling;
     const track = panel?.parentElement;

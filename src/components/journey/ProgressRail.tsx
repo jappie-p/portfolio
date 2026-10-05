@@ -9,7 +9,7 @@ export function ProgressRail() {
   const projectCount = useJourney((s) => s.projectCount);
   if (projectCount <= 1) return null;
   return (
-    <div className="pointer-events-none fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 gap-2" aria-hidden>
+    <div className="pointer-events-none fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 gap-2 [view-transition-name:progress-rail]" aria-hidden>
       {Array.from({ length: projectCount }).map((_, i) => (
         <span
           key={i}

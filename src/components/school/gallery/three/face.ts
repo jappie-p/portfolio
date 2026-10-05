@@ -1,4 +1,5 @@
 import { HEAD, LIGHT, NOISE, OUT } from "./glsl";
+import { SHADE_GLSL } from "./shadows";
 
 /**
  * The face of a framed work, in one pass: the mat with the frame's lip
@@ -30,6 +31,7 @@ uniform float uVideoMix;
 ${OUT}
 ${LIGHT}
 ${NOISE}
+${SHADE_GLSL}
 
 vec3 srgbToLinear(vec3 c) {
   return mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(0.04045, c));
@@ -66,7 +68,9 @@ void main() {
   vec3 dl = lampPos - p;
   float cone = smoothstep(uSpotCone[uSpot].x, uSpotCone[uSpot].y, dot(-L, uSpotDir[uSpot]));
   float shape = cone * cone / dot(dl, dl) * lambert * uNorm;
-  vec3 warm = vec3(1.0, 0.93, 0.84) * uLevel * mix(1.0, shape, 0.45);
+  // what breaks out of the picture stands in this spot's light
+  float open = 1.0 - 0.78 * shade(uSpot - 1, p);
+  vec3 warm = vec3(1.0, 0.93, 0.84) * uLevel * mix(1.0, shape, 0.45) * open;
 
   // print, bevel and mat, blended over a pixel so the edges never crawl
   const float bevel = 0.006;
@@ -80,7 +84,7 @@ void main() {
   // the print, lit evenly by its spot and a little brighter toward the top;
   // the mat's cut edge throws a hairline of shade along its top
   vec3 tex = print(clamp(q / uPic + 0.5, 0.0, 1.0));
-  vec3 lit = tex * uLevel * mix(1.0, shape, 0.3) * mix(0.8, 1.0, smoothstep(0.0, 0.004, uPic.y * 0.5 - q.y));
+  vec3 lit = tex * uLevel * mix(1.0, shape, 0.3) * mix(0.8, 1.0, smoothstep(0.0, 0.004, uPic.y * 0.5 - q.y)) * open;
   vec3 printCol = mix(lit, tex, uRaw);
 
   // the frame's lip shades the top of the mat, the light coming from above
@@ -96,7 +100,9 @@ void main() {
   vec3 board = vec3(0.7, 0.68, 0.63) * (0.97 + 0.06 * grain(vUv * uSize * 1.7).r);
   vec3 matCol = board * (uAmbient * 3.0 + warm * mix(0.45, 1.0, lip));
 
-  vec3 col = printCol * wPrint + bevelCol * wBevel + matCol * (1.0 - wPrint - wBevel);
+  // right up to the picture, as its project takes over, the bevel's bright
+  // core goes down with the room, so no hairline of it stays round the picture
+  vec3 col = printCol * wPrint + bevelCol * wBevel * (1.0 - 0.9 * uRaw) + matCol * (1.0 - wPrint - wBevel);
   // fade the face's very edge into the frame's black, so the seam between
   // the two meshes stays smooth with no multisampling
   vec2 edge = (uSize * 0.5 - abs(q)) / px;

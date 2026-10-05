@@ -135,6 +135,9 @@
 /* the copy, as wall text at the entrance: left behind as you walk on */
 .heading {
   will-change: opacity, transform;
+  /* the walk sets it every frame; this only softens a sudden change (a
+     guided glide ending in the gallery) */
+  transition: opacity 0.45s ease;
 }
 .heading[data-away] > * {
   pointer-events: none;

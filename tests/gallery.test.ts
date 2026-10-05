@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
 import * as THREE from "three";
 import { makePath, pose, project } from "@/components/school/gallery/path";
-import { outerH, outerW, roomFor, stationOf } from "@/components/school/gallery/layout";
-import { createRig, goTo, nudge, settle, stepRig } from "@/components/school/gallery/rig";
+import { cameraPose } from "@/components/school/gallery/camera";
+import { LIP, outerH, outerW, roomFor, stationOf } from "@/components/school/gallery/layout";
+import { createRig, glideTo, goTo, nudge, settle, standClose, stepRig } from "@/components/school/gallery/rig";
+import { SQUARE, sliceStart } from "@/components/school/gallery/slices";
 import { homography } from "@/components/school/gallery/three/video";
 
 describe("gallery camera", () => {
@@ -66,13 +68,74 @@ describe("gallery walk", () => {
     expect(rig.pos).toBeCloseTo(2, 3);
   });
 
-  it("steps right up to a work and reports arriving once", () => {
+  it("glides to a work, steps right up to it and reports arriving once", () => {
     const rig = createRig(room);
-    Object.assign(rig.dolly, { work: 0, to: 1, hold: true });
+    glideTo(rig, 1, 1);
     let arrivals = 0;
-    for (let i = 0; i < 120; i++) if (stepRig(rig, 1 / 60)) arrivals++;
-    expect(rig.dolly.t).toBe(1);
+    for (let i = 0; i < 300; i++) if (stepRig(rig, 1 / 60)) arrivals++;
+    expect(rig.pos).toBeCloseTo(stationOf(room, 1), 3);
+    expect(rig.dolly.t).toBeCloseTo(1, 3);
     expect(arrivals).toBe(1);
+  });
+
+  it("from one work to the next it pulls back a little, then steps up again", () => {
+    const rig = createRig(room);
+    standClose(rig, 0);
+    glideTo(rig, 1, 1);
+    let least = 1;
+    for (let i = 0; i < 400 && rig.glide.on; i++) {
+      stepRig(rig, 1 / 60);
+      least = Math.min(least, rig.dolly.t);
+    }
+    expect(least).toBeLessThan(0.55);
+    expect(least).toBeGreaterThan(0.2);
+    expect(rig.dolly.t).toBeGreaterThan(0.985);
+  });
+
+  it("does not move off a work until it has pulled back from it", () => {
+    const rig = createRig(room);
+    standClose(rig, 0);
+    glideTo(rig, 1, 1);
+    stepRig(rig, 1 / 60);
+    expect(rig.target).toBe(stationOf(room, 0));
+    for (let i = 0; i < 60; i++) stepRig(rig, 1 / 60);
+    expect(rig.target).toBe(stationOf(room, 1));
+  });
+
+  it("a quick run of steps changes course without stopping on the way", () => {
+    const rig = createRig(room);
+    standClose(rig, 0);
+    glideTo(rig, 1, 1);
+    let arrivals = 0;
+    for (let i = 0; i < 20; i++) if (stepRig(rig, 1 / 60)) arrivals++;
+    glideTo(rig, 2, 1);
+    for (let i = 0; i < 400; i++) if (stepRig(rig, 1 / 60)) arrivals++;
+    expect(arrivals).toBe(1);
+    expect(rig.pos).toBeCloseTo(stationOf(room, 2), 3);
+  });
+
+  it("never glides faster than its cap, however far it goes", () => {
+    const rig = createRig(room);
+    glideTo(rig, 3, 0);
+    let fastest = 0;
+    for (let i = 0; i < 400; i++) {
+      stepRig(rig, 1 / 60);
+      fastest = Math.max(fastest, Math.abs(rig.vel));
+    }
+    expect(fastest).toBeLessThanOrEqual(3.4 + 1e-9);
+  });
+
+  it("right up to a print, its picture covers its own slice of the project's panel", () => {
+    const rig = createRig(roomFor(1440 / 900));
+    standClose(rig, 1);
+    const p = cameraPose(rig, 0, 1440 / 900, pose(0, 0, 0));
+    const w = rig.room.works[1];
+    const [x0, y0] = project(p, 1440, 900, w.x - w.w / 2, w.y + w.h / 2, w.depth - LIP);
+    const [x1, y1] = project(p, 1440, 900, w.x + w.w / 2, w.y - w.h / 2, w.depth - LIP);
+    expect(x0 / 1440).toBeCloseTo(sliceStart("kiosk"), 3);
+    expect(x1 / 1440).toBeCloseTo(sliceStart("kiosk") + SQUARE, 3);
+    expect(y0).toBeCloseTo(0, 1);
+    expect(y1).toBeCloseTo(900, 1);
   });
 });
 

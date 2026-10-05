@@ -1,6 +1,7 @@
 import { useEffect, type RefObject } from "react";
 import { roomFor } from "./layout";
-import { placeOverlay, restPose, type OverlayDom } from "./place";
+import { restPose } from "./camera";
+import { placeOverlay, type OverlayDom } from "./place";
 import { setRoom, type Rig } from "./rig";
 
 /**

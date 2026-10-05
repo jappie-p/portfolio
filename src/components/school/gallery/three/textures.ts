@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import type { ReceiptLabels } from "@/components/art/kiosk/receipt";
 
 /** Decode a picture off the main thread (createImageBitmap) into a texture,
  *  falling back to an <img> where bitmaps cannot be flipped. */
@@ -26,7 +27,7 @@ export async function loadPicture(url: string, anisotropy: number, signal: Abort
 }
 
 /** The family next/font generated for a CSS variable, with a fallback. */
-function family(variable: string, fallback: string) {
+export function family(variable: string, fallback: string) {
   const v = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
   return v ? `${v}, ${fallback}` : fallback;
 }
@@ -36,7 +37,9 @@ const GREEN = "#3fb873";
 const RED = "#d44a3a";
 const MONO = 'ui-monospace, "SFMono-Regular", Menlo, monospace';
 
-export type CardCopy = { title: string; tech: readonly string[]; year: number };
+/** The words the room prints, in the reader's language: the Berlijn card's,
+ *  and those on the receipt the kiosk print feeds out. */
+export type CardCopy = { title: string; tech: readonly string[]; year: number; receipt: ReceiptLabels };
 
 /** The Berlijn app as a small screen print: the Fernsehturm in ink and green
  *  on warm paper, the title and stack set below. */

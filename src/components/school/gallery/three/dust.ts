@@ -9,6 +9,7 @@ uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 uniform float uTime;
 uniform float uPx;
+uniform float uHaze;
 ${LIGHT}
 out float vLight;
 void main() {
@@ -20,7 +21,7 @@ void main() {
   float flake = 0.25 + 0.75 * pow(abs(sin(t * (0.9 + aSeed.y) + aSeed.x * 20.0)), 3.0);
   // no glare of motes right at the lamp, where the light is fiercest
   float lamp = smoothstep(0.6, 1.4, distance(p, uSpotPos[int(aBase.w)]));
-  vLight = min(dot(c, vec3(0.33)), 2.5) * lamp * flake * step(0.02, p.z) * step(0.0, p.y);
+  vLight = min(dot(c, vec3(0.33)), 2.5) * lamp * flake * step(0.02, p.z) * step(0.0, p.y) * uHaze;
   vec4 view = viewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * view;
   gl_PointSize = clamp((0.006 + aSeed.w * 0.006) * uPx / -view.z, 1.5, 7.0);
@@ -66,11 +67,12 @@ export function makeDust(shared: Shared, spots: Spot[], perSpot = 70) {
   // positions are computed in the shader; three only needs a count
   geometry.setAttribute("position", new THREE.Float32BufferAttribute(new Float32Array(bases.length * 0.75), 3));
   const uPx = { value: 1000 };
+  const uHaze = { value: 1 };
   const material = new THREE.RawShaderMaterial({
     glslVersion: THREE.GLSL3,
     vertexShader: VERT,
     fragmentShader: FRAG,
-    uniforms: { ...shared, uPx },
+    uniforms: { ...shared, uPx, uHaze },
     transparent: true,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
@@ -78,5 +80,5 @@ export function makeDust(shared: Shared, spots: Spot[], perSpot = 70) {
   const points = new THREE.Points(geometry, material);
   points.frustumCulled = false;
   points.renderOrder = 3;
-  return { points, uPx };
+  return { points, uPx, uHaze };
 }

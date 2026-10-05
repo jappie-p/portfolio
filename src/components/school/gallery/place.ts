@@ -1,6 +1,6 @@
-import { LIP, outerH, outerW, type Room, type Work } from "./layout";
-import { makePath, pose, project, type Pose } from "./path";
-import { ease, resting, type Rig } from "./rig";
+import { LIP, outerH, outerW, type Work } from "./layout";
+import { project, type Pose } from "./path";
+import { ease, inFront, resting, type Rig } from "./rig";
 
 /** The HTML laid over the canvas: per work a button on its frame, a window in
  *  it on the picture (what the zoom grows from) and a label on the wall. */
@@ -61,6 +61,10 @@ function flag(el: HTMLElement, name: string, on: boolean) {
 }
 
 const px = (v: number) => `${v.toFixed(1)}px`;
+const smooth = (a: number, b: number, x: number) => {
+  const t = Math.min(Math.max((x - a) / (b - a), 0), 1);
+  return t * t * (3 - 2 * t);
+};
 
 /** Kept inside the view, so focusing a work that is off to the side never
  *  makes the browser scroll the track to it (the walk brings it in instead). */
@@ -70,14 +74,6 @@ function inside(b: Box, W: number, H: number): Box {
   const x1 = Math.max(Math.min(b.x + b.w, W), x0 + 2);
   const y1 = Math.max(Math.min(b.y + b.h, H), y0 + 2);
   return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
-}
-
-const paths = new WeakMap<Room, (s: number, out: Pose) => Pose>();
-/** The camera's pose for where the walk stands, before the scene runs. */
-export function restPose(rig: Rig): Pose {
-  let path = paths.get(rig.room);
-  if (!path) paths.set(rig.room, (path = makePath(rig.room.stations)));
-  return path(rig.pos, pose(0, 0, 0));
 }
 
 /** Where a work's label hangs: beside the frame's lower edge on a wide wall,
@@ -91,7 +87,7 @@ export function placeOverlay(dom: OverlayDom, rig: Rig, p: Pose, W: number, H: n
   const room = rig.room;
   const out = [0, 0, 0];
   const here = room.faces[Math.round(rig.pos)] ?? -1;
-  const still = resting(rig) && rig.dolly.t === 0;
+  const still = resting(rig) && rig.dolly.t < 0.01;
   room.works.forEach((w, i) => {
     const el = dom.works[i];
     const pic = dom.pics[i];
@@ -106,11 +102,16 @@ export function placeOverlay(dom: OverlayDom, rig: Rig, p: Pose, W: number, H: n
       const bh = frame ? Math.max(frame.h, 24) : 0;
       write(el, frame ? `transform:translate3d(${px(frame.x - (bw - frame.w) / 2)},${px(frame.y - (bh - frame.h) / 2)},0);width:${px(bw)};height:${px(bh)}${reach}` : "display:none");
       // stepping up to it, the frame outgrows the view: no ring round the screen's edge
-      flag(el, "data-close", rig.dolly.t > 0);
+      flag(el, "data-close", rig.dolly.t > 0.02);
     }
+    const close = inFront(rig, i);
     if (pic && frame) {
       const b = box(p, W, H, w.x, w.y, w.w / 2, w.h / 2, w.depth - LIP, out);
-      if (b) write(pic, `left:${px(b.x - frame.x)};top:${px(b.y - frame.y)};width:${px(b.w)};height:${px(b.h)}`);
+      // right up to a print the lights go down around it, until only the
+      // picture is left to open into its project
+      const dim = w.id === "berlijn" ? 0 : smooth(0.55, 0.97, close) * 0.94;
+      const shade = dim > 0.002 ? `;box-shadow:0 0 0 200vmax rgba(3,5,8,${dim.toFixed(3)})` : "";
+      if (b) write(pic, `left:${px(b.x - frame.x)};top:${px(b.y - frame.y)};width:${px(b.w)};height:${px(b.h)}${shade}`);
     }
     if (label) {
       const [lx, ly, lz] = labelAt(w, room.narrow);
@@ -119,7 +120,8 @@ export function placeOverlay(dom: OverlayDom, rig: Rig, p: Pose, W: number, H: n
       const x = room.narrow ? Math.max(out[0], 16) : out[0];
       write(label, `transform:translate3d(${px(x)},${px(out[1])},0);--room:${px(W - x - 16)}`);
       const near = rig.hover === i || rig.focus === i;
-      flag(label, "data-on", near || (still && here === i) || (rig.dolly.work === i && rig.dolly.t > 0.5));
+      // and its label steps aside once the picture is about to open
+      flag(label, "data-on", (near || (still && here === i) || close > 0.5) && close < 0.82);
       flag(label, "data-hover", near);
     }
   });
@@ -127,7 +129,8 @@ export function placeOverlay(dom: OverlayDom, rig: Rig, p: Pose, W: number, H: n
   if (h) {
     // on a wide wall the title stays at the entrance as you walk on
     const away = room.narrow ? 0 : Math.min(Math.max(rig.pos, 0), 1);
-    const fade = (1 - ease(Math.min(away / 0.6, 1))) * (1 - ease(rig.dolly.t));
+    // and it keeps out of the way while you glide from one project to the next
+    const fade = rig.glide.on ? 0 : (1 - ease(Math.min(away / 0.6, 1))) * (1 - ease(rig.dolly.t));
     write(h, `opacity:${fade.toFixed(3)};transform:translate3d(${px(-away * 0.14 * W)},0,0)`);
     flag(h, "data-away", fade < 0.5);
   }
