@@ -75,13 +75,30 @@ export type Dictionary = {
     refsCta: string;
     moreTitle: string;
     moreLead: string;
-    /** what a star's size means, above the skill constellations */
-    skyLegend: string;
-    /** "1 project" and "4 projects" under a star */
-    skyProject: string;
-    skyProjects: string;
-    /** under a star no project on the page lists */
-    skyNone: string;
+    /** The player card: About as a character screen. */
+    player: {
+      kicker: string;
+      classLabel: string;
+      classValue: string;
+      originLabel: string;
+      originValue: string;
+      regionLabel: string;
+      regionValue: string;
+      /** under the counted facts */
+      live: string;
+      built: string;
+      company: string;
+      guildsTitle: string;
+      guilds: { school: string; work: string; company: string };
+      since: string;
+      offlineTitle: string;
+      offline: string;
+    };
+    /** the skill tree: what a level means, and what a node says it is used in */
+    tree: { kicker: string; legend: string; level: string; usedIn: string; none: string };
+    perksKicker: string;
+    quests: { kicker: string; active: string; next: string; coop: string };
+    sideKicker: string;
   };
   skills: Record<SkillGroupId, string>;
   softSkills: Record<SoftSkillId, Blurb>;

@@ -30,18 +30,17 @@ export function usesOf(skill: string): Use[] {
   ];
 }
 
-export type SkillStar = { name: string; group: SkillGroupId; uses: Use[] };
+/** The highest level a skill shows: past this many projects it is maxed out. */
+export const MAX_LEVEL = 5;
 
-/** Every hard skill as a star, grouped as in SKILLS. */
-export const SKILL_STARS: Record<SkillGroupId, SkillStar[]> = Object.fromEntries(
-  SKILLS.map((g) => [g.id, g.items.map((name) => ({ name, group: g.id, uses: usesOf(name) }))]),
-) as Record<SkillGroupId, SkillStar[]>;
+export type SkillNode = { name: string; uses: Use[]; level: number };
 
-const MOST = Math.max(...Object.values(SKILL_STARS).flatMap((g) => g.map((s) => s.uses.length)));
-
-/** How bright a star is, 0..1: its share of the most-used skill's projects, as area. */
-export const starLight = (uses: number, most = MOST) => Math.sqrt(uses / Math.max(1, most));
-
-/** A star's radius in px. Its area grows with the number of projects that use
- *  the skill, so the smallest star is one no project on the page lists. */
-export const starRadius = (uses: number, most = MOST) => 1.5 + 3.6 * starLight(uses, most);
+/** Every hard skill as a node in its branch, its level the number of
+ *  projects on the page that list it: counted from the data, never typed in. */
+export const SKILL_TREE: Array<{ id: SkillGroupId; nodes: SkillNode[] }> = SKILLS.map((g) => ({
+  id: g.id,
+  nodes: g.items.map((name) => {
+    const uses = usesOf(name);
+    return { name, uses, level: Math.min(uses.length, MAX_LEVEL) };
+  }),
+}));

@@ -1,0 +1,310 @@
+/* The player screen: the portrait standing in the hex world like a
+   character render, the card beside it. */
+
+.player {
+  display: grid;
+  width: 100%;
+  max-width: 76rem;
+  align-items: center;
+  gap: 2.5rem;
+}
+@media (min-width: 1024px) {
+  .player {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: 4rem;
+  }
+}
+
+/* --- the stage --- */
+.stage {
+  position: relative;
+  height: min(78dvh, 46rem);
+  min-height: 24rem;
+  overflow: hidden;
+  isolation: isolate;
+}
+@media (max-width: 1023px) {
+  .stage {
+    height: min(62dvh, 30rem);
+  }
+}
+/* the name behind the figure, cut off by the stage like a mark on a wall */
+.back {
+  position: absolute;
+  left: 50%;
+  top: 2%;
+  z-index: -2;
+  translate: -50% 0;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(7rem, 15vw, 15rem);
+  font-weight: 700;
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.13);
+  user-select: none;
+}
+/* a column of light behind the figure, rising from the floor */
+.beam {
+  position: absolute;
+  inset: 0 18% 0;
+  z-index: -1;
+  background: radial-gradient(50% 75% at 50% 100%, rgba(74, 222, 128, 0.22), rgba(34, 211, 238, 0.06) 55%, transparent 75%);
+  filter: blur(6px);
+}
+/* the hex floor at the figure's feet, seen at a low angle, lit from the middle */
+.floor {
+  position: absolute;
+  left: -30%;
+  right: -30%;
+  bottom: -22%;
+  height: 52%;
+  z-index: -1;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='41.57' height='72' viewBox='0 0 41.57 72'%3E%3Cpath d='M0 12 L20.78 0 L41.57 12 L41.57 36 L20.78 48 L0 36 Z M20.78 48 V72' fill='none' stroke='%234ade80' stroke-opacity='0.55' stroke-width='1.2'/%3E%3C/svg%3E");
+  background-size: 41.57px 72px;
+  background-position: center top;
+  transform: perspective(520px) rotateX(62deg);
+  transform-origin: 50% 0;
+  -webkit-mask-image: radial-gradient(45% 65% at 50% 8%, #000 10%, rgba(0, 0, 0, 0.35) 45%, transparent 75%);
+  mask-image: radial-gradient(45% 65% at 50% 8%, #000 10%, rgba(0, 0, 0, 0.35) 45%, transparent 75%);
+}
+
+/* the figure: graded a little cooler and harder than the photo, with a
+   rim of the floor's green light round it, dissolving at the bottom */
+.figure {
+  position: absolute;
+  inset: 0;
+  /* the bottom dissolves into the floor, and the shoulders fade out where
+     the stage would otherwise crop them straight */
+  -webkit-mask-image: linear-gradient(to top, transparent 0%, #000 24%), linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to top, transparent 0%, #000 24%), linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+  mask-composite: intersect;
+}
+.figure img {
+  object-fit: contain;
+  object-position: 50% 100%;
+  filter: saturate(0.82) contrast(1.08) brightness(0.9) drop-shadow(-2px -1px 0 rgba(134, 239, 172, 0.35)) drop-shadow(2px -1px 0 rgba(94, 234, 212, 0.25))
+    drop-shadow(0 0 28px rgba(74, 222, 128, 0.18));
+}
+/* light on the figure alone: a cool fall-off at the bottom and the sides,
+   and a slow sweep of light across it now and then */
+.light {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-position: 50% 100%;
+  mask-position: 50% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  pointer-events: none;
+}
+.shade {
+  mix-blend-mode: multiply;
+  background:
+    radial-gradient(60% 55% at 50% 30%, #ffffff 30%, rgba(160, 182, 210, 1) 80%),
+    linear-gradient(180deg, #fff 45%, #6d7f9e 100%);
+}
+.sweep {
+  mix-blend-mode: screen;
+  background: linear-gradient(105deg, transparent 38%, rgba(190, 255, 220, 0.32) 48%, rgba(190, 255, 220, 0.08) 54%, transparent 62%) no-repeat;
+  background-size: 260% 100%;
+  background-position: 110% 0;
+}
+/* once as the panel comes in, then about every ten seconds */
+[data-on] .sweep {
+  animation: sweep 10s cubic-bezier(0.45, 0, 0.25, 1) 0.4s infinite both;
+}
+@keyframes sweep {
+  0% {
+    background-position: 110% 0;
+  }
+  24%,
+  100% {
+    background-position: -10% 0;
+  }
+}
+/* HUD corners round the stage, and its tag */
+.stage::before,
+.stage::after {
+  content: "";
+  position: absolute;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-color: var(--hud);
+  border-style: solid;
+  pointer-events: none;
+}
+.stage::before {
+  top: 0;
+  left: 0;
+  border-width: 1px 0 0 1px;
+}
+.stage::after {
+  right: 0;
+  bottom: 0;
+  border-width: 0 1px 1px 0;
+}
+.tag {
+  position: absolute;
+  top: 0.9rem;
+  left: 1.1rem;
+}
+
+/* --- the card --- */
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  max-width: 36rem;
+}
+.name {
+  margin-top: 0.7rem;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(2.7rem, 4.9vw, 4.5rem);
+  font-weight: 600;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  color: var(--ink);
+}
+.traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.75rem;
+  margin-top: 1.1rem;
+}
+.traits div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.traits dt {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+.traits dd {
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+/* counted facts, counting up as the panel comes in */
+@property --count {
+  syntax: "<integer>";
+  inherits: false;
+  initial-value: 0;
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  margin-top: 1.3rem;
+  border-block: 1px solid rgba(255, 255, 255, 0.09);
+}
+.stat {
+  padding: 0.8rem 0 0.85rem;
+}
+.stat + .stat {
+  padding-left: 1.25rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.09);
+}
+.num {
+  --count: 0;
+  display: block;
+  font-family: var(--font-display), sans-serif;
+  font-size: clamp(2.2rem, 3.4vw, 3rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--leaf);
+  counter-reset: num var(--count);
+  transition: --count 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) 0.3s;
+}
+.num::after {
+  content: counter(num);
+}
+[data-on] .num,
+html:not(.reveal-armed) .num {
+  --count: var(--to);
+}
+.what {
+  display: block;
+  margin-top: 0.45rem;
+  font-size: 0.82rem;
+  color: var(--ink-dim);
+}
+.intro {
+  margin-top: 1.25rem;
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: var(--ink-dim);
+}
+.why {
+  position: relative;
+  margin-top: 1.2rem;
+  padding-left: 1.25rem;
+}
+.why::before {
+  content: "";
+  position: absolute;
+  inset: 0.2rem auto 0.2rem 0;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, var(--leaf), rgba(74, 222, 128, 0.15));
+}
+.whyText {
+  margin-top: 0.5rem;
+  font-family: var(--font-display), sans-serif;
+  font-size: 1.08rem;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.guilds {
+  width: 100%;
+  margin-top: 1.25rem;
+}
+.guildList {
+  margin-top: 0.6rem;
+}
+.guild {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.42rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 0.9rem;
+}
+.guildName {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 600;
+  color: var(--ink);
+}
+.guildRole {
+  color: var(--ink-dim);
+}
+.guildSince {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.72rem;
+  color: var(--quiet);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.4rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .num {
+    transition: none;
+  }
+  [data-on] .sweep {
+    animation: none;
+  }
+}

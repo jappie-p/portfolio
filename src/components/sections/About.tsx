@@ -1,32 +1,25 @@
 "use client";
-import { useRef } from "react";
-import dynamic from "next/dynamic";
-import { Backdrop } from "@/components/journey/Backdrop";
 import { TopicRow, ProjectTrack } from "@/components/journey/panels";
-import { BioPanel } from "@/components/about/BioPanel";
-import { SkillsPanel } from "@/components/about/SkillsPanel";
-import { LearnPanel } from "@/components/about/LearnPanel";
-import { MorePanel } from "@/components/about/MorePanel";
+import { PlayerPanel } from "@/components/about/PlayerPanel";
+import { SkillTreePanel } from "@/components/about/SkillTreePanel";
+import { QuestPanel } from "@/components/about/QuestPanel";
+import { SideQuestPanel } from "@/components/about/SideQuestPanel";
 import { useT } from "@/i18n/useT";
-import styles from "@/components/about/row.module.css";
+import styles from "@/components/about/about.module.css";
 
-// the sky loads once the row comes near (see Backdrop)
-const AboutSky = dynamic(() => import("@/components/about/sky/AboutSky").then((m) => m.AboutSky), { ssr: false });
-
-/** About me, sideways across one night sky: who I am and why, my skills as
- *  constellations, what I want to learn as stars not lit yet, and the
- *  smaller work. The sky sits behind the whole row and pans with the track. */
+/** About me as a character screen, sideways: the player card, the skill
+ *  tree with the soft skills as perks, what I want to learn as a quest log,
+ *  and the smaller builds as side quests. All of it stands on the hero's
+ *  hex floor, seen from above. */
 export function About() {
   const t = useT();
-  const track = useRef<HTMLDivElement>(null);
   return (
     <TopicRow id="about" label={t.about.title} className={styles.row}>
-      <Backdrop>{(st) => <AboutSky {...st} track={track} />}</Backdrop>
-      <ProjectTrack label={t.about.title} ref={track}>
-        <BioPanel />
-        <SkillsPanel />
-        <LearnPanel />
-        <MorePanel />
+      <ProjectTrack label={t.about.title}>
+        <PlayerPanel />
+        <SkillTreePanel />
+        <QuestPanel />
+        <SideQuestPanel />
       </ProjectTrack>
     </TopicRow>
   );

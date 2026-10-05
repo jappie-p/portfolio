@@ -1,14 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { SKILL_STARS, starRadius, usesOf } from "@/components/about/skill-stars";
-import { SHAPES } from "@/components/about/constellations";
+import { FACTS, LIVE_SITES } from "@/components/about/facts";
+import { MAX_LEVEL, SKILL_TREE, usesOf } from "@/components/about/levels";
 import { SKILLS } from "@/data/skills";
 
 const count = (skill: string) => usesOf(skill).length;
 const names = (skill: string) => usesOf(skill).map((u) => (u.kind === "project" ? u.slug : u.id));
 
-// A star's size is how many projects on the page list the skill in their
-// stack: counted from the data, never a level someone typed in.
-describe("skill stars", () => {
+// A skill's level is how many projects on the page list it in their stack:
+// counted from the data, never a level someone typed in.
+describe("skill levels", () => {
   it("count the projects whose stack lists a skill", () => {
     expect(names("Node.js")).toEqual(["hyphosting", "louisa", "jarvis", "go-to-guy", "zelda", "kiosk"]);
     expect(count("Express")).toBe(4);
@@ -30,23 +30,30 @@ describe("skill stars", () => {
     expect(names("Three.js")).toEqual(["portfolio"]);
   });
 
-  it("leave a skill no project lists at zero, as the smallest star", () => {
+  it("leave a skill no project lists at zero", () => {
     for (const skill of ["GSAP", "Nginx", "systemd", "Automation", "Git", "Figma", "Playwright", "Vitest"]) expect(count(skill)).toBe(0);
-    const all = Object.values(SKILL_STARS).flat();
-    const smallest = Math.min(...all.map((s) => starRadius(s.uses.length)));
-    expect(starRadius(0)).toBe(smallest);
-    expect(starRadius(6)).toBeGreaterThan(starRadius(4));
   });
 
-  it("has a star for every skill and a place in its constellation for every star", () => {
-    for (const g of SKILLS) {
-      expect(SKILL_STARS[g.id].map((s) => s.name)).toEqual(g.items);
-      const spots = SHAPES[g.id].stars;
-      expect(Object.keys(spots).sort()).toEqual([...g.items].sort());
-      for (const [a, b] of SHAPES[g.id].lines) {
-        expect(spots[a], `${g.id}: ${a}`).toBeTruthy();
-        expect(spots[b], `${g.id}: ${b}`).toBeTruthy();
-      }
-    }
+  it("has a node for every skill, in its branch, levelled from the data and capped", () => {
+    expect(SKILL_TREE.map((b) => b.id)).toEqual(SKILLS.map((g) => g.id));
+    for (const [i, g] of SKILLS.entries()) expect(SKILL_TREE[i].nodes.map((n) => n.name)).toEqual(g.items);
+    const node = (name: string) => SKILL_TREE.flatMap((b) => b.nodes).find((n) => n.name === name)!;
+    expect(node("Node.js").level).toBe(MAX_LEVEL);
+    expect(node("Express").level).toBe(4);
+    expect(node("GSAP").level).toBe(0);
+  });
+});
+
+describe("the player card's facts", () => {
+  it("are counted from the data on the site", () => {
+    expect(LIVE_SITES).toEqual([
+      "https://hyphosting.com",
+      "https://louisagemstones.nl",
+      "https://kiosk.hyphosting.com",
+      "https://utrecht.hyphosting.com",
+      "https://amorphophallus.nl",
+      "https://jasper.hyphosting.com",
+    ]);
+    expect(FACTS).toEqual({ live: 6, built: 12, company: 1 });
   });
 });

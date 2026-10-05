@@ -42,15 +42,15 @@ test("the case panel keeps focus inside while open", async ({ page }) => {
   expect(await dialog.evaluate((d) => d.contains(document.activeElement))).toBe(true);
 });
 
-test("about walks sideways from the bio to skills, learning and more work", async ({ page }) => {
+test("about walks sideways from the player card to skills, learning and more work", async ({ page }) => {
   await page.goto("/experience");
   await page.locator('[data-nav="about"]').click();
   const about = page.locator('[data-section="about"]');
   await settled(about);
   const panel = (name: string) => about.locator(".project-panel", { has: page.getByRole("heading", { level: 2, name }) });
-  await expect(panel("Over mij")).toBeInViewport({ ratio: 0.9 });
+  await expect(panel("Jasper Pathuis")).toBeInViewport({ ratio: 0.9 });
   for (const [from, to] of [
-    ["Over mij", "Skills"],
+    ["Jasper Pathuis", "Skills"],
     ["Skills", "Wat ik nog wil leren"],
     ["Wat ik nog wil leren", "Meer werk"],
   ]) {

@@ -1,5 +1,0 @@
-/* The quiet labels sit on a sky, not on flat black, so they get a touch more
-   light than --ink-faint to keep their contrast over the nebula. */
-.row {
-  --quiet: #7f8d99;
-}
