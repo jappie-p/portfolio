@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { LangSync, useLocale, useT } from "@/i18n/useT";
 import preview from "@/assets/welcome/experience.webp";
 import { enterExperience, tourDone } from "./enter";
+import { wakeSound } from "./sound";
+import { wakeVoice } from "./voice";
 import s from "./welcome.module.css";
 
 // the how-to only loads once someone asks for it
@@ -48,11 +50,17 @@ export function Welcome() {
   }, [router]);
 
   const go = () => router.push("/experience");
+  // the how-to speaks: sound and voice wake up inside the click that opens it
+  const tour = () => {
+    wakeSound();
+    wakeVoice();
+    setTouring(true);
+  };
   const choose = (e: MouseEvent<HTMLAnchorElement>) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
     if (done) void enterExperience(shot.current, go);
-    else setTouring(true);
+    else tour();
   };
 
   return (
@@ -93,7 +101,7 @@ export function Welcome() {
           </Link>
         </div>
         {done && (
-          <button type="button" className={s.again} onClick={() => setTouring(true)}>
+          <button type="button" className={s.again} onClick={tour}>
             {w.again}
           </button>
         )}

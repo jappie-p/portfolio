@@ -5,7 +5,7 @@ import { useLocale, useT } from "@/i18n/useT";
 import { markTourDone } from "./enter";
 import { play, setSound, soundOn } from "./sound";
 import { TourMap, type Cell } from "./TourMap";
-import { speak } from "./voice";
+import { hush, speak } from "./voice";
 import s from "./tour.module.css";
 
 export type Step = "down" | "side" | "dive" | "done";
@@ -83,13 +83,18 @@ export function Tour({ onClose, onEnter }: { onClose: () => void; onEnter: (from
     };
   }, []);
 
-  // each step: the narrator speaks; the last one is the way in
+  const say = step === "done" ? tt.done.say : tt[step].say;
+
+  // each step: the narrator reads its line; the last one is the way in
   useEffect(() => {
-    speak(locale, step);
+    speak(locale, step, say);
     if (step !== "done") return;
     markTourDone();
     go.current?.focus();
-  }, [step, locale]);
+  }, [step, locale, say]);
+
+  // the narrator stops when the how-to closes
+  useEffect(() => hush, []);
 
   // someone stuck on a step gets a plain "next" after a while
   useEffect(() => {
@@ -121,6 +126,7 @@ export function Tour({ onClose, onEnter }: { onClose: () => void; onEnter: (from
 
   const enter = useCallback(() => {
     markTourDone();
+    hush();
     play("enter");
     onEnter(hero.current);
   }, [onEnter]);
@@ -179,6 +185,8 @@ export function Tour({ onClose, onEnter }: { onClose: () => void; onEnter: (from
   const toggleSound = () => {
     setSound(!sound);
     setSoundState(!sound);
+    if (sound) hush();
+    else speak(locale, step, say);
   };
 
   const pick = (i: number) => {
@@ -187,7 +195,6 @@ export function Tour({ onClose, onEnter }: { onClose: () => void; onEnter: (from
   };
 
   const copy = step === "done" ? null : tt[step];
-  const say = step === "done" ? tt.done.say : tt[step].say;
 
   return (
     <div ref={root} className={s.tour} role="dialog" aria-modal="true" aria-labelledby="tour-title" tabIndex={-1} data-step={step}>

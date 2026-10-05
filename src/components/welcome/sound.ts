@@ -37,19 +37,26 @@ function tone(ac: AudioContext, at: number, freq: number, len: number, level: nu
   osc.stop(at + len + 0.05);
 }
 
-/** Play a cue. Only after a click or key press (browsers keep audio
- *  locked until then), and never when the reader has turned sound off. */
-export function play(cue: Cue) {
-  if (!soundOn() || typeof window === "undefined" || !("AudioContext" in window)) return;
+/** Start the sound inside the click that opens the how-to: Safari keeps
+ *  audio locked unless it starts within a click or a key press. */
+export function wakeSound() {
+  if (typeof window === "undefined" || !("AudioContext" in window)) return;
   ctx ??= new AudioContext();
+  if (ctx.state === "suspended") void ctx.resume();
+}
+
+/** Play a cue, never when the reader has turned sound off. */
+export function play(cue: Cue) {
+  if (!soundOn()) return;
+  wakeSound();
   const ac = ctx;
-  if (ac.state === "suspended") void ac.resume();
+  if (!ac) return;
   const t = ac.currentTime + 0.01;
   if (cue === "done") {
-    tone(ac, t, 659.25, 0.5, 0.05);
-    tone(ac, t + 0.09, 987.77, 0.7, 0.045);
+    tone(ac, t, 659.25, 0.5, 0.08);
+    tone(ac, t + 0.09, 987.77, 0.7, 0.07);
   } else if (cue === "move") {
-    tone(ac, t, 392, 0.16, 0.035, "triangle");
+    tone(ac, t, 392, 0.16, 0.05, "triangle");
   } else {
     const osc = ac.createOscillator();
     const gain = ac.createGain();
@@ -57,7 +64,7 @@ export function play(cue: Cue) {
     osc.frequency.setValueAtTime(220, t);
     osc.frequency.exponentialRampToValueAtTime(880, t + 0.7);
     gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.045, t + 0.15);
+    gain.gain.linearRampToValueAtTime(0.07, t + 0.15);
     gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
     osc.connect(gain).connect(ac.destination);
     osc.start(t);
