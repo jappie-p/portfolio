@@ -91,6 +91,35 @@ body {
 ::selection { background: var(--leaf); color: #04130a; }
 :focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; border-radius: 6px; }
 
+/* The bar over the page: white on the dark worlds, ink over a light one
+   (About's warm paper, html[data-tone="light"], set by the Nav). Its colours
+   are registered so they fade from one to the other instead of flipping. */
+@property --ink { syntax: "<color>"; inherits: true; initial-value: #eaf0f3; }
+@property --ink-dim { syntax: "<color>"; inherits: true; initial-value: #a6b4bf; }
+@property --leaf { syntax: "<color>"; inherits: true; initial-value: #4ade80; }
+@property --bar-line { syntax: "<color>"; inherits: true; initial-value: rgba(255, 255, 255, 0.1); }
+header,
+.\[view-transition-name\:progress-rail\] {
+  --bar-line: rgba(255, 255, 255, 0.1);
+  transition: --ink 0.5s ease, --ink-dim 0.5s ease, --leaf 0.5s ease, --bar-line 0.5s ease;
+}
+.site-hairline { background: var(--bar-line); }
+html[data-tone="light"] header,
+html[data-tone="light"] .\[view-transition-name\:progress-rail\] {
+  --ink: #1c2420;
+  --ink-dim: #535c56;
+  --leaf: #1f4a32;
+  --bar-line: rgba(28, 36, 32, 0.12);
+  --glass-bg: rgba(255, 253, 248, 0.72);
+  --glass-border: rgba(31, 74, 50, 0.12);
+  --glass-shadow: 0 10px 30px -18px rgba(40, 30, 15, 0.45);
+}
+/* on the light bar the pressed language and the menu button keep their contrast */
+html[data-tone="light"] header [aria-pressed="true"] { color: #f6f1e7; }
+html[data-tone="light"] header .btn-ghost { border-color: rgba(31, 74, 50, 0.22); background: rgba(255, 253, 248, 0.66); color: #1c2420; }
+html[data-tone="light"] .\[view-transition-name\:progress-rail\] > .bg-white\/25 { background-color: rgba(28, 36, 32, 0.2); }
+html[data-tone="light"] .\[view-transition-name\:progress-rail\] > .bg-leaf { box-shadow: none; }
+
 .headline { font-family: var(--font-display), sans-serif; font-weight: 600; letter-spacing: -0.03em; word-spacing: 0.1em; line-height: 0.95; }
 
 /* Component classes live in the components layer so Tailwind utilities on the
@@ -395,4 +424,5 @@ html[data-passage$="-zoom"]::view-transition-new(root) { animation-name: passage
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   html, .project-track { scroll-snap-type: none; scroll-behavior: auto; }
 }
+
 

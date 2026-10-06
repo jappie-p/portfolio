@@ -43,19 +43,19 @@ test("the case panel keeps focus inside while open", async ({ page }) => {
   expect(await dialog.evaluate((d) => d.contains(document.activeElement))).toBe(true);
 });
 
-test("about walks sideways from the player card to skills, learning and more work", async ({ page }) => {
+test("about walks sideways from the hello to my room, my growth and the invitation", async ({ page }) => {
   await page.goto("/experience");
   await page.locator('[data-nav="about"]').click();
   const about = page.locator('[data-section="about"]');
   await settled(about);
-  const panel = (name: string) => about.locator(".project-panel", { has: page.getByRole("heading", { level: 2, name }) });
+  const panel = (name: RegExp) => about.locator(".project-panel", { has: page.getByRole("heading", { level: 2, name }) });
   // the how-to's map of the site draws this many tiles for About
   await expect(about.locator(".project-panel")).toHaveCount(topicPanelCount("about"));
-  await expect(panel("Jasper Pathuis")).toBeInViewport({ ratio: 0.9 });
+  await expect(panel(/Hoi, ik ben Jasper/)).toBeInViewport({ ratio: 0.9 });
   for (const [from, to] of [
-    ["Jasper Pathuis", "Skills"],
-    ["Skills", "Wat ik nog wil leren"],
-    ["Wat ik nog wil leren", "Meer werk"],
+    [/Hoi, ik ben Jasper/, /Dit is mijn wereld/],
+    [/Dit is mijn wereld/, /Elke stap vertelt een verhaal/],
+    [/Elke stap vertelt een verhaal/, /Laten we iets moois bouwen/],
   ]) {
     // let the sideways scroll land first
     await expect.poll(() => panel(from).evaluate((el) => Math.abs(el.getBoundingClientRect().left)), { timeout: 8000 }).toBeLessThan(2);
@@ -65,6 +65,24 @@ test("about walks sideways from the player card to skills, learning and more wor
     await page.keyboard.press("Enter");
     await expect(panel(to)).toBeInViewport({ ratio: 0.9 });
   }
+});
+
+test("about's growth tabs switch with the arrow keys, without walking the track", async ({ page }) => {
+  await page.goto("/experience");
+  await page.locator('[data-nav="about"]').click();
+  const about = page.locator('[data-section="about"]');
+  await settled(about);
+  const growth = about.locator(".project-panel").nth(2);
+  await about.locator(".project-track").evaluate((track, i) => {
+    const p = track.querySelectorAll<HTMLElement>(".project-panel")[i];
+    track.scrollTo({ left: p.offsetLeft, behavior: "instant" });
+  }, 2);
+  await expect(growth).toBeInViewport({ ratio: 0.9 });
+  await growth.getByRole("tab", { name: "Mijn verhaal" }).focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(growth.getByRole("tab", { name: "Vaardigheden" })).toHaveAttribute("aria-selected", "true");
+  await expect(growth.getByRole("tabpanel")).toContainText("Hard skills");
+  await expect(growth).toBeInViewport({ ratio: 0.9 });
 });
 
 test("the game is playable from the school topic", async ({ page, request }) => {

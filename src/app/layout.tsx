@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { displayFont, bodyFont } from "@/lib/fonts";
+import { displayFont, bodyFont, serifFont, handFont } from "@/lib/fonts";
 import { SITE } from "@/data/site";
 import "./globals.css";
 
@@ -32,7 +32,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="nl" className={`${displayFont.variable} ${bodyFont.variable} antialiased`}>
+    <html lang="nl" className={`${displayFont.variable} ${bodyFont.variable} ${serifFont.variable} ${handFont.variable} antialiased`}>
       <head>
         {/* without scripts nothing gets typed out, so show the hero line in full */}
         <noscript>

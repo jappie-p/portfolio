@@ -32,8 +32,8 @@ export const TOPIC_INDEX: Record<TopicId, number> = Object.fromEntries(
   TOPICS.map((t, i) => [t.id, i]),
 ) as Record<TopicId, number>;
 
-/** Topics with panels side by side that are not projects: About's player
- *  card, skill tree, quest log and side quests (sections/About.tsx). */
+/** Topics with panels side by side that are not projects: About's hello,
+ *  my room, my growth and the invitation (sections/About.tsx). */
 const OWN_PANELS: Partial<Record<TopicId, number>> = { about: 4 };
 
 /** How many panels a topic shows side by side. */

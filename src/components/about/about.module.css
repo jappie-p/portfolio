@@ -1,30 +1,86 @@
-/* About as a character screen: the row's ground is the hero's hex floor seen
-   from above, very faint, so the four panels share one world. */
+/* About as a world of warm paper: cream, ink and a deep green, an editorial
+   serif for the big words. Every panel shares the row's ground, a faint
+   grain so the paper reads as paper. */
 
 .row {
-  --quiet: #7f8d99;
-  --hud: rgba(74, 222, 128, 0.55);
+  --paper: #f4eee4;
+  --paper-hi: #fbf8f2;
+  --paper-lo: #ebe2d4;
+  --ink: #1c2420;
+  --ink-soft: #4d5650;
+  /* at least 4.5:1 on the paper and the darker paper */
+  --ink-faint: #5c625b;
+  --green: #1f4a32;
+  --green-hi: #2c6345;
+  --line: rgba(28, 36, 32, 0.12);
+  --focus-ring: #1f4a32;
+  color-scheme: light;
+  color: var(--ink);
   background:
-    radial-gradient(60% 55% at 28% 60%, rgba(74, 222, 128, 0.075), transparent 72%),
-    radial-gradient(50% 45% at 82% 12%, rgba(24, 180, 196, 0.05), transparent 70%),
-    #05080d;
+    radial-gradient(60% 55% at 70% 40%, var(--paper-hi) 0%, transparent 70%),
+    radial-gradient(45% 40% at 10% 95%, rgba(31, 74, 50, 0.05), transparent 70%),
+    var(--paper);
 }
 .row::before {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 0;
   pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='41.57' height='72' viewBox='0 0 41.57 72'%3E%3Cpath d='M0 12 L20.78 0 L41.57 12 L41.57 36 L20.78 48 L0 36 Z M20.78 48 V72' fill='none' stroke='%23ffffff' stroke-opacity='0.045' stroke-width='1'/%3E%3C/svg%3E");
-  background-size: 41.57px 72px;
-  -webkit-mask-image: radial-gradient(80% 75% at 40% 55%, #000 30%, transparent 85%);
-  mask-image: radial-gradient(80% 75% at 40% 55%, #000 30%, transparent 85%);
+  opacity: 0.38;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.38 0 0 0 0 0.28 0 0 0 0.09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.row ::selection {
+  background: var(--green);
+  color: var(--paper-hi);
 }
 
-/* the one small label style on these panels */
+/* the site's buttons, in the paper's colours */
+.row :global(.btn-primary) {
+  background: var(--green);
+  color: #f6f1e7;
+  box-shadow: 0 10px 24px -14px rgba(31, 74, 50, 0.8);
+}
+.row :global(.btn-primary:hover) {
+  background: var(--green-hi);
+  box-shadow: 0 14px 30px -14px rgba(31, 74, 50, 0.9);
+}
+.row :global(.btn-ghost) {
+  border-color: rgba(31, 74, 50, 0.28);
+  background: rgba(255, 253, 248, 0.6);
+  color: var(--ink);
+}
+.row :global(.btn-ghost:hover) {
+  border-color: var(--green);
+  background: var(--paper-hi);
+}
+
+/* the one small label on these panels */
 .kicker {
-  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.22em;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: var(--leaf);
+  color: var(--green);
+}
+
+/* the editorial serif, tight at display sizes */
+.display {
+  font-family: var(--font-serif), Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  font-variation-settings:
+    "opsz" 144,
+    "SOFT" 30;
+  letter-spacing: -0.025em;
+  line-height: 0.92;
+  color: var(--ink);
+}
+.em {
+  font-style: italic;
+  font-weight: 700;
+  font-variation-settings:
+    "opsz" 144,
+    "SOFT" 60;
+  color: var(--green);
 }

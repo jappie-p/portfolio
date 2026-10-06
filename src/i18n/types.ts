@@ -3,6 +3,7 @@ import type { ArchiveId, DiagramId, ProjectKind } from "@/data/projects";
 import type { DiagramNode } from "@/data/diagrams";
 import type { SnippetSlug } from "@/data/snippets";
 import type { LearnId, SkillGroupId, SoftSkillId } from "@/data/skills";
+import type { Kind, StoryId } from "@/components/about/room/types";
 
 type Blurb = { title: string; text: string };
 
@@ -66,8 +67,6 @@ export type Dictionary = {
     why: string;
     photoAlt: string;
     cv: string;
-    skillsTitle: string;
-    skillsLead: string;
     hardTitle: string;
     softTitle: string;
     learnTitle: string;
@@ -75,32 +74,65 @@ export type Dictionary = {
     refsTitle: string;
     refsText: string;
     refsCta: string;
-    moreTitle: string;
-    moreLead: string;
-    /** The player card: About as a character screen. */
-    player: {
+    /** The first panel: who I am, beside my photo, and a few counted facts. */
+    hero: {
       kicker: string;
-      classLabel: string;
-      classValue: string;
-      originLabel: string;
-      originValue: string;
-      regionLabel: string;
-      regionValue: string;
+      hello: string;
+      name: string;
+      motto: string;
+      lead: string;
+      place: string;
+      aside: string;
+      cta: string;
       /** under the counted facts */
       live: string;
       built: string;
       company: string;
-      guildsTitle: string;
-      guilds: { school: string; work: string; company: string };
-      since: string;
-      offlineTitle: string;
-      offline: string;
     };
-    /** the skill tree: what a level means, and what a node says it is used in */
-    tree: { kicker: string; legend: string; level: string; usedIn: string; none: string };
-    perksKicker: string;
-    quests: { kicker: string; active: string; next: string; coop: string };
-    sideKicker: string;
+    /** How I grew: a medal on the desk and three tabs of story, skills and learning. */
+    growth: {
+      kicker: string;
+      title: string;
+      tabs: { story: string; skills: string; learn: string };
+      storyTitle: string;
+      storyKicker: string;
+      storyText: string;
+      skillsHeading: string;
+      skillsLead: string;
+      learnHeading: string;
+      /** the handwritten note beside the medal, a line each */
+      note: string;
+      medal: string;
+      next: string;
+    };
+    /** The last panel: the invitation, references and the cv. */
+    closing: {
+      kicker: string;
+      title: string;
+      titleEm: string;
+      titleEnd: string;
+      lead: string;
+      contact: string;
+      role: string;
+    };
+    /** My room: what the panel says, the filter, each pin's name. */
+    world: {
+      kicker: string;
+      /** the title over two lines, the second in the brand's italic */
+      title: string;
+      titleEm: string;
+      lead: string;
+      filters: Record<Kind | "alles", string>;
+      pins: Record<StoryId, string>;
+      close: string;
+      /** the way on, to my growth */
+      next: string;
+      /** where a story's photo will go, until there is one */
+      photoSoon: string;
+    };
+    /** What each piece of the room tells when you open it. `photo` is a path
+     *  under /public, once Jasper has one for it. */
+    stories: Record<StoryId, { kicker: string; title: string; text: string; photo?: string }>;
   };
   skills: Record<SkillGroupId, string>;
   softSkills: Record<SoftSkillId, Blurb>;

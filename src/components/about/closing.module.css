@@ -1,0 +1,121 @@
+/* The invitation: one big line on open paper, the ways to reach me under
+   it, references in a quiet strip, my name signed at the foot. */
+
+.panel {
+  align-items: stretch !important;
+}
+
+.wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(2.5rem, 6vh, 4.5rem);
+  width: 100%;
+  max-width: 78rem;
+  min-height: 100%;
+  margin: auto;
+}
+/* a large, faint monogram behind the words */
+.wrap::before {
+  content: "JP.";
+  position: absolute;
+  right: -2%;
+  top: 50%;
+  z-index: -1;
+  transform: translateY(-58%);
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(14rem, 34vw, 34rem);
+  font-weight: 700;
+  font-style: italic;
+  font-variation-settings: "opsz" 144;
+  letter-spacing: -0.06em;
+  line-height: 1;
+  color: rgba(31, 74, 50, 0.05);
+  pointer-events: none;
+}
+
+.top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.title {
+  margin-top: 1.2rem;
+  max-width: 13ch;
+  font-size: clamp(3.2rem, 8vw, 8.4rem);
+}
+.lead {
+  max-width: 34rem;
+  margin-top: 1.6rem;
+  font-size: clamp(1.05rem, 1.3vw, 1.25rem);
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 2.2rem;
+}
+.pdf {
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.refs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem 3rem;
+  padding: 1.6rem 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.refsTitle {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 650;
+  font-variation-settings: "opsz" 48;
+  letter-spacing: -0.01em;
+}
+.refsText {
+  max-width: 40rem;
+  margin-top: 0.4rem;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+.refsCta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--green);
+  transition: gap 0.3s ease;
+}
+.refsCta:hover {
+  gap: 0.8rem;
+}
+
+.sign {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+.mark {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--green);
+}
+.role {
+  color: var(--ink-faint);
+}

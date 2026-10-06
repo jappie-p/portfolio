@@ -1,0 +1,297 @@
+/* Who I am: the photo bleeds off the panel's top left as in a magazine
+   spread, the copy stands on the paper beside it. */
+
+.panel {
+  align-items: stretch !important;
+  justify-content: stretch !important;
+}
+
+/* undo the panel's padding: the photo runs to the panel's edges */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1fr);
+  flex: 1;
+  margin: -6rem -1.5rem -5rem;
+  min-height: 100dvh;
+}
+@media (min-width: 640px) {
+  .hero {
+    margin: -6rem -3rem -5rem;
+  }
+}
+
+/* --- the photo: a warm room in layers, each blurred to its depth --- */
+.scene {
+  --px: 0;
+  --py: 0;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #d9c6ab;
+}
+.scene > * {
+  position: absolute;
+  transition: translate 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.wall {
+  inset: -4%;
+  background:
+    radial-gradient(55% 60% at 88% 26%, rgba(255, 244, 222, 0.95) 0%, rgba(255, 236, 205, 0.35) 45%, transparent 70%),
+    radial-gradient(70% 55% at 20% 100%, rgba(120, 88, 58, 0.35), transparent 70%),
+    linear-gradient(180deg, #e8dcc8 0%, #dcc9ad 62%, #c9b090 100%);
+  translate: calc(var(--px) * -4px) calc(var(--py) * -3px);
+}
+/* the window at the right, so bright its frame is barely there */
+.window {
+  top: 4%;
+  right: -6%;
+  width: 38%;
+  height: 58%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5%;
+  padding: 4%;
+  border-radius: 6px;
+  background: rgba(120, 96, 66, 0.35);
+  filter: blur(14px);
+  translate: calc(var(--px) * -8px) calc(var(--py) * -5px);
+}
+.window > span {
+  background: linear-gradient(180deg, #fffaf0 0%, #fdf1da 60%, #f4e2bf 100%);
+  border-radius: 3px;
+}
+/* a picture on the wall behind, out of focus */
+.frame {
+  top: 9%;
+  left: 7%;
+  width: 24%;
+  aspect-ratio: 4 / 5;
+  border: 0.55rem solid #3b2b1d;
+  background: linear-gradient(170deg, #9fb7b5 0%, #c9c7a4 45%, #7f8b5c 100%);
+  box-shadow: 0 10px 24px rgba(60, 40, 20, 0.35);
+  filter: blur(5px);
+  translate: calc(var(--px) * -10px) calc(var(--py) * -6px);
+}
+/* a shelf on the wall, its books and a vase out of focus */
+.shelf {
+  top: 34%;
+  left: 2%;
+  width: 34%;
+  height: 2.2%;
+  background: #6d4a2c;
+  box-shadow: 0 12px 18px rgba(70, 45, 20, 0.35);
+  filter: blur(4px);
+  translate: calc(var(--px) * -9px) calc(var(--py) * -5px);
+}
+.shelf > span {
+  position: absolute;
+  bottom: 100%;
+}
+.books {
+  left: 12%;
+  width: 34%;
+  height: 520%;
+  background: linear-gradient(90deg, #2f4a3a 0 16%, #c8b48f 16% 30%, #7a3f2b 30% 44%, #e8dcc2 44% 56%, #344f6b 56% 72%, #b88a4e 72% 86%, #4c3b2c 86%);
+}
+.vase {
+  left: 62%;
+  width: 14%;
+  height: 700%;
+  border-radius: 40% 40% 18% 18%;
+  background: radial-gradient(circle at 35% 30%, #f3ead8, #c9b28c);
+}
+/* the plant behind Jasper's shoulder */
+.back {
+  right: -8%;
+  bottom: 14%;
+  width: 62%;
+  height: 74%;
+  filter: blur(5px);
+  opacity: 0.94;
+  translate: calc(var(--px) * -12px) calc(var(--py) * -6px);
+  transform-origin: 50% 100%;
+  animation: sway 9s ease-in-out infinite alternate;
+}
+
+.figure {
+  inset: 9% 6% 0 4%;
+  translate: calc(var(--px) * 6px) calc(var(--py) * 3px);
+}
+.photo {
+  object-fit: contain;
+  object-position: 50% 100%;
+  /* the window's warmth on a photo taken in daylight */
+  filter: sepia(0.14) saturate(1.06) brightness(1.02) contrast(1.02) drop-shadow(0 30px 40px rgba(70, 45, 20, 0.28));
+}
+/* the window light catching the edge of his face and jacket */
+.rim {
+  position: absolute;
+  inset: 0;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: 50% 100%;
+  mask-position: 50% 100%;
+  background: linear-gradient(255deg, rgba(255, 220, 170, 0.55) 0%, rgba(255, 220, 170, 0) 38%), linear-gradient(0deg, rgba(60, 38, 18, 0.22), transparent 30%);
+  mix-blend-mode: soft-light;
+}
+
+/* a big leaf right in front of the lens */
+.front {
+  left: -22%;
+  bottom: -14%;
+  width: 70%;
+  height: 66%;
+  filter: blur(13px);
+  opacity: 0.96;
+  translate: calc(var(--px) * 22px) calc(var(--py) * 10px);
+  transform-origin: 50% 100%;
+  animation: sway 11s ease-in-out infinite alternate-reverse;
+}
+
+/* a warm haze over all of it, and the grain of a photo */
+.light {
+  inset: 0;
+  background:
+    radial-gradient(60% 50% at 90% 18%, rgba(255, 238, 205, 0.4), transparent 70%),
+    linear-gradient(0deg, rgba(244, 238, 228, 0.18), transparent 30%);
+  pointer-events: none;
+}
+
+@keyframes sway {
+  from {
+    transform: rotate(-1.4deg);
+  }
+  to {
+    transform: rotate(1.6deg);
+  }
+}
+
+/* --- the copy --- */
+.copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2.2rem;
+  padding: 7rem clamp(2rem, 6vw, 7rem) 6rem clamp(2rem, 4.5vw, 5rem);
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.title {
+  margin-top: 1.3rem;
+  font-size: clamp(3rem, 6.2vw, 6.6rem);
+}
+.hello {
+  display: block;
+}
+.name {
+  display: block;
+  margin-top: 0.02em;
+  margin-left: -0.04em;
+  font-size: 1.18em;
+}
+.motto {
+  margin-top: 1.6rem;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(1.35rem, 2vw, 1.9rem);
+  font-weight: 650;
+  font-variation-settings: "opsz" 48;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+}
+.lead {
+  max-width: 31rem;
+  margin-top: 0.9rem;
+  font-size: clamp(1.02rem, 1.25vw, 1.2rem);
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.place {
+  margin-top: 0.8rem;
+  font-size: 0.92rem;
+  color: var(--ink-faint);
+}
+.aside {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  max-width: 34rem;
+  padding-top: 1.3rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+.aside svg {
+  width: 1.4rem;
+  flex: none;
+  color: var(--green);
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.6rem 2.4rem;
+  margin-top: 1.5rem;
+}
+.facts {
+  display: flex;
+}
+.facts li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 1.3rem;
+}
+.facts li + li {
+  border-left: 1px solid var(--line);
+}
+.num {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 2.3rem;
+  font-weight: 700;
+  font-variation-settings: "opsz" 96;
+  line-height: 1;
+  color: var(--green);
+}
+.what {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+/* phones and narrow screens: the photo on top, the copy under it */
+@media (max-width: 767px) {
+  .hero {
+    grid-template-columns: 1fr;
+    grid-template-rows: 52svh auto;
+  }
+  .copy {
+    gap: 1.6rem;
+    padding: 2.2rem 1.5rem 6.5rem;
+  }
+  .title {
+    font-size: clamp(2.8rem, 13vw, 4rem);
+  }
+  .facts li {
+    padding: 0 0.9rem;
+  }
+  .facts li:first-child {
+    padding-left: 0;
+  }
+  .num {
+    font-size: 1.9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back,
+  .front {
+    animation: none;
+  }
+}

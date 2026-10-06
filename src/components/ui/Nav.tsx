@@ -10,13 +10,23 @@ type NavId = Exclude<TopicId, "hero">;
 const ITEMS = TOPICS.filter((c) => c.id !== "hero").map((c) => c.id as NavId);
 
 /** Top bar: monogram home link, the topics as plain links (the one you are
- *  in underlined), and the language switch, over a hairline. On phones the
+ *  in underlined), and the language switch, over a hairline. Over a light
+ *  section it turns to ink (html[data-tone], globals.css). On phones the
  *  topics move into a full-screen menu. */
 export function Nav() {
   const t = useT();
   const topic = useJourney((s) => s.topic);
   const current = TOPICS[topic]?.id;
   const [open, setOpen] = useState(false);
+  // over a light section (About's warm paper) the bar and the rail turn to ink
+  const light = current === "about";
+
+  useEffect(() => {
+    if (!light) return;
+    const root = document.documentElement;
+    root.dataset.tone = "light";
+    return () => void delete root.dataset.tone;
+  }, [light]);
 
   useEffect(() => {
     if (!open) return;
@@ -33,7 +43,7 @@ export function Nav() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 flex [view-transition-name:site-nav] items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
       {/* a hairline under the bar, from the monogram to the language switch */}
-      <span aria-hidden className="pointer-events-none absolute inset-x-6 bottom-0 hidden h-px bg-white/10 sm:block" />
+      <span aria-hidden className="site-hairline pointer-events-none absolute inset-x-6 bottom-0 hidden h-px sm:block" />
       <button
         type="button"
         data-nav="hero"

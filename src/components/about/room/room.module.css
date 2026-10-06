@@ -1,0 +1,91 @@
+/* The room's canvas, and the pins over its pieces: a numbered disc in the
+   brand's green with its name on a white tab, as on a museum map. */
+
+.canvas {
+  position: absolute !important;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+:global([data-room-ready]) .canvas {
+  opacity: 1;
+}
+
+.pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.22rem 0.7rem 0.22rem 0.22rem;
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.94);
+  box-shadow: 0 6px 18px -8px rgba(40, 30, 15, 0.45), 0 0 0 1px rgba(31, 74, 50, 0.08);
+  color: #1d2a22;
+  font-size: 0.78rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  /* each pin lands once the room has glided in, one after another */
+  animation: land 0.7s cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.25s ease;
+}
+.pin:hover,
+.pin:focus-visible,
+.pin[data-open] {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 10px 24px -8px rgba(40, 30, 15, 0.55), 0 0 0 2px #1f4a32;
+}
+.pin:focus-visible {
+  outline: none;
+}
+.pin[data-muted] {
+  opacity: 0.28;
+}
+.pin[data-away] {
+  opacity: 0;
+  pointer-events: none;
+}
+.num {
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  background: #1f4a32;
+  color: #f4efe4;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.label {
+  letter-spacing: 0.01em;
+}
+
+@keyframes land {
+  from {
+    opacity: 0;
+    translate: 0 0.6rem;
+    scale: 0.85;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pin {
+    animation: none;
+  }
+}
+
+/* on a phone the pins are just their numbers: the names would overlap */
+@media (max-aspect-ratio: 11/10) {
+  .pin {
+    padding: 0.18rem;
+  }
+  .label {
+    display: none;
+  }
+  .num {
+    width: 1.55rem;
+    height: 1.55rem;
+  }
+}
