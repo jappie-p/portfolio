@@ -81,8 +81,14 @@
   .pin {
     padding: 0.18rem;
   }
+  /* hidden from sight, still the pin's name for a screen reader */
   .label {
-    display: none;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   .num {
     width: 1.55rem;

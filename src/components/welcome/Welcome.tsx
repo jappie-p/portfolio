@@ -1,11 +1,16 @@
 "use client";
-import { useEffect, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LangSync, useLocale, useT } from "@/i18n/useT";
 import preview from "@/assets/welcome/experience.webp";
+import school from "@/assets/welcome/world-school.webp";
+import room from "@/assets/welcome/world-about.webp";
+import cyber from "@/assets/welcome/world-cyber.webp";
+import ai from "@/assets/welcome/world-ai.webp";
+import city from "@/assets/welcome/world-contact.webp";
 import { enterExperience, tourDone } from "./enter";
 import { wakeAudio } from "@/lib/audio";
 import { wakeVoice } from "./voice";
@@ -28,6 +33,11 @@ function Languages() {
     </div>
   );
 }
+
+/** The worlds behind the door, in the order the window shows them: the
+ *  hero's field, the School gallery, my room, the firewall, Jarvis, the
+ *  city where it all is. */
+const WORLDS = [preview, school, room, cyber, ai, city];
 
 /**
  * The front door: a plain white page that asks how you would like to look
@@ -76,19 +86,37 @@ export function Welcome() {
         <h1 className={s.title}>{w.title}</h1>
         <div className={s.choices}>
           <div className={`${s.choice} ${s.simple}`} aria-disabled="true">
+            {/* the simple version, drawn as a page: a bar, a name, a few
+                lines, the projects as tiles */}
             <span aria-hidden className={s.sheet}>
-              <i />
-              <i />
-              <i />
-              <i />
+              <span className={s.wfPage}>
+                <span className={s.wfBar}>
+                  <i />
+                  <b />
+                  <b />
+                  <b />
+                </span>
+                <span className={s.wfTitle} />
+                <span className={s.wfLine} />
+                <span className={`${s.wfLine} ${s.wfShort}`} />
+                <span className={s.wfTiles}>
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              </span>
             </span>
             <span className={s.badge}>{w.soon}</span>
             <h2 className={s.name}>{w.simpleTitle}</h2>
             <p className={s.text}>{w.simpleText}</p>
           </div>
           <Link href="/experience" onClick={choose} className={`${s.choice} ${s.rich}`}>
-            <span ref={shot} className={s.shot}>
-              <Image src={preview} alt="" sizes="(min-width: 720px) 380px, 90vw" priority />
+            <span ref={shot} className={s.shot} style={{ "--n": WORLDS.length } as CSSProperties}>
+              <span className={s.frames}>
+                {WORLDS.map((src, i) => (
+                  <Image key={src.src} src={src} alt="" sizes="(min-width: 720px) 380px, 90vw" priority={i === 0} className={s.frame} style={{ "--i": i } as CSSProperties} />
+                ))}
+              </span>
             </span>
             <h2 className={s.name}>{w.richTitle}</h2>
             <p className={s.text}>{w.richText}</p>

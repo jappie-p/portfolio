@@ -41,7 +41,7 @@ export function Nav() {
   };
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 flex [view-transition-name:site-nav] items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+    <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex [view-transition-name:site-nav] items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4 [&>*]:pointer-events-auto">
       {/* a hairline under the bar, from the monogram to the language switch */}
       <span aria-hidden className="site-hairline pointer-events-none absolute inset-x-6 bottom-0 hidden h-px sm:block" />
       <button

@@ -1,10 +1,14 @@
 /* Jarvis's voice: a small pill in the corner of the AI topic, its bars
    moving while he speaks. */
 
+/* in the header's row, left of the language switch (of the menu, on a
+   phone): where a sound control is looked for, and clear of every panel's
+   copy and art. Mid widths, where the topics fill that row, keep it just
+   under the switch. */
 .voice {
   position: absolute;
-  left: clamp(1rem, 3vw, 2rem);
-  bottom: 1.4rem;
+  right: clamp(1rem, 3vw, 2rem);
+  top: 5.1rem;
   z-index: 20;
   display: inline-flex;
   align-items: center;
@@ -72,5 +76,20 @@
   .voice[data-invite],
   .voice[data-talking] .wave i {
     animation: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .voice {
+    top: 0.8rem;
+    right: 6.1rem;
+    padding: 0.45rem 0.85rem 0.45rem 0.7rem;
+    font-size: 0.8rem;
+  }
+}
+@media (min-width: 1100px) {
+  .voice {
+    top: 1.05rem;
+    right: 7.9rem;
   }
 }

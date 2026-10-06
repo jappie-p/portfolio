@@ -90,6 +90,8 @@ body {
 
 ::selection { background: var(--leaf); color: #04130a; }
 :focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 3px; border-radius: 6px; }
+/* in the header the ring is a pill in the bar's own accent (dark green over a light section) */
+header :focus-visible { outline-color: var(--leaf); outline-offset: 2px; border-radius: 999px; }
 
 /* The bar over the page: white on the dark worlds, ink over a light one
    (About's warm paper, html[data-tone="light"], set by the Nav). Its colours
@@ -121,6 +123,12 @@ html[data-tone="light"] .\[view-transition-name\:progress-rail\] > .bg-white\/25
 html[data-tone="light"] .\[view-transition-name\:progress-rail\] > .bg-leaf { box-shadow: none; }
 
 .headline { font-family: var(--font-display), sans-serif; font-weight: 600; letter-spacing: -0.03em; word-spacing: 0.1em; line-height: 0.95; }
+
+/* no headline ends on a lone word, and no paragraph on a one-word last line */
+@layer base {
+  h1, h2, h3, .headline { text-wrap: balance; }
+  p, li { text-wrap: pretty; }
+}
 
 /* Component classes live in the components layer so Tailwind utilities on the
    same element (sm:hidden, rounded-full, text sizes) can override them. */

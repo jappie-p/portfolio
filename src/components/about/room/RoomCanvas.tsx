@@ -32,6 +32,10 @@ const MIN_DPR = 1;
  *  far left an opened piece stands (NDC). */
 const SHIFT = 0.3;
 const OPEN_SHIFT = 0.32;
+/** On a narrow screen: how far down the room stands under the copy, and how
+ *  far up an opened piece rises above its sheet (NDC). */
+const NARROW_DOWN = 0.36;
+const NARROW_OPEN_UP = 0.5;
 
 export type RoomCanvasProps = {
   /** the render loop runs only while the panel is on screen */
@@ -157,6 +161,7 @@ function Room({
   );
   const ready = useRef(0);
   const lens = useRef(-SHIFT);
+  const lensY = useRef(0);
   const first = useRef(true);
 
   useFrame((state, delta) => {
@@ -166,7 +171,7 @@ function Room({
     // the whole room in view: far enough back for its width at this shape
     const t = Math.tan((OVERVIEW.fov * Math.PI) / 360);
     // (a narrow view crops the room's empty front corners a little closer)
-    const half = aspect < 1.1 ? 3.6 : 4.5;
+    const half = aspect < 1.1 ? 3.85 : 4.5;
     const distance = Math.max(
       aspect < 1.1 ? 0 : OVERVIEW.distance,
       half / (t * Math.min(aspect, 1.3)),
@@ -176,7 +181,10 @@ function Room({
       : undefined;
     if (open) {
       goal.look.copy(open.view.target);
-      goal.pos.copy(open.view.target).add(open.view.offset);
+      // a tall narrow view takes in less across: stand back further, so the
+      // piece fits its width as it fits a wide one
+      const back = aspect < 1.1 ? THREE.MathUtils.clamp(0.95 / aspect, 1, 2.1) : 1;
+      goal.pos.copy(open.view.offset).multiplyScalar(back).add(open.view.target);
     } else {
       const px = still ? 0 : state.pointer.x;
       const py = still ? 0 : state.pointer.y;
@@ -218,6 +226,12 @@ function Room({
     const toward = aspect < 1.1 ? 0 : open ? OPEN_SHIFT : -SHIFT;
     lens.current += (toward - lens.current) * k;
     camera.projectionMatrix.elements[8] = lens.current;
+    // on a narrow screen the room fills the panel top to bottom: it stands
+    // low, under the copy, and an opened piece rises into the top half,
+    // above the story's sheet
+    const up = aspect < 1.1 ? (open ? -NARROW_OPEN_UP : NARROW_DOWN) : 0;
+    lensY.current += (up - lensY.current) * k;
+    camera.projectionMatrix.elements[9] = lensY.current;
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
 
     // hover lights a piece up; a filter (or another story open) mutes the rest

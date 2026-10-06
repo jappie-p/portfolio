@@ -129,44 +129,120 @@
   background: #05080d;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
-.shot img {
+/* the worlds behind the door, one after another, each drifting in slowly
+   and fading into the next */
+.frames {
+  position: absolute;
+  inset: 0;
+  transition: scale 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.rich:hover .frames {
+  scale: 1.04;
+}
+.frame {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  opacity: 0;
+  animation: world calc(var(--n) * 3.4s) linear infinite;
+  animation-delay: calc(var(--i) * 3.4s - 0.9s);
 }
-.rich:hover .shot img {
-  transform: scale(1.05);
+.frame:first-child {
+  opacity: 1;
 }
-/* the simple version: a plain sheet with lines of text */
+@keyframes world {
+  0% {
+    opacity: 0;
+    transform: scale(1.09);
+  }
+  4% {
+    opacity: 1;
+  }
+  16.7% {
+    opacity: 1;
+  }
+  21% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .frame {
+    animation: none;
+  }
+}
+/* the simple version: a page drawn in fine lines on paper */
 .sheet {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #fbfbf9 0%, #f3f3ef 100%);
+  box-shadow: inset 0 0 0 1px #ececE8;
+}
+.wfPage {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 0.55rem;
-  padding: 0 14%;
-  background: #f6f6f3;
-  box-shadow: inset 0 0 0 1px #ededea;
-}
-.sheet i {
-  display: block;
-  height: 0.5rem;
-  border-radius: 99px;
-  background: #e2e2de;
-}
-.sheet i:nth-child(1) {
-  width: 46%;
-  height: 0.8rem;
-  background: #d5d5d0;
-}
-.sheet i:nth-child(2) {
-  width: 92%;
-}
-.sheet i:nth-child(3) {
-  width: 78%;
-}
-.sheet i:nth-child(4) {
+  gap: 0.42rem;
   width: 64%;
+  padding: 0.75rem 0.85rem 0.9rem;
+  border-radius: 0.55rem;
+  background: #ffffff;
+  box-shadow:
+    0 1px 0 rgba(12, 15, 19, 0.04),
+    0 14px 30px -18px rgba(12, 15, 19, 0.22);
+  translate: 0 8%;
+}
+.wfBar {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 0.25rem;
+}
+.wfBar i {
+  width: 0.42rem;
+  height: 0.42rem;
+  margin-right: auto;
+  border-radius: 50%;
+  background: #15803d;
+  opacity: 0.55;
+}
+.wfBar b {
+  width: 0.9rem;
+  height: 0.16rem;
+  border-radius: 99px;
+  background: #dcdcd7;
+}
+.wfTitle {
+  width: 58%;
+  height: 0.55rem;
+  border-radius: 99px;
+  background: #cfcfca;
+}
+.wfLine {
+  width: 92%;
+  height: 0.2rem;
+  border-radius: 99px;
+  background: #e4e4e0;
+}
+.wfShort {
+  width: 70%;
+}
+.wfTiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+}
+.wfTiles i {
+  aspect-ratio: 4 / 3;
+  border-radius: 0.25rem;
+  background: linear-gradient(160deg, #ededea, #e3e3df);
 }
 
 .badge {

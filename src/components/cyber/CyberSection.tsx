@@ -136,8 +136,9 @@ export function CyberSection() {
           <p className="mt-3 text-base text-white/80 sm:text-lg">{story.defense.body}</p>
         </Chapter>
         <Chapter label={PROJECT_NAMES.homelab} align="end">
-          <p className="label text-emerald-300">{story.secure.label}</p>
-          <ProjectCard slug="homelab" className="mt-4" />
+          {/* over the busy wall: the label on a pill, the card in deep glass */}
+          <p className="label rounded-full bg-[#03070e]/80 px-3 py-1.5 text-emerald-300 backdrop-blur-md">{story.secure.label}</p>
+          <ProjectCard slug="homelab" className="mt-4 bg-[rgba(7,11,19,0.86)]! backdrop-blur-xl" />
         </Chapter>
       </ProjectTrack>
     </section>
