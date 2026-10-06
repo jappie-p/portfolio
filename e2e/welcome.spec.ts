@@ -6,7 +6,7 @@ import AxeBuilder from "@axe-core/playwright";
 
 test("the front door offers two ways in, the simple one marked as coming", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1, name: "Hoe wil je kijken?" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Kies je avontuur" })).toBeVisible();
   await expect(page.locator('[aria-disabled="true"]', { hasText: "Simpel" })).toContainText("Binnenkort");
   await expect(page.getByRole("link", { name: /De ervaring/ })).toHaveAttribute("href", "/experience");
 });
@@ -20,15 +20,15 @@ test("the how-to teaches the three moves, then grows into the experience", async
   await page.keyboard.press("ArrowDown");
   await expect(tour.getByRole("heading", { name: "Opzij voor de projecten" })).toBeVisible();
   await page.keyboard.press("ArrowRight");
-  await expect(tour.getByRole("heading", { name: /Klik op een werk/ })).toBeVisible();
+  await expect(tour.getByRole("heading", { name: /Kies een werk/ })).toBeVisible();
   await tour.getByRole("button", { name: "Happy Herbivore Kiosk" }).click();
-  await tour.getByRole("button", { name: "Naar binnen" }).click();
+  await tour.getByRole("button", { name: "Start het avontuur" }).click();
   await expect(page).toHaveURL(/\/experience$/);
   await expect(page.locator('[data-section="hero"]')).toBeVisible();
 
   // the next visit goes straight in, and offers the how-to again
   await page.goto("/");
-  await expect(page.getByRole("button", { name: "Uitleg opnieuw bekijken" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Training opnieuw doen" })).toBeVisible();
   await page.getByRole("link", { name: /De ervaring/ }).click();
   await expect(page).toHaveURL(/\/experience$/);
 });

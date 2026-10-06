@@ -1,0 +1,76 @@
+/* Jarvis's voice: a small pill in the corner of the AI topic, its bars
+   moving while he speaks. */
+
+.voice {
+  position: absolute;
+  left: clamp(1rem, 3vw, 2rem);
+  bottom: 1.4rem;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 1rem 0.5rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(10, 8, 24, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.9);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.voice:hover {
+  border-color: rgba(255, 255, 255, 0.45);
+}
+.voice:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+/* before he has spoken: a slow glow asks you to let him */
+.voice[data-invite] {
+  animation: invite 2.6s ease-in-out infinite;
+}
+@keyframes invite {
+  50% {
+    border-color: rgba(167, 139, 250, 0.75);
+    box-shadow: 0 0 18px rgba(139, 123, 255, 0.45);
+  }
+}
+.wave {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 1rem;
+}
+.wave i {
+  display: block;
+  width: 3px;
+  height: 30%;
+  border-radius: 2px;
+  background: #a78bfa;
+}
+.voice[data-talking] .wave i {
+  animation: talk 0.9s ease-in-out infinite;
+}
+.voice[data-talking] .wave i:nth-child(2) {
+  animation-delay: -0.3s;
+}
+.voice[data-talking] .wave i:nth-child(3) {
+  animation-delay: -0.6s;
+}
+.voice[data-talking] .wave i:nth-child(4) {
+  animation-delay: -0.15s;
+}
+@keyframes talk {
+  50% {
+    height: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .voice[data-invite],
+  .voice[data-talking] .wave i {
+    animation: none;
+  }
+}

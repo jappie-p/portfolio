@@ -4,7 +4,7 @@ import { Typewriter } from "@/components/ui/Typewriter";
 import { useLocale, useT } from "@/i18n/useT";
 import { markTourDone } from "./enter";
 import { setSound, soundOn } from "@/lib/audio";
-import { lineTexts } from "@/lib/voice-lines";
+import { lineTexts, type VoiceLine } from "@/lib/voice-lines";
 import { play } from "./sound";
 import { TourMap, type Cell } from "./TourMap";
 import { hush, speak } from "./voice";
@@ -17,10 +17,13 @@ const STEPS: Step[] = ["down", "side", "dive", "done"];
 const FROM: Record<Step, Cell> = { down: { row: 0, col: 0 }, side: { row: 2, col: 0 }, dive: { row: 5, col: 0 }, done: { row: 0, col: 0 } };
 const TO: Record<Exclude<Step, "done">, Cell> = { down: { row: 1, col: 0 }, side: { row: 2, col: 1 }, dive: { row: 5, col: 1 } };
 
-/** How long a done step lingers before the next one, and how long before
- *  a plain "next" offers itself to someone stuck on a step. */
+/** How long a done step lingers before the next one, and how long after
+ *  its line is told a plain "next" offers itself to someone stuck on it. */
 const LINGER_MS = 1150;
-const STUCK_MS = 7000;
+const STUCK_MS = 5000;
+/** The caption types along with the narrator. */
+const TYPE_DELAY = 300;
+const TYPE_CPS = 19;
 /** How far a wheel or a finger has to go to count. */
 const WHEEL = 40;
 const SWIPE = 40;
@@ -48,6 +51,33 @@ function Gesture({ way }: { way: "up" | "side" | "tap" }) {
     <span aria-hidden className={s.gesture} data-way={way}>
       <span />
     </span>
+  );
+}
+
+/** The move on a computer: a mouse wheel rolling down, two fingers sliding
+ *  sideways on a trackpad, or a pointer that clicks. */
+function DeskMove({ way }: { way: "down" | "side" | "click" }) {
+  if (way === "click")
+    return (
+      <svg aria-hidden viewBox="0 0 24 24" className={`${s.input} ${s.click}`}>
+        <path d="M6 3.5 18 13l-5.2.9 3 6.1-2.4 1.1-3-6.1L6 18.6Z" />
+      </svg>
+    );
+  if (way === "side")
+    return (
+      <svg aria-hidden viewBox="0 0 24 24" className={s.input}>
+        <rect x="2.5" y="5" width="19" height="14" rx="3" />
+        <g className={s.fingers}>
+          <circle cx="10.2" cy="12" r="1.5" />
+          <circle cx="13.8" cy="12" r="1.5" />
+        </g>
+      </svg>
+    );
+  return (
+    <svg aria-hidden viewBox="0 0 24 24" className={s.input}>
+      <rect x="6.5" y="2.5" width="11" height="19" rx="5.5" />
+      <line className={s.wheel} x1="12" y1="6.5" x2="12" y2="9.5" />
+    </svg>
   );
 }
 
@@ -85,9 +115,10 @@ export function Tour({ onClose, onEnter }: { onClose: () => void; onEnter: (from
     };
   }, []);
 
-  const say = step === "done" ? tt.done.say : tt[step].say;
-  const line = `tour-${step}` as const;
+  // the narrator says the move for what you hold: a mouse, or a finger
+  const line: VoiceLine = step === "done" ? "tour-done" : `tour-${step}-${coarse ? "touch" : "mouse"}`;
   const words = lineTexts(t)[line];
+  const say = step === "done" ? tt.done.say : words;
 
   // each step: the narrator reads its line; the last one is the way in
   useEffect(() => {
@@ -100,12 +131,12 @@ export function Tour({ onClose, onEnter }: { onClose: () => void; onEnter: (from
   // the narrator stops when the how-to closes
   useEffect(() => hush, []);
 
-  // someone stuck on a step gets a plain "next" after a while
+  // someone stuck on a step gets a plain "next", a while after the line is told
   useEffect(() => {
     if (done || step === "done") return;
-    const id = window.setTimeout(() => setStuck(true), STUCK_MS);
+    const id = window.setTimeout(() => setStuck(true), TYPE_DELAY + (say.length / TYPE_CPS) * 1000 + STUCK_MS);
     return () => window.clearTimeout(id);
-  }, [step, done]);
+  }, [step, done, say]);
 
   // a step done: the map moves, a chime, and a moment later the next step
   const advance = useCallback(() => {
@@ -227,7 +258,16 @@ export function Tour({ onClose, onEnter }: { onClose: () => void; onEnter: (from
       </div>
 
       <div className={s.stage}>
-        <TourMap at={at} labels={{ ...t.nav, hero: t.nav.home }} you={tt.you} pick={step === "dive" && !done ? pick : null} picked={picked} lit={step === "done" ? 7 : 0} heroRef={hero} />
+        <TourMap
+          at={at}
+          demo={step === "down" || step === "side" ? (done ? null : { from: FROM[step], to: TO[step] }) : null}
+          labels={{ ...t.nav, hero: t.nav.home }}
+          you={tt.you}
+          pick={step === "dive" && !done ? pick : null}
+          picked={picked}
+          lit={step === "done" ? 7 : 0}
+          heroRef={hero}
+        />
       </div>
 
       <div className={s.panel} aria-live="polite">
@@ -244,7 +284,7 @@ export function Tour({ onClose, onEnter }: { onClose: () => void; onEnter: (from
                 </span>
               )}
             </h2>
-            <p className={s.how}>
+            <p className={s.how} data-done={done || undefined}>
               {coarse ? (
                 <>
                   <Gesture way={step === "down" ? "up" : step === "side" ? "side" : "tap"} />
@@ -252,6 +292,7 @@ export function Tour({ onClose, onEnter }: { onClose: () => void; onEnter: (from
                 </>
               ) : (
                 <>
+                  <DeskMove way={step === "down" ? "down" : step === "side" ? "side" : "click"} />
                   {copy.mouse}
                   {step === "down" && <Key>↓</Key>}
                   {step === "side" && <Key>→</Key>}
@@ -273,7 +314,7 @@ export function Tour({ onClose, onEnter }: { onClose: () => void; onEnter: (from
             <path d="M3.5 8h3l4-3.5v11L6.5 12h-3z" />
           </svg>
           <span key={`${step}-${locale}`}>
-            <Typewriter text={say} delay={350} cps={52} />
+            <Typewriter text={say} delay={TYPE_DELAY} cps={TYPE_CPS} />
           </span>
         </p>
         {stuck && !done && copy && (

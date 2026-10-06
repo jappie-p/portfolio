@@ -13,6 +13,7 @@ import { trackProgress } from "@/components/cyber/lib/scene-math";
 import { ProjectCard } from "@/components/work/ProjectCard";
 import { useT } from "@/i18n/useT";
 import type { AiLabels } from "./sim";
+import { JarvisVoice } from "./JarvisVoice";
 
 const AiCanvas = dynamic(() => import("./AiCanvas").then((m) => m.AiCanvas), { ssr: false });
 
@@ -148,6 +149,7 @@ export function AiSection() {
           <ProjectCard slug="go-to-guy" className="mt-5" />
         </Chapter>
       </ProjectTrack>
+      <JarvisVoice />
     </section>
   );
 }

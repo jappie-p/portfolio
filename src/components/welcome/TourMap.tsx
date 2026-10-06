@@ -1,12 +1,12 @@
 "use client";
 import type { CSSProperties, Ref } from "react";
-import { PROJECT_NAMES, TOPICS, type TopicId } from "@/lib/chapters";
+import { PROJECT_NAMES, TOPICS, topicPanelCount, type TopicId } from "@/lib/chapters";
 import s from "./tour.module.css";
 
 export type Cell = { row: number; col: number };
 
 /** The site as the map shows it: one row per topic, a tile per panel. */
-const ROWS = TOPICS.map((tp) => ({ id: tp.id as TopicId, count: tp.projects.length ? tp.projects.length + 1 : 1 }));
+const ROWS = TOPICS.map((tp) => ({ id: tp.id as TopicId, count: topicPanelCount(tp.id) }));
 
 /** The works in the School gallery, as the map's little prints. */
 const WORKS = TOPICS.find((tp) => tp.id === "school")!.projects;
@@ -25,6 +25,8 @@ const TINT: Record<TopicId, string> = {
 type Props = {
   /** where you are: the frame sits on this tile */
   at: Cell;
+  /** the move this step asks for, shown by a ghost of the frame making it, again and again */
+  demo: { from: Cell; to: Cell } | null;
   labels: Record<TopicId, string>;
   you: string;
   /** the gallery tile's prints can be picked (the third step) */
@@ -42,7 +44,7 @@ type Props = {
  * other, each topic's projects side by side, and a frame for where you are
  * that moves as you learn the moves.
  */
-export function TourMap({ at, labels, you, pick, picked, lit, heroRef }: Props) {
+export function TourMap({ at, demo, labels, you, pick, picked, lit, heroRef }: Props) {
   return (
     <div className={s.board} style={{ "--row": at.row, "--col": at.col } as CSSProperties}>
       {ROWS.map((r, i) => (
@@ -72,6 +74,14 @@ export function TourMap({ at, labels, you, pick, picked, lit, heroRef }: Props) 
           ))}
         </div>
       ))}
+      {demo && (
+        <span
+          aria-hidden
+          key={`${demo.from.row}${demo.from.col}`}
+          className={s.ghost}
+          style={{ "--r0": demo.from.row, "--c0": demo.from.col, "--r1": demo.to.row, "--c1": demo.to.col } as CSSProperties}
+        />
+      )}
       <span aria-hidden className={s.frame}>
         <span className={s.you}>{you}</span>
       </span>

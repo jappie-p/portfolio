@@ -9,9 +9,9 @@ De voordeur is een witte pagina die vraagt hoe je wilt kijken. Kies je de ervari
 | Onderdeel | De wereld | Gebouwd met |
 |---|---|---|
 | Start | Een veld van honingraatkolommen tot aan de horizon, dat zichzelf opbouwt van schets via wireframe tot render. | WebGL 2 met eigen shaders |
-| Over mij | Een sterrenhemel die meeschuift: elke groep skills is een sterrenbeeld, en hoe groot een ster is hangt af van in hoeveel van mijn projecten die techniek echt zit. | Canvas 2D en SVG |
+| Over mij | Een spelersprofiel zoals in een game: mijn portret in de honingraatwereld, een skilltree waarin het niveau van elke techniek telt in hoeveel van mijn projecten die echt zit, en een questlog met waar ik nu mee bezig ben. | CSS en SVG |
 | Websites | Browservensters in een nevel; HypHosting tussen zwevende Minecraft-eilanden; Louisa Edelstenen tussen de stenen die ze verkoopt, van agaat tot amethist. | Canvas 2D, React Three Fiber |
-| AI | Jarvis als kern in een netwerk, Go to Guy als hub waar agents het werk rondbrengen. | React Three Fiber |
+| AI | Jarvis als kern in een netwerk, die met zijn eigen stem vertelt wat hij doet; Go to Guy als hub waar agents het werk rondbrengen. | React Three Fiber, Web Audio |
 | Cyber | Een firewall onder een DDoS-aanval, mijn homelab. | React Three Fiber |
 | School | Een galerij bij nacht: elk project hangt als print aan zijn eigen gekleurde muur en stukjes van het werk ontsnappen uit de lijst. Klik een print en je duikt erin; vanuit een project veeg je terug de galerij in en door naar het volgende. Daarachter de Zelda-avond met de echte game speelbaar in het paneel, het restaurant met een bonnetje uit de printer en het festivalpodium. | three.js met eigen shaders, view transitions, Canvas 2D, pygbag (WebAssembly) |
 | Contact | Utrecht bij nacht met de Domtoren, die als een baken oplicht zodra je een bericht stuurt. | Canvas 2D |
@@ -19,7 +19,8 @@ De voordeur is een witte pagina die vraagt hoe je wilt kijken. Kies je de ervari
 ## Keuzes
 
 - **Next.js 16** (App Router) met React 19, TypeScript en Tailwind CSS 4: echte routes (cv per taal, contact-API, OG-beeld, sitemap) en statisch gerenderd waar het kan.
-- **Een voordeur en een uitleg.** `/` is een witte pagina met twee keuzes; de ervaring staat op `/experience`, en oude links (`/#school`, `/?case=zelda`) gaan daar direct heen. De uitleg leert drie bewegingen op een kaart van de site en wacht tot je ze echt doet. Het geluid maakt de browser zelf (Web Audio), zonder bestanden.
+- **Een voordeur en een uitleg.** `/` is een witte pagina met twee keuzes; de ervaring staat op `/experience`, en oude links (`/#school`, `/?case=zelda`) gaan daar direct heen. De uitleg leert drie bewegingen op een kaart van de site en wacht tot je ze echt doet. Per stap zegt een verteller wat je moet doen, voor een muis of voor een touchscreen, en de kaart doet de beweging voor. De piepjes maakt de browser zelf (Web Audio).
+- **Een eigen stem.** De gids van de uitleg en Jarvis bij AI spreken met één stem, die ik voor deze site heb ontworpen in ElevenLabs, als twee personages. De gids speelt zijn zinnen als een mentor in een game: ElevenLabs v3 met regieaanwijzingen per zin, zoals opgewonden, fluisterend of lachend. Jarvis blijft rustig. `npm run voice` neemt alle zinnen op uit de woordenboeken. Elke opname wordt teruggeluisterd met spraakherkenning en opnieuw gedaan als er één woord mis is. Het tempo wordt gemeten in lettergrepen per seconde: de gids wordt met Rubber Band op tempo gebracht zonder dat zijn toonhoogte verandert, Jarvis wordt op een bijgestelde snelheid opnieuw opgenomen. Lukt afspelen niet, dan leest de browser de zin zelf voor.
 - **3D alleen waar het iets toevoegt.** AI, Cyber en Louisa draaien op React Three Fiber; de andere werelden zijn Canvas 2D. Dat is licht, en browsers staan maar een handvol WebGL-contexten toe.
 - **Elke scène is zuinig.** Ze laadt pas als haar onderdeel in de buurt komt, tekent alleen als ze echt in beeld is, laat bij "minder beweging" één stilstaand beeld zien, en valt zonder GPU terug op een poster of de 2D-versie.
 - **Contactformulier**: validatie met zod, honeypot, minimale invultijd en een limiet per IP. Elk bericht komt in een JSONL-inbox op de server en wordt gemaild als de `EMAIL_*`-variabelen gezet zijn.
@@ -41,7 +42,7 @@ src/
     sections/     één bestand per onderdeel
     journey/      rijen, zijwaartse tracks, panelen, achtergronden, de zoom
     welcome/      de voordeur en de uitleg
-    hero/ school/ about/   het honingraatveld, de galerij, de sterrenhemel
+    hero/ school/ about/   het honingraatveld, de galerij, het spelersprofiel
     ai/ cyber/    de 3D-scènes
     art/          de wereld van elk project (zelda, kiosk, festival, websites, contact)
     work/ contact/ ui/ cv/
@@ -50,7 +51,7 @@ src/
   lib/            gedeelde logica
 tests/            unit tests (Vitest)
 e2e/              browsertests (Playwright)
-public/           trailers, de Zelda-build, de cv-pdf's
+public/           trailers, de stem (voice/), de Zelda-build, de cv-pdf's
 ```
 
 ## Lokaal draaien
@@ -62,4 +63,5 @@ npm test           # unit tests
 npm run test:e2e   # bouwt en start de productieversie, dan alle browsertests
 npm run lint
 npm run cv         # maakt de cv-pdf's opnieuw
+npm run voice      # neemt de stem opnieuw op (met ELEVENLABS_API_KEY; brew install ffmpeg rubberband)
 ```

@@ -1,4 +1,5 @@
 import { test, expect, type Locator } from "@playwright/test";
+import { topicPanelCount } from "../src/lib/chapters";
 
 /** Wait until a topic row has finished its smooth scroll and sits flush at the top. */
 const settled = (row: Locator) => expect.poll(() => row.evaluate((el) => Math.abs(el.getBoundingClientRect().top)), { timeout: 12_000 }).toBeLessThan(2);
@@ -48,6 +49,8 @@ test("about walks sideways from the player card to skills, learning and more wor
   const about = page.locator('[data-section="about"]');
   await settled(about);
   const panel = (name: string) => about.locator(".project-panel", { has: page.getByRole("heading", { level: 2, name }) });
+  // the how-to's map of the site draws this many tiles for About
+  await expect(about.locator(".project-panel")).toHaveCount(topicPanelCount("about"));
   await expect(panel("Jasper Pathuis")).toBeInViewport({ ratio: 0.9 });
   for (const [from, to] of [
     ["Jasper Pathuis", "Skills"],

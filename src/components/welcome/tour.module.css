@@ -1,6 +1,9 @@
 /* The how-to: white like the front door, a tilted map of the site in the
-   middle like a level map, the move to make underneath. */
+   middle like a level map, the move to make underneath.
 
+   Entrances fill backwards, never forwards: an animation that keeps its end
+   state keeps the tilted map drawn at low resolution on dense phone
+   screens. Every keyframe below ends where the element already is. */
 .tour {
   --paper: #ffffff;
   --ink: #0c0f13;
@@ -20,7 +23,7 @@
   touch-action: none;
   overscroll-behavior: none;
   outline: none;
-  animation: tour-in 0.45s ease both;
+  animation: tour-in 0.45s ease backwards;
 }
 @keyframes tour-in {
   from {
@@ -129,7 +132,10 @@ button.print:focus-visible {
   gap: var(--gap);
   transform: rotateX(28deg) rotateZ(-4deg);
   transform-style: preserve-3d;
-  animation: board-in 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s both;
+  animation: board-in 1s cubic-bezier(0.2, 0.8, 0.2, 1) 0.05s backwards;
+  /* a picture, not a control: only the prints take a click (in the tilted
+     map a row can come out in front of its own prints for hit-testing) */
+  pointer-events: none;
 }
 @keyframes board-in {
   from {
@@ -166,7 +172,7 @@ button.print:focus-visible {
   transition:
     transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1),
     filter 0.45s ease;
-  animation: tile-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) calc(0.2s + var(--i) * 70ms) both;
+  animation: tile-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) calc(0.2s + var(--i) * 70ms) backwards;
 }
 @keyframes tile-in {
   from {
@@ -194,7 +200,7 @@ button.print:focus-visible {
 }
 /* all done: the rows light up, top to bottom */
 .row[data-lit] .tile {
-  animation: lit 1s ease calc(var(--i) * 90ms) both;
+  animation: lit 1s ease calc(var(--i) * 90ms) backwards;
 }
 @keyframes lit {
   40% {
@@ -235,6 +241,7 @@ button.print:focus-visible {
   background: linear-gradient(135deg, #ec4899, #8b5cf6);
 }
 button.print {
+  pointer-events: auto;
   cursor: pointer;
   animation: beckon 1.6s ease-in-out infinite;
 }
@@ -288,6 +295,46 @@ button.print:nth-child(3) {
   translate: -50% 0;
 }
 
+/* the move this step asks for: a ghost of your frame making it, again and
+   again, until you make it yourself */
+.ghost {
+  --x0: calc(var(--label) + var(--gap) + var(--c0) * (var(--tw) + var(--gap)));
+  --y0: calc(var(--r0) * (var(--th) + var(--gap)));
+  --x1: calc(var(--label) + var(--gap) + var(--c1) * (var(--tw) + var(--gap)));
+  --y1: calc(var(--r1) * (var(--th) + var(--gap)));
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--tw);
+  height: var(--th);
+  border-radius: 0.6rem;
+  border: 2px dashed rgba(34, 197, 94, 0.95);
+  pointer-events: none;
+  /* standing still (less motion), it marks where the move goes */
+  transform: translate(var(--x1), var(--y1)) translateZ(16px);
+  animation: ghost 2.4s cubic-bezier(0.45, 0, 0.2, 1) 0.8s infinite backwards;
+}
+@keyframes ghost {
+  0%,
+  12% {
+    opacity: 0;
+    transform: translate(var(--x0), var(--y0)) translateZ(16px);
+  }
+  22% {
+    opacity: 1;
+    transform: translate(var(--x0), var(--y0)) translateZ(16px);
+  }
+  62% {
+    opacity: 1;
+    transform: translate(var(--x1), var(--y1)) translateZ(16px);
+  }
+  82%,
+  100% {
+    opacity: 0;
+    transform: translate(var(--x1), var(--y1)) translateZ(16px);
+  }
+}
+
 /* --- the move to make --- */
 .panel {
   justify-self: center;
@@ -324,20 +371,95 @@ button.print:nth-child(3) {
   color: #fff;
   font-size: 1rem;
   vertical-align: 0.15em;
-  animation: pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+  animation: pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) backwards;
 }
 @keyframes pop {
   from {
     transform: scale(0);
   }
 }
+/* the move, said plainly and large, with the input making it */
 .how {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
   margin-top: 0.75rem;
-  font-size: 0.95rem;
-  color: var(--ink-2);
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #f4f6f3;
+  font-size: 1.08rem;
+  font-weight: 500;
+  color: var(--ink);
+  transition: opacity 0.3s ease;
+}
+.how[data-done] {
+  opacity: 0.6;
+}
+.input {
+  flex: none;
+  width: 1.35rem;
+  height: 1.35rem;
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.wheel {
+  stroke: var(--go);
+  stroke-width: 2;
+  animation: roll 1.4s ease-in-out infinite;
+}
+/* the wheel ticks down and back, and never quite fades: without it the
+   mouse is just a capsule */
+@keyframes roll {
+  0%,
+  15% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  65% {
+    transform: translateY(4px);
+    opacity: 0.3;
+  }
+  66%,
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.fingers {
+  fill: var(--go);
+  stroke: none;
+  animation: swipe 1.4s ease-in-out infinite;
+}
+@keyframes swipe {
+  0% {
+    transform: translateX(3.5px);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  70% {
+    transform: translateX(-3.5px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-3.5px);
+    opacity: 0;
+  }
+}
+.click {
+  fill: var(--ink);
+  stroke: none;
+  animation: tap 1.4s ease-in-out infinite;
+}
+@keyframes tap {
+  50% {
+    transform: scale(0.82);
+  }
 }
 .key {
   display: inline-grid;
@@ -465,7 +587,7 @@ button.print:nth-child(3) {
   border-radius: 999px;
   font-size: 0.85rem;
   color: var(--ink-2);
-  animation: tour-in 0.4s ease both;
+  animation: tour-in 0.4s ease backwards;
 }
 .go {
   display: inline-flex;
@@ -479,7 +601,7 @@ button.print:nth-child(3) {
   font-size: 1rem;
   font-weight: 600;
   transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
-  animation: pop 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) 0.2s both;
+  animation: pop 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) 0.2s backwards;
 }
 .go:hover {
   transform: translateY(-2px);
@@ -511,7 +633,11 @@ button.print:nth-child(3) {
   .tile,
   .row[data-lit] .tile,
   button.print,
+  .ghost,
   .key,
+  .wheel,
+  .fingers,
+  .click,
   .gesture span,
   .check,
   .go,

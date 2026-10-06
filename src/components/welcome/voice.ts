@@ -59,7 +59,7 @@ function readAloud(locale: Locale, text: string, mine: number) {
   window.setTimeout(say, 500);
 }
 
-/** Speak a line: the narrator's recording (see scripts/voice.mts), or, if
+/** Speak a line: the narrator's recording (see scripts/voice/record.mts), or, if
  *  that cannot play, the same words in the browser's voice. Nothing when
  *  the reader has turned sound off. */
 export function speak(locale: Locale, line: VoiceLine, text: string) {

@@ -6,7 +6,9 @@ import type { LearnId, SkillGroupId, SoftSkillId } from "@/data/skills";
 
 type Blurb = { title: string; text: string };
 
-type TourStep = { title: string; mouse: string; touch: string; say: string };
+/** A how-to step: what it asks, the move for a mouse and for a finger, and
+ *  what the narrator says (ending in that move), for a mouse and for touch. */
+type TourStep = { title: string; mouse: string; touch: string; sayMouse: string; sayTouch: string };
 
 export type Dictionary = {
   meta: { title: string; description: string };
@@ -117,6 +119,8 @@ export type Dictionary = {
     receipt: { order: string; eatIn: string; total: string; thanks: string };
     /** The way between the projects inside the gallery. */
     guide: { gallery: string; back: string; next: string; prev: string; swipe: string; keys: string };
+    /** The gallery's cover: the museum's wall text and its bar along the foot. */
+    museum: { kicker: string; titleA: string; titleB: string; lead: string; tour: string; room: string; explore: string; prev: string; next: string };
   };
   work: {
     kinds: Record<ProjectKind, string>;

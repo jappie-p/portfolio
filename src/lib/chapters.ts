@@ -1,5 +1,6 @@
 // The journey is a 2-D grid: vertical = topics (rows), horizontal = projects
-// within a topic (columns). Hero/About/Contact are single-panel topics.
+// within a topic (columns). Hero and Contact are single panels; About is a
+// character screen of its own panels, side by side.
 
 export type ProjectSlug = "hyphosting" | "louisa" | "jarvis" | "go-to-guy" | "homelab" | "zelda" | "kiosk" | "festival";
 
@@ -31,9 +32,13 @@ export const TOPIC_INDEX: Record<TopicId, number> = Object.fromEntries(
   TOPICS.map((t, i) => [t.id, i]),
 ) as Record<TopicId, number>;
 
-/** Subject topics carry a horizontal project track; hero/about/contact do not. */
+/** Topics with panels side by side that are not projects: About's player
+ *  card, skill tree, quest log and side quests (sections/About.tsx). */
+const OWN_PANELS: Partial<Record<TopicId, number>> = { about: 4 };
+
+/** How many panels a topic shows side by side. */
 export function topicPanelCount(id: TopicId): number {
   const t = TOPICS.find((x) => x.id === id);
   // a subject topic shows a cover panel + one panel per project
-  return t && t.projects.length > 0 ? t.projects.length + 1 : 1;
+  return OWN_PANELS[id] ?? (t && t.projects.length > 0 ? t.projects.length + 1 : 1);
 }

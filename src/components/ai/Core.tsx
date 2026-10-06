@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef } from "react";
+import { voiceLevel } from "@/lib/audio";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { OrbParticles } from "@/components/canvas/OrbParticles";
@@ -151,8 +152,12 @@ export function Core() {
   const quad = useMemo(() => new THREE.PlaneGeometry(2, 2), []);
   useEffect(() => () => quad.dispose(), [quad]);
 
+  const voice = useRef(0);
   useFrame((_, delta) => {
-    flare.value = state.flare;
+    // the core brightens with Jarvis's voice while he speaks (quick to rise, slow to fall)
+    const level = voiceLevel();
+    voice.current += (level - voice.current) * (level > voice.current ? 0.5 : 0.12);
+    flare.value = state.flare + voice.current * 0.7;
     const dt = still ? 0 : Math.min(delta, 0.05);
     const settle = state.hub;
     rings.current.forEach((g, i) => {

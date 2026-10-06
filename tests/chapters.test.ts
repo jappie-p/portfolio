@@ -11,13 +11,14 @@ describe("topics grid model", () => {
     expect(TOPICS.find((t) => t.id === "hero")!.projects).toEqual([]);
   });
 
-  it("panel count is cover + projects for subjects, 1 for single-panel topics", () => {
+  it("panel count is cover + projects for subjects, About's own panels, 1 for the rest", () => {
     expect(topicPanelCount("websites")).toBe(3); // cover + 2 projects
     expect(topicPanelCount("ai")).toBe(3);
     expect(topicPanelCount("cyber")).toBe(2); // cover + 1 project
     expect(topicPanelCount("school")).toBe(4); // cover + 3 projects
     expect(topicPanelCount("hero")).toBe(1);
-    expect(topicPanelCount("about")).toBe(1);
+    expect(topicPanelCount("about")).toBe(4); // player card, skills, quests, side quests
+    expect(topicPanelCount("contact")).toBe(1);
   });
 
   it("indexes topics and names every project", () => {
