@@ -98,8 +98,8 @@ export class Reflector {
     gl.setRenderTarget(this.sharp);
     gl.clear();
     gl.render(scene, this.camera);
-    // streaks: blur a little sideways, more downward, as on a polished
-    // floor; twice over, so the wide blur stays smooth
+    // streaks: blur a little sideways and a long way downward, as on a wet
+    // floor; twice over, so the long blur stays smooth
     const m = this.quad.material;
     const pass = (from: THREE.WebGLRenderTarget, to: THREE.WebGLRenderTarget, x: number, y: number) => {
       m.uniforms.uTex.value = from.texture;
@@ -107,10 +107,10 @@ export class Reflector {
       gl.setRenderTarget(to);
       gl.render(this.quad, this.flat);
     };
-    pass(this.sharp, this.tmp, 1.3, 0);
-    pass(this.tmp, this.soft, 0, 2.2);
-    pass(this.soft, this.tmp, 2, 0);
-    pass(this.tmp, this.soft, 0, 3.4);
+    pass(this.sharp, this.tmp, 1.1, 0);
+    pass(this.tmp, this.soft, 0, 4.5);
+    pass(this.soft, this.tmp, 1.2, 0);
+    pass(this.tmp, this.soft, 0, 9);
     gl.setRenderTarget(before);
   }
 

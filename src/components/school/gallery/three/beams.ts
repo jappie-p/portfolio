@@ -82,7 +82,8 @@ export function makeBeam(shared: Shared, slots: FrameSlots, s: Spot, strength: n
   const len = (s.pos.z / Math.max(-s.dir.z, 0.05)) * 1.4;
   const geometry = new THREE.CylinderGeometry(mouth, (len + back) * tan, len, 48, 1, true);
   geometry.translate(0, -len / 2, 0);
-  const color = new THREE.Vector3(1, 0.86, 0.7).multiplyScalar(strength);
+  const tint = s.color.clone();
+  const color = new THREE.Vector3(tint.r, tint.g, tint.b).multiplyScalar(strength);
   const material = new THREE.RawShaderMaterial({
     glslVersion: THREE.GLSL3,
     vertexShader: VERT,
@@ -106,7 +107,7 @@ export function makeBeam(shared: Shared, slots: FrameSlots, s: Spot, strength: n
   mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), s.dir);
   mesh.layers.enable(MIRRORED);
   mesh.renderOrder = 2;
-  return { mesh, color, base: strength };
+  return { mesh, color, tint, base: strength };
 }
 
 export type Beam = ReturnType<typeof makeBeam>;

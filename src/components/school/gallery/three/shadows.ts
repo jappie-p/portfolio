@@ -70,24 +70,30 @@ void main() {
  *  crossing in the lamp's view never stack into a darker shadow. Its vertex
  *  shader places it with fromLamp(). */
 export function caster(geometry: THREE.BufferGeometry, vertexShader: string, uniforms: Record<string, THREE.IUniform>) {
-  const mesh = new THREE.Mesh(
-    geometry,
-    new THREE.RawShaderMaterial({
-      glslVersion: THREE.GLSL3,
-      vertexShader,
-      fragmentShader: CAST_FRAG,
-      uniforms,
-      side: THREE.DoubleSide,
-      transparent: true,
-      depthTest: false,
-      depthWrite: false,
-      blending: THREE.CustomBlending,
-      blendEquation: THREE.MaxEquation,
-    }),
-  );
-  mesh.frustumCulled = false;
-  mesh.layers.set(SHADE);
-  return mesh;
+  return asCaster(new THREE.Mesh(geometry, casterMaterial(vertexShader, uniforms)));
+}
+
+/** A caster's material, for meshes built some other way (instanced ones). */
+export function casterMaterial(vertexShader: string, uniforms: Record<string, THREE.IUniform>) {
+  return new THREE.RawShaderMaterial({
+    glslVersion: THREE.GLSL3,
+    vertexShader,
+    fragmentShader: CAST_FRAG,
+    uniforms,
+    side: THREE.DoubleSide,
+    transparent: true,
+    depthTest: false,
+    depthWrite: false,
+    blending: THREE.CustomBlending,
+    blendEquation: THREE.MaxEquation,
+  });
+}
+
+/** Only the shadow pass draws it, wherever it is. */
+export function asCaster<T extends THREE.Object3D>(o: T): T {
+  o.frustumCulled = false;
+  o.layers.set(SHADE);
+  return o;
 }
 
 /**

@@ -142,3 +142,90 @@
 .heading[data-away] > * {
   pointer-events: none;
 }
+
+/* --- the bar along the foot: the room, how far you have walked, and the
+   way on for a mouse --- */
+.bar {
+  --walk: 0;
+  position: absolute;
+  left: clamp(1rem, 4vw, 3.5rem);
+  right: clamp(1rem, 4vw, 3.5rem);
+  bottom: 2.9rem;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  pointer-events: none;
+}
+.bar > * {
+  pointer-events: auto;
+}
+.bar[data-away] > * {
+  pointer-events: none;
+}
+.roomName {
+  display: flex;
+  gap: 0.6rem;
+  flex: none;
+  font-size: 0.92rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.slash {
+  color: var(--ink-faint);
+}
+/* the walk so far: a hairline with the green stretch you have covered */
+.walked {
+  position: relative;
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.14);
+  pointer-events: none;
+}
+.walked::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(1.6rem + var(--walk) * (100% - 1.6rem));
+  background: var(--leaf);
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.6);
+}
+.explore {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 1rem;
+}
+.exploreText {
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+.step {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: var(--ink);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.step:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.06);
+}
+.step:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+}
+/* phones swipe along the wall, and their labels hang where the bar would */
+@media (max-width: 719px) {
+  .bar {
+    display: none;
+  }
+}

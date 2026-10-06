@@ -3,6 +3,7 @@ import { LIP, outerH, outerW, type Work } from "../layout";
 import { HEAD, LIGHT, OUT, VERT } from "./glsl";
 import type { Shared } from "./lights";
 import { FACE_FRAG } from "./face";
+import { makeMoulding, type BarTitle } from "./moulding";
 import type { Shades } from "./shadows";
 
 const FRAME_FRAG = /* glsl */ `${HEAD}
@@ -58,26 +59,32 @@ export type ArtworkOptions = {
   video?: { texture: THREE.Texture; homography: THREE.Matrix3; mix: { value: number } };
   /** the shadows of whatever breaks out of the prints */
   shades: Shades["uniforms"];
+  /** a print's name, for its frame's top bar */
+  title?: BarTitle | null;
 };
 
 /**
- * One framed work: a satin black frame standing off the wall, and inside it a
- * single face carrying the mat, the bevelled window cut into it, the print
- * and the glass over all of it. The group pivots at its centre so it can lean
- * toward the pointer.
+ * One framed work: a print in a moulded frame of dark bronzed wood with its
+ * name gilt on the top bar (the card in a plain satin black one), and inside
+ * it a single face carrying the mat, the bevelled window cut into it, the
+ * print and the glass over all of it. The group pivots at its centre so it
+ * can lean toward the pointer.
  */
 export function makeArtwork(work: Work, shared: Shared, opts: ArtworkOptions) {
   const group = new THREE.Group();
-  const frame = new THREE.Mesh(
-    frameGeometry(work),
-    new THREE.RawShaderMaterial({
-      glslVersion: THREE.GLSL3,
-      vertexShader: VERT,
-      fragmentShader: FRAME_FRAG,
-      uniforms: { ...shared, uSpot: { value: opts.spot }, uTint: { value: new THREE.Color(0.018, 0.017, 0.017) } },
-    }),
-  );
-  frame.position.z = -work.depth / 2;
+  let frame: THREE.Mesh;
+  if (work.id === "berlijn") {
+    frame = new THREE.Mesh(
+      frameGeometry(work),
+      new THREE.RawShaderMaterial({
+        glslVersion: THREE.GLSL3,
+        vertexShader: VERT,
+        fragmentShader: FRAME_FRAG,
+        uniforms: { ...shared, uSpot: { value: opts.spot }, uTint: { value: new THREE.Color(0.018, 0.017, 0.017) } },
+      }),
+    );
+    frame.position.z = -work.depth / 2;
+  } else frame = makeMoulding(work, shared, opts.spot, work.depth / 2, opts.title ?? null);
 
   const fw = outerW(work) - 2 * work.frame;
   const fh = outerH(work) - 2 * work.frame;

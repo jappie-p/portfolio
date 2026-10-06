@@ -21,6 +21,7 @@ import { createRig, glideTo, goTo, standAt, standClose } from "./rig";
 import { sliceStart } from "./slices";
 import { bindSwipe } from "./swipe";
 import { pass } from "./transit";
+import { RoomBar } from "./RoomBar";
 import { useRoomFit } from "./useRoomFit";
 import type { Crops } from "./three/scene";
 import s from "./gallery.module.css";
@@ -54,7 +55,7 @@ function here() {
 export function LiveGallery({ onLost }: { onLost: () => void }) {
   const t = useT();
   const [rig] = useState(() => createRig(roomFor(16 / 10)));
-  const [dom] = useState<OverlayDom>(() => ({ works: [], pics: [], labels: [], heading: null }));
+  const [dom] = useState<OverlayDom>(() => ({ works: [], pics: [], labels: [], heading: null, bar: null }));
   const [narrow, setNarrow] = useState(false);
   const [near, setNear] = useState(false);
   const [ready, setReady] = useState(false);
@@ -320,6 +321,7 @@ export function LiveGallery({ onLost }: { onLost: () => void }) {
         </div>
       </div>
       <Overlay rig={rig} works={WORKS} narrow={narrow} dom={dom} surface={surface} onOpen={open} />
+      <RoomBar rig={rig} dom={dom} />
     </>
   );
 }

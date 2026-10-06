@@ -4,19 +4,25 @@ import { cameraPose } from "../camera";
 import { pose, type Pose } from "../path";
 import { ease, inFront, type Rig } from "../rig";
 import { makeArtwork, type Artwork } from "./artwork";
+import { makeBench, type Bench } from "./bench";
 import { makeFestival } from "./breakout/festival";
 import { makeKiosk } from "./breakout/kiosk";
 import type { Breakout } from "./breakout/types";
 import { makeZelda } from "./breakout/zelda";
-import { exhibitUniforms, placeExhibit, titlesOf, type Exhibit } from "./exhibit";
+import { makeCeiling } from "./ceiling";
 import { makeFloor } from "./floor";
-import { fontReady, letterTitles, type Lettering } from "./lettering";
-import { applySpots, shapeAt, sharedUniforms, smooth, spotsFor, type Spot } from "./lights";
+import { makeForeground, type Foreground } from "./foreground";
+import { fontReady, letterTitles } from "./lettering";
+import { applyGlows, applySpots, glowsFor, shapeAt, sharedUniforms, smooth, spotsFor, type Glow, type Spot } from "./lights";
+import type { BarTitle } from "./moulding";
 import { noiseTexture } from "./noise";
+import { makePlants, plantsFor } from "./plants";
+import { makePlaques, type Plaques } from "./plaques";
 import { MIRRORED, Reflector } from "./reflector";
 import { Rigging } from "./rigging";
 import { Shades } from "./shadows";
 import { cardTexture, drawCard, type CardCopy } from "./textures";
+import { barNames, barTitles, placeBarTitles } from "./titles";
 import type { Trailer } from "./video";
 import { frameSlots, makeWall, placeFrames } from "./wall";
 
@@ -65,9 +71,16 @@ export class GalleryScene {
   private art: Artwork[] = [];
   private readonly rigging = new Rigging(this.shared, this.slots);
   private readonly shades = new Shades();
-  private lettering: Lettering | null = null;
-  private exhibit: Exhibit | null = null;
+  private titles: (BarTitle | null)[] = [];
+  private plaques: Plaques | null = null;
+  private foreground: Foreground | null = null;
+  private bench: Bench | null = null;
+  /** the plants along the wall, set out again for each room */
+  private readonly beds = new THREE.Group();
+  private glows: Glow[] = [];
   private breakouts: (Breakout | null)[] = [];
+  /** what each breakout stands in the room, placed at its work */
+  private sets: (THREE.Group | null)[] = [];
   private leans = Array.from({ length: 4 }, leanState);
   private level = [0, 0, 0, 0, 0];
   private haze = 1;
@@ -93,40 +106,48 @@ export class GalleryScene {
     this.owned.push(noise);
     this.shared.uNoise.value = noise;
     yield;
-    const lettering = letterTitles(titlesOf(this.room), anisotropy);
-    this.lettering = lettering;
+    const lettering = letterTitles(barNames(this.room), anisotropy);
     this.owned.push(lettering.texture);
-    this.exhibit = exhibitUniforms(lettering.texture);
-    // set again in the display font, should it still be on its way
+    this.titles = barTitles(this.room, lettering);
+    const plaques = makePlaques(this.shared, this.room, anisotropy);
+    this.plaques = plaques;
+    this.owned.push(plaques.texture);
+    // set again in the site's faces, should they still be on their way
     const font = fontReady();
     if (!font.ready)
       font.loaded
         .then(() => {
           if (this.disposed) return;
           lettering.redraw();
-          this.layout(this.room);
+          placeBarTitles(this.titles, lettering);
+          plaques.redraw();
         })
         .catch(() => {});
     yield;
-    const wall = makeWall(this.shared, this.slots, this.exhibit, this.shades);
+    const wall = makeWall(this.shared, this.slots, this.shades);
     wall.layers.enable(MIRRORED);
-    this.scene.add(wall, makeFloor(this.shared, this.reflector), this.rigging.group);
+    this.scene.add(wall, makeFloor(this.shared, this.reflector), makeCeiling(this.shared), this.rigging.group);
     yield;
     this.card = cardTexture(this.copy, anisotropy);
     this.owned.push(this.card);
+    this.foreground = makeForeground();
+    this.owned.push(...this.foreground.textures);
+    this.bench = makeBench(this.shared);
+    this.scene.add(plaques.group, this.beds, this.foreground.group, this.bench.group);
     yield;
     for (const [i, w] of this.room.works.entries()) {
       const map = w.id === "berlijn" ? this.card : this.pictures[w.id];
       const crop = w.id === "berlijn" ? new THREE.Vector4(0, 0, 1, 1) : new THREE.Vector4(this.crops[w.id], 0, 0.625, 1);
       const video = w.id === "zelda" && this.trailer ? this.trailer : undefined;
-      const a = makeArtwork(w, this.shared, { spot: i + 1, map, crop, video, shades: this.shades.uniforms });
+      const a = makeArtwork(w, this.shared, { spot: i + 1, map, crop, video, shades: this.shades.uniforms, title: this.titles[i] });
       a.frame.layers.enable(MIRRORED);
       a.face.layers.enable(MIRRORED);
       this.art.push(a);
       this.scene.add(a.group);
       yield;
     }
-    // what breaks out of the prints, hung in their groups so it leans with them
+    // what breaks out of the prints: the pieces on a print hang in its group
+    // and lean with it, what stands round it in the room stays put
     for (const a of this.art) {
       const id = a.work.id;
       const shades = this.shades.uniforms;
@@ -138,13 +159,24 @@ export class GalleryScene {
             : id === "festival"
               ? makeFestival(this.shared, a, shades)
               : null;
+      let set: THREE.Group | null = null;
       if (b) {
         a.group.add(...b.parts);
         this.owned.push(...(b.textures ?? []));
+        if (b.set) {
+          set = new THREE.Group();
+          set.add(...b.set);
+          this.scene.add(set);
+        }
       }
       this.breakouts.push(b);
+      this.sets.push(set);
       if (b) yield;
     }
+    // anything still on its way (Link's sprite) comes in before the room
+    // shows, so it is warmed with the rest; never more than a few seconds
+    const since = performance.now();
+    while (this.breakouts.some((b) => b?.loading?.()) && performance.now() - since < 4000) yield;
     this.layout(this.room);
   }
 
@@ -154,6 +186,10 @@ export class GalleryScene {
   *warm(gl: THREE.WebGLRenderer, buffer: THREE.Vector2): Generator<void> {
     const scratch = new THREE.WebGLRenderTarget(8, 8, { type: THREE.HalfFloatType });
     const parts = this.scene.children.slice();
+    // every part is drawn once, even one this room keeps hidden; then each
+    // goes back to how the room had it
+    const shown = parts.map((p) => p.visible);
+    const restore = () => parts.forEach((p, i) => (p.visible = shown[i]));
     gl.getDrawingBufferSize(buffer);
     this.reflector.setSize(buffer.x, buffer.y);
     try {
@@ -171,7 +207,7 @@ export class GalleryScene {
       this.shared.uScreen.value = 1;
       yield;
     } finally {
-      parts.forEach((p) => (p.visible = true));
+      restore();
       gl.setRenderTarget(null);
       scratch.dispose();
     }
@@ -186,16 +222,33 @@ export class GalleryScene {
   layout(room: Room) {
     this.room = room;
     this.spots = spotsFor(room);
+    this.glows = glowsFor(room);
     room.works.forEach((w, i) => {
       const a = this.art[i];
       if (!a) return;
       a.group.position.set(w.x, w.y, w.depth / 2);
       a.uniforms.uNorm.value = 1 / Math.max(shapeAt(this.spots[i + 1], new THREE.Vector3(w.x, w.y, w.depth)), 1e-4);
+      this.sets[i]?.position.set(w.x, 0, 0);
     });
     this.rigging.hang(room, this.spots);
     this.shades.place(room);
     this.breakouts.forEach((b) => b?.fit?.(room.narrow));
-    if (this.exhibit && this.lettering) placeExhibit(this.exhibit, room, this.lettering);
+    // the plaques would sit under the narrow room's labels; the bench and the
+    // plants belong to the wide room's walk
+    if (this.plaques) {
+      this.plaques.hang(room);
+      this.plaques.group.visible = !room.narrow;
+    }
+    this.foreground?.place(room);
+    this.bench?.place(room);
+    this.beds.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh) return;
+      m.geometry.dispose();
+      (m.material as THREE.Material).dispose();
+    });
+    this.beds.clear();
+    if (!room.narrow) this.beds.add(makePlants(this.shared, plantsFor(room)));
     applySpots(this.shared, this.spots, this.level);
   }
 
@@ -260,6 +313,9 @@ export class GalleryScene {
     });
     this.haze = 1 - DIM.haze * smooth(0.05, 0.85, all);
     applySpots(this.shared, this.spots, this.level);
+    // what the works give off comes and goes with their light
+    applyGlows(this.shared, this.glows, (work) => this.level[work + 1] ?? 0);
+    this.foreground?.light(this.level[0] ?? 0, 1 - smooth(0.08, 0.45, Math.abs(rig.pos)));
     this.breakouts.forEach((b, i) => b?.update(this.time, near[i]));
 
     // the trailer plays while the Zelda print is anywhere near the view

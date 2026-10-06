@@ -49,8 +49,8 @@ export const LIP = 0.018;
 
 /** Below this width-to-height ratio the room narrows: phones, portrait tablets. */
 export const NARROW = 0.9;
-/** The entrance's lens, wide enough to take in the ceiling track. */
-const ENTRANCE_FOV = 47;
+/** The entrance: a wide lens, low and close to the wall, turned far down it. */
+const ENTRANCE = { fov: 52, eye: 0.95, z: 2.25, yaw: 0.8, shift: -0.06 };
 
 const tan = (deg: number) => Math.tan((deg * Math.PI) / 360);
 
@@ -71,13 +71,14 @@ function hang(gap: number, cardGap: number): Work[] {
   return works;
 }
 
-/** The entrance: back and to the left, turned down the wall, standing
- *  just far enough left that the first frame starts where the copy ends
- *  (`clear`, in NDC across the view). */
-function entrance(first: Work, z: number, aspect: number, clear: number): Pose {
-  // a wider lens than the walk's, up to the lamps on the ceiling track; it
-  // narrows as you step in
-  const p = pose(first.x - 5, 1.42, z, 0.56, 0, 0.02, ENTRANCE_FOV);
+/** The entrance: low and close to the wall and turned far down it, so the
+ *  frames loom above you and the wall runs away to the right; standing just
+ *  far enough left that the first frame starts where the copy ends (`clear`,
+ *  in NDC across the view). The lens shifts instead of the head tilting, so
+ *  the frames stay upright. */
+function entrance(first: Work, aspect: number, clear: number): Pose {
+  const e = ENTRANCE;
+  const p = pose(first.x - 3, e.eye, e.z, e.yaw, 0, e.shift, e.fov);
   const edge = [0, 0, 0];
   let lo = first.x - 10;
   let hi = first.x - 1;
@@ -113,7 +114,7 @@ function wide(aspect: number, clear: number): Room {
     const fill = w.id === "berlijn" ? outerH(w) / (0.82 * 2 * t) : Math.max(w.h / (2 * t), w.w / (2 * t * aspect));
     close.push(pose(w.x, w.y, fill, 0, 0, 0, fov));
   }
-  stations.unshift(entrance(works[0], stations[0].z + 0.55, aspect, clear));
+  stations.unshift(entrance(works[0], aspect, clear));
   faces.unshift(-1);
   const stride = (works[1].x - works[0].x) / (2 * t * aspect * stations[1].z);
   return { narrow: false, fov, works, stations, faces, close, stride };
@@ -161,31 +162,17 @@ export function roomFor(aspect: number, clear: Clearance = { right: 0.08, below:
 /** The station that stands in front of a work. */
 export const stationOf = (room: Room, work: number) => room.faces.indexOf(work);
 
-/** The exhibition: each print hangs on its own stretch of painted wall with
- *  its name lettered on it, the way a show marks its sections; the card's
- *  corner keeps the bare wall. Colours in sRGB. */
-export type Bay = { work: number; from: number; to: number; paint: string; ink: string; title: string };
+/** The show: each print's name lettered on its frame's top bar (the
+ *  festival's in neon above it instead), the plaque under it, and the colour
+ *  of the light it stands in, which bleeds onto the wall and the floor. The
+ *  card's corner keeps the plain warm light. Colours in sRGB. */
+export type Exhibit = { title: string; neon: boolean; plaque: { name: string; kind: string }; light: string };
 
-const SECTIONS: Partial<Record<WorkId, Pick<Bay, "paint" | "ink" | "title">>> = {
-  // the dusk green of the trees in the game's night, lettered in its gold
-  zelda: { paint: "#174a43", ink: "#ead690", title: "ZELDA" },
-  // fired clay, lettered in receipt paper
-  kiosk: { paint: "#7e3725", ink: "#f2e4c9", title: "KIOSK" },
-  // the stage at night, in the pink of its heart
-  festival: { paint: "#4c1f6c", ink: "#f6a6cf", title: "FESTIVAL" },
+export const EXHIBITS: Partial<Record<WorkId, Exhibit>> = {
+  // a warm white: its green comes off the work itself (see glowsFor)
+  zelda: { title: "ZELDA", neon: false, plaque: { name: "Zelda", kind: "Game Development" }, light: "#ffeccb" },
+  // a warm white, like a restaurant counter
+  kiosk: { title: "KIOSK", neon: false, plaque: { name: "Kiosk", kind: "Interactieve bestelzuil" }, light: "#ffe9c8" },
+  // the stage's magenta
+  festival: { title: "FESTIVAL", neon: true, plaque: { name: "Festival", kind: "Festival-app" }, light: "#ff86e6" },
 };
-
-/** Each stretch runs halfway to the works either side (the first reaches as
- *  far out to its left as to its right). */
-export function baysOf(room: Room): Bay[] {
-  const { works } = room;
-  const left = (w: Work) => w.x - outerW(w) / 2;
-  const right = (w: Work) => w.x + outerW(w) / 2;
-  return works.flatMap((w, i) => {
-    const section = SECTIONS[w.id];
-    if (!section) return [];
-    const to = i + 1 < works.length ? (right(w) + left(works[i + 1])) / 2 : right(w) + 0.9;
-    const from = i > 0 ? (right(works[i - 1]) + left(w)) / 2 : left(w) - (to - right(w));
-    return [{ work: i, from, to, ...section }];
-  });
-}

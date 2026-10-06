@@ -1,8 +1,8 @@
 import * as THREE from "three";
 import { outerH, outerW, type Room } from "../layout";
-import { BAYS, type Exhibit } from "./exhibit";
 import { HEAD, LIGHT, NOISE, OUT, VERT } from "./glsl";
 import type { Shared } from "./lights";
+import { standOff } from "./moulding";
 import { SHADE_GLSL, type Shades } from "./shadows";
 
 const FRAG = /* glsl */ `${HEAD}
@@ -11,21 +11,24 @@ ${OUT}
 ${LIGHT}
 ${NOISE}
 ${SHADE_GLSL}
-#define BAYS ${BAYS}
 uniform vec4 uFrame[4];
 uniform float uFrameZ[4];
 uniform vec3 uWall;
-uniform vec2 uBay[BAYS];
-uniform vec3 uPaint[BAYS];
-uniform vec3 uInk[BAYS];
-uniform vec4 uTitle[BAYS];
-uniform vec4 uTitleUv[BAYS];
-uniform float uTurn;
-uniform sampler2D uLetters;
 
 float box(vec2 p, vec4 f) {
   vec2 e = abs(p - f.xy) - f.zw;
   return length(max(e, 0.0)) + min(max(e.x, e.y), 0.0);
+}
+
+// how much of a pixel a line of half-width w covers at distance d from it:
+// thinner than a pixel far off, it fades instead of breaking up
+float line(float d, float w) {
+  float fw = max(fwidth(d), 1e-5);
+  return (1.0 - smoothstep(w - fw, w + fw, d)) * min(w / fw, 1.0);
+}
+
+float hash2(vec2 q) {
+  return fract(sin(dot(q, vec2(127.1, 311.7))) * 43758.5453);
 }
 
 // where the ray from the wall to the lamp crosses the frame's face: inside
@@ -41,38 +44,25 @@ void main() {
   vec3 p = vWorld;
   vec4 a = grain(p.xy * 0.37);
   vec4 b = grain(p.xy * 1.9 + 0.31);
+  vec4 c = grain(p.xy * 0.085 + 0.7);
+  vec4 s = grain(vec2(p.x * 0.7, p.y * 0.05) + 0.13);
+  // rough concrete: a bump the grazing light rakes across
+  vec3 n = normalize(vec3((a.b - 0.5) * 0.09 + (b.b - 0.5) * 0.08, (a.a - 0.5) * 0.09 + (b.a - 0.5) * 0.08, 1.0));
+  // mottled, darker in broad stains, weathered in streaks running down from
+  // high on the wall
+  float tone = 0.8 + 0.24 * a.g + 0.12 * b.r - 0.3 * smoothstep(0.45, 0.8, c.g) - 0.16 * smoothstep(0.55, 0.85, s.g) * smoothstep(1.2, 3.4, p.y);
+  // cast in place against panels 2.4 by 1.2 m: each pour its own shade, the
+  // joints between them fine dark lines, the tie holes in rows of dots
+  vec2 cell = p.xy / vec2(2.4, 1.2);
+  vec2 f = fract(cell) * vec2(2.4, 1.2);
+  tone *= 0.9 + 0.2 * hash2(floor(cell));
+  float joint = max(line(min(f.x, 2.4 - f.x), 0.003), line(min(f.y, 1.2 - f.y), 0.003));
+  vec2 tie = mod(f + vec2(0.3, 0.3), vec2(0.6)) - 0.3;
+  float hole = line(length(tie), 0.011);
+  tone *= 1.0 - 0.45 * joint - 0.35 * hole;
+  vec3 albedo = uWall * tone;
 
-  // each print's stretch of paint, fading into the next over a hand's width;
-  // the name lettered on the stretch this point is on
-  vec3 paint = uWall;
-  vec3 ink = vec3(0.0);
-  vec4 title = vec4(0.0, -20.0, 1.0, 1.0);
-  vec4 tuv = vec4(0.0);
-  for (int i = 0; i < BAYS; i++) {
-    float k = smoothstep(uBay[i].x - 0.13, uBay[i].x + 0.13, p.x) - smoothstep(uBay[i].y - 0.13, uBay[i].y + 0.13, p.x);
-    paint += (uPaint[i] - uWall) * k;
-    if (p.x > uTitle[i].x && p.x < uTitle[i].x + uTitle[i].z) {
-      title = uTitle[i];
-      tuv = uTitleUv[i];
-      ink = uInk[i];
-    }
-  }
-  vec2 s = (p.xy - title.xy) / title.zw;
-  // turned, the name reads up the wall; the mip comes from the wall's own
-  // position, so it never jumps at the edge of the name's box
-  bool turned = uTurn > 0.5;
-  vec2 st = turned ? vec2(s.y, 1.0 - s.x) : s;
-  vec2 gx = dFdx(p.xy) / title.zw;
-  vec2 gy = dFdy(p.xy) / title.zw;
-  gx = (turned ? vec2(gx.y, -gx.x) : gx) * tuv.zw;
-  gy = (turned ? vec2(gy.y, -gy.x) : gy) * tuv.zw;
-  float letter = textureGrad(uLetters, tuv.xy + clamp(st, 0.0, 1.0) * tuv.zw, gx, gy).r * step(0.0, min(s.x, s.y)) * step(max(s.x, s.y), 1.0);
-
-  // plaster: a faint bump the grazing light rakes across; the vinyl lies flat on it
-  vec3 n = normalize(vec3(((a.b - 0.5) * 0.05 + (b.b - 0.5) * 0.05) * (1.0 - letter), ((a.a - 0.5) * 0.05 + (b.a - 0.5) * 0.05) * (1.0 - letter), 1.0));
-  vec3 albedo = mix(paint * (0.9 + 0.14 * a.g + 0.08 * b.r), ink * (0.97 + 0.03 * b.r), letter);
-
-  vec3 light = uAmbient * (0.6 + 0.4 * smoothstep(4.0, 0.0, p.y));
+  vec3 light = uAmbient * (0.6 + 0.4 * smoothstep(4.0, 0.0, p.y)) + glows(p, n);
   for (int i = 0; i < SPOTS; i++) {
     vec3 d = uSpotPos[i] - p;
     float d2 = dot(d, d);
@@ -82,7 +72,7 @@ void main() {
     // the halo every spot spills round its beam, so the wall between works
     // falls into shadow instead of a void
     float halo = smoothstep(0.2, 1.0, facing);
-    light += uSpotCol[i] * (halo * halo * 0.05 / d2) * lambert;
+    light += uSpotCol[i] * (halo * halo * 0.055 / d2) * lambert;
     float cone = smoothstep(uSpotCone[i].x, uSpotCone[i].y, facing);
     if (cone <= 0.0) continue;
     // a little light still reaches the shadow, off the floor and the walls;
@@ -106,24 +96,24 @@ export function frameSlots(): FrameSlots {
   return { uFrame: { value: Array.from({ length: 4 }, () => new THREE.Vector4(0, -10, 0, 0)) }, uFrameZ: { value: [0, 0, 0, 0] } };
 }
 
-/** Write each work's outline (and how far it stands out) for the shadows. */
+/** Write each work's outline (and how far its frame stands out) for the shadows. */
 export function placeFrames(slots: FrameSlots, room: Room, lift: number[]) {
   room.works.forEach((w, i) => {
     slots.uFrame.value[i].set(w.x, w.y, outerW(w) / 2, outerH(w) / 2);
-    slots.uFrameZ.value[i] = w.depth + (lift[i] ?? 0);
+    slots.uFrameZ.value[i] = standOff(w) + (lift[i] ?? 0);
   });
 }
 
-/** The long wall: charcoal plaster painted a colour behind each print, its
- *  name lettered on it, lit only by the spots. */
-export function makeWall(shared: Shared, slots: FrameSlots, exhibit: Exhibit, shades: Shades) {
+/** The long wall: dark weathered concrete, lit only by the spots and what
+ *  the works give off. */
+export function makeWall(shared: Shared, slots: FrameSlots, shades: Shades) {
   const geometry = new THREE.PlaneGeometry(40, 7);
   geometry.translate(4, 3.5, 0);
   const material = new THREE.RawShaderMaterial({
     glslVersion: THREE.GLSL3,
     vertexShader: VERT,
     fragmentShader: FRAG,
-    uniforms: { ...shared, ...slots, ...exhibit, ...shades.uniforms, uWall: { value: new THREE.Color(0.068, 0.068, 0.071) } },
+    uniforms: { ...shared, ...slots, ...shades.uniforms, uWall: { value: new THREE.Color(0.08, 0.076, 0.071) } },
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;

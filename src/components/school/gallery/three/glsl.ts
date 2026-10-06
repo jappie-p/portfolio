@@ -4,6 +4,9 @@
 // light for the reflection) instead of three.js compiling a variant per target.
 
 export const SPOTS = 5;
+/** Coloured light some works give off themselves (Zelda's fireflies, the
+ *  festival's neon), soft and wide, bleeding onto the wall and the floor. */
+export const GLOWS = 2;
 
 export const HEAD = /* glsl */ `precision highp float;
 precision highp int;
@@ -74,6 +77,19 @@ vec3 spot(int i, vec3 p, out vec3 L) {
   L = d * inversesqrt(d2);
   float c = smoothstep(uSpotCone[i].x, uSpotCone[i].y, dot(-L, uSpotDir[i]));
   return uSpotCol[i] * (c * c) / d2;
+}
+#define GLOWS ${GLOWS}
+uniform vec3 uGlowPos[GLOWS];
+uniform vec3 uGlowCol[GLOWS];
+// the coloured light the works give off, reaching a surface at p facing n
+vec3 glows(vec3 p, vec3 n) {
+  vec3 sum = vec3(0.0);
+  for (int i = 0; i < GLOWS; i++) {
+    vec3 d = uGlowPos[i] - p;
+    float d2 = dot(d, d);
+    sum += uGlowCol[i] * max(dot(n, d * inversesqrt(d2)), 0.0) / (d2 + 0.3);
+  }
+  return sum;
 }
 `;
 

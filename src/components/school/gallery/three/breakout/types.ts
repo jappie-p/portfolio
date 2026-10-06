@@ -2,12 +2,19 @@ import type * as THREE from "three";
 import { smooth } from "../lights";
 import type { CardCopy } from "../textures";
 
-/** What breaks out of one print: hung in the work's group, so it leans with it. */
+/** What breaks out of one print. */
 export type Breakout = {
-  /** the pieces as the room sees them, and as their lamp does (layer SHADE) */
+  /** the pieces on the print itself: hung in the work's group, so they lean
+   *  with it (as their lamp sees them too, on layer SHADE) */
   parts: THREE.Object3D[];
+  /** what stands round it in the room (ruins, a slope of blocks down to the
+   *  floor): placed at the work along the wall, never leaning; x from the
+   *  work's centre, y from the floor, z from the wall */
+  set?: THREE.Object3D[];
   /** textures of its own, to upload ahead and dispose of with the scene */
   textures?: THREE.Texture[];
+  /** still fetching something it needs: the build waits for it */
+  loading?(): boolean;
   /** this frame: the clock, and how far the camera has stepped up to the work, 0..1 */
   update(time: number, near: number): void;
   /** the room changed shape: the narrow one keeps clear of the copy above the works */

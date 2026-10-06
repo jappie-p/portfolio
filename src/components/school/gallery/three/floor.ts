@@ -35,31 +35,38 @@ void main() {
   vec4 a = grain(p.xz * 0.21);
   vec4 b = grain(p.xz * 1.3 + 0.5);
   vec4 w = grain(p.xz * 0.045 + 0.2);
+  vec4 pool = grain(p.xz * 0.11 + 0.37);
 
-  // polished concrete: the reflection sways a little with the surface
-  vec2 uv = vMirror.xy / vMirror.w + (vec2(w.b, w.a) - 0.5) * 0.0025;
+  // big stone tiles, their seams a hair darker and drier (a pixel wide at most)
+  vec2 cell = abs(fract(p.xz / 0.9 + 0.5) - 0.5) * 0.9;
+  float d = min(cell.x, cell.y);
+  float seam = 1.0 - clamp((d - 0.0025) / max(fwidth(d), 1e-5), 0.0, 1.0);
+  // wet: in patches it lies as a sheet of water, a near mirror; elsewhere
+  // damp, the reflection drawn out into streaks
+  float wet = smoothstep(0.42, 0.6, pool.g);
+  vec2 uv = vMirror.xy / vMirror.w + (vec2(w.b, w.a) - 0.5) * mix(0.003, 0.0008, wet);
   vec3 sharp = texture(uSharp, uv).rgb;
   vec3 soft = texture(uSoft, uv).rgb;
-  // sharp where the wall meets the floor, glossier further out, in patches
-  float haze = clamp(smoothstep(0.0, 2.4, p.z) * 0.9 + (a.g - 0.5) * 0.35 + 0.08, 0.0, 1.0);
-  vec3 mirror = mix(sharp, soft, haze) * mix(1.0, 0.55, smoothstep(0.5, 4.0, p.z));
+  float haze = clamp(mix(0.55 + 0.4 * smoothstep(0.0, 2.6, p.z) + (a.g - 0.5) * 0.3, 0.3, wet * 0.85), 0.0, 1.0);
+  vec3 mirror = mix(sharp, soft, haze) * mix(1.0, 0.6, smoothstep(1.0, 6.0, p.z));
   float fresnel = 0.05 + 0.95 * pow(1.0 - clamp(V.y, 0.0, 1.0), 5.0);
+  float gloss = mix(0.42, 1.0, fresnel) * mix(0.72, 1.0, wet) * (1.0 - 0.55 * seam);
 
-  // what the spots spill onto the floor, and a whisper of bounce off the wall
-  vec3 light = uAmbient;
+  // what the spots spill onto the floor, and what the works give off
+  vec3 light = uAmbient + glows(p, vec3(0.0, 1.0, 0.0));
   for (int i = 0; i < SPOTS; i++) {
     vec3 L;
     vec3 c = spot(i, p, L);
     light += c * max(L.y, 0.0);
   }
-  vec3 albedo = uFloor * (0.82 + 0.3 * a.r + 0.1 * b.g);
-  vec3 col = albedo * light + mirror * mix(0.16, 0.6, fresnel) * (0.85 + 0.2 * a.r);
+  vec3 albedo = uFloor * (0.82 + 0.3 * a.r + 0.1 * b.g) * (1.0 - 0.35 * wet) * (1.0 - 0.3 * seam);
+  vec3 col = albedo * light + mirror * gloss * (0.9 + 0.15 * a.r);
   emit(col, 1.0);
 }
 `;
 
-/** The floor: dark polished concrete reflecting the wall, sharp at the
- *  skirting and blurring into streaks further out. */
+/** The floor: dark wet stone in big tiles, reflecting the room strongly,
+ *  sharp in its puddles and drawn out into long streaks elsewhere. */
 export function makeFloor(shared: Shared, reflector: Reflector) {
   const geometry = new THREE.PlaneGeometry(40, 16);
   geometry.rotateX(-Math.PI / 2);
@@ -73,7 +80,7 @@ export function makeFloor(shared: Shared, reflector: Reflector) {
       uMirror: { value: reflector.matrix },
       uSharp: { value: reflector.sharp.texture },
       uSoft: { value: reflector.soft.texture },
-      uFloor: { value: new THREE.Color(0.05, 0.048, 0.046) },
+      uFloor: { value: new THREE.Color(0.034, 0.033, 0.033) },
     },
   });
   const mesh = new THREE.Mesh(geometry, material);

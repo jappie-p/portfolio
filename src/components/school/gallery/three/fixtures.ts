@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { HEAD, OUT, VERT } from "./glsl";
 import { TRACK, type Shared, type Spot } from "./lights";
+import { MIRRORED } from "./reflector";
 
 const METAL = /* glsl */ `${HEAD}
 in vec3 vWorld;
@@ -67,11 +68,13 @@ void main() {
 const GLOW_FRAG = /* glsl */ `${HEAD}
 in vec2 vUv;
 uniform float uLevel;
+uniform vec3 uTint;
 ${OUT}
 void main() {
   float d = length(vUv - 0.5) * 2.0;
   float a = (exp(-d * d * 14.0) + 0.18 * exp(-d * d * 3.5)) * smoothstep(1.0, 0.6, d);
-  glow(vec3(1.0, 0.85, 0.66) * a * uLevel * 0.5);
+  // the lamp's own white at its heart, its colour round it
+  glow(mix(vec3(1.0, 0.92, 0.82), uTint, smoothstep(0.05, 0.5, d)) * a * uLevel * 0.5);
 }
 `;
 
@@ -129,7 +132,7 @@ export function makeFixtures(shared: Shared, spots: Spot[], from: number, to: nu
         glslVersion: THREE.GLSL3,
         vertexShader: GLOW_VERT,
         fragmentShader: GLOW_FRAG,
-        uniforms: { ...shared, uLevel: level, uSize: { value: s.work < 0 ? 0.3 : 0.42 } },
+        uniforms: { ...shared, uLevel: level, uTint: { value: s.color.clone() }, uSize: { value: s.work < 0 ? 0.3 : 0.42 } },
         transparent: true,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
@@ -142,6 +145,8 @@ export function makeFixtures(shared: Shared, spots: Spot[], from: number, to: nu
   });
   const group = new THREE.Group();
   group.add(rail, metal, ...glows.map((g) => g.mesh));
+  // the wet floor shows the lamps back, warm spots in the foreground
+  group.children.forEach((o) => o.layers.enable(MIRRORED));
   return { group, glows };
 }
 

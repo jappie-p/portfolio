@@ -10,6 +10,8 @@ export type OverlayDom = {
   labels: (HTMLElement | null)[];
   /** the exhibition title and copy, which the walk leaves behind */
   heading: HTMLElement | null;
+  /** the bar along the foot: how far down the wall the walk is */
+  bar: HTMLElement | null;
 };
 
 type Box = { x: number; y: number; w: number; h: number };
@@ -133,5 +135,13 @@ export function placeOverlay(dom: OverlayDom, rig: Rig, p: Pose, W: number, H: n
     const fade = rig.glide.on ? 0 : (1 - ease(Math.min(away / 0.6, 1))) * (1 - ease(rig.dolly.t));
     write(h, `opacity:${fade.toFixed(3)};transform:translate3d(${px(-away * 0.14 * W)},0,0)`);
     flag(h, "data-away", fade < 0.5);
+  }
+  const bar = dom.bar;
+  if (bar) {
+    // it steps aside while you step up to a work, or glide to the next
+    const shown = rig.glide.on ? 0 : 1 - ease(Math.min(rig.dolly.t * 1.6, 1));
+    const end = Math.max(room.stations.length - 1, 1);
+    write(bar, `--walk:${(Math.min(Math.max(rig.pos, 0), end) / end).toFixed(3)};opacity:${shown.toFixed(3)}`);
+    flag(bar, "data-away", shown < 0.5);
   }
 }
