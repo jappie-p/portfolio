@@ -43,14 +43,14 @@ void main() {
   float seam = 1.0 - clamp((d - 0.0025) / max(fwidth(d), 1e-5), 0.0, 1.0);
   // wet: in patches it lies as a sheet of water, a near mirror; elsewhere
   // damp, the reflection drawn out into streaks
-  float wet = smoothstep(0.42, 0.6, pool.g);
+  float wet = smoothstep(0.36, 0.56, pool.g);
   vec2 uv = vMirror.xy / vMirror.w + (vec2(w.b, w.a) - 0.5) * mix(0.003, 0.0008, wet);
   vec3 sharp = texture(uSharp, uv).rgb;
   vec3 soft = texture(uSoft, uv).rgb;
   float haze = clamp(mix(0.55 + 0.4 * smoothstep(0.0, 2.6, p.z) + (a.g - 0.5) * 0.3, 0.3, wet * 0.85), 0.0, 1.0);
   vec3 mirror = mix(sharp, soft, haze) * mix(1.0, 0.6, smoothstep(1.0, 6.0, p.z));
   float fresnel = 0.05 + 0.95 * pow(1.0 - clamp(V.y, 0.0, 1.0), 5.0);
-  float gloss = mix(0.42, 1.0, fresnel) * mix(0.72, 1.0, wet) * (1.0 - 0.55 * seam);
+  float gloss = mix(0.55, 1.0, fresnel) * mix(0.72, 1.0, wet) * (1.0 - 0.55 * seam);
 
   // what the spots spill onto the floor, and what the works give off
   vec3 light = uAmbient + glows(p, vec3(0.0, 1.0, 0.0));
@@ -60,7 +60,7 @@ void main() {
     light += c * max(L.y, 0.0);
   }
   vec3 albedo = uFloor * (0.82 + 0.3 * a.r + 0.1 * b.g) * (1.0 - 0.35 * wet) * (1.0 - 0.3 * seam);
-  vec3 col = albedo * light + mirror * gloss * (0.9 + 0.15 * a.r);
+  vec3 col = albedo * light + mirror * gloss * (1.05 + 0.15 * a.r);
   emit(col, 1.0);
 }
 `;
@@ -80,7 +80,7 @@ export function makeFloor(shared: Shared, reflector: Reflector) {
       uMirror: { value: reflector.matrix },
       uSharp: { value: reflector.sharp.texture },
       uSoft: { value: reflector.soft.texture },
-      uFloor: { value: new THREE.Color(0.034, 0.033, 0.033) },
+      uFloor: { value: new THREE.Color(0.04, 0.037, 0.034) },
     },
   });
   const mesh = new THREE.Mesh(geometry, material);

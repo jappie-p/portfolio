@@ -4,9 +4,10 @@ import type { Shared } from "../lights";
 import { MIRRORED } from "../reflector";
 
 /** A lone pixel in the room: where (m, in its set's space), its size and
- *  colour, how brightly it glows (0: not at all, just lit), and how far it
- *  wanders (0: it stays put, a firefly drifts and goes with the picture). */
-export type Pixel = { at: readonly [number, number, number]; size: number; color: string; glow: number; drift: number };
+ *  colour, how brightly it glows (0: not at all, just lit), how far it
+ *  wanders (0: it stays put, a firefly drifts and goes with the picture),
+ *  and how wide its halo is, in sizes (9 if not given). */
+export type Pixel = { at: readonly [number, number, number]; size: number; color: string; glow: number; drift: number; halo?: number };
 
 const MOVE = /* glsl */ `
 in vec3 position;
@@ -85,7 +86,7 @@ out vec3 vGlow;
 void main() {
   // a soft card round the glowing pixel, always facing the eye
   vec4 mv = viewMatrix * modelMatrix * vec4(here(), 1.0);
-  mv.xy += position.xy * aAt.w * 9.0;
+  mv.xy += position.xy * aAt.w * aMove.z;
   vUv = uv;
   vGlow = aTint.rgb * aTint.a * pulse() * fade();
   gl_Position = projectionMatrix * mv;
@@ -98,7 +99,7 @@ in vec3 vGlow;
 ${OUT}
 void main() {
   float d = length(vUv - 0.5) * 2.0;
-  glow(vGlow * (exp(-d * d * 7.0) * 0.12 + exp(-d * d * 40.0) * 0.18) * smoothstep(1.0, 0.7, d));
+  glow(vGlow * (exp(-d * d * 7.0) * 0.12 + exp(-d * d * 40.0) * 0.22) * smoothstep(1.0, 0.7, d));
 }
 `;
 
@@ -111,7 +112,7 @@ function attributes(g: THREE.InstancedBufferGeometry, pixels: Pixel[]) {
     c.set(p.color);
     at.push(...p.at, p.size);
     tint.push(c.r, c.g, c.b, p.glow);
-    move.push(p.drift, (i * 0.618034) % 1, 0, 0);
+    move.push(p.drift, (i * 0.618034) % 1, p.halo ?? 9, 0);
   });
   g.setAttribute("aAt", new THREE.InstancedBufferAttribute(new Float32Array(at), 4));
   g.setAttribute("aTint", new THREE.InstancedBufferAttribute(new Float32Array(tint), 4));
@@ -145,7 +146,7 @@ export function makePixels(shared: Shared, pixels: Pixel[], level: { value: numb
   mesh.layers.enable(MIRRORED);
   mesh.renderOrder = 1;
 
-  const lit = pixels.filter((p) => p.glow > 0);
+  const lit = pixels.filter((p) => p.glow > 0 && (p.halo ?? 9) > 0);
   const card = new THREE.PlaneGeometry(1, 1);
   const halos = new THREE.InstancedBufferGeometry();
   halos.setIndex(card.getIndex());

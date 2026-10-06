@@ -3,9 +3,6 @@ import { HEAD, LIGHT, NOISE, OUT, VERT } from "./glsl";
 import type { Shared } from "./lights";
 import { MIRRORED } from "./reflector";
 
-/** The ceiling's height, just above the track the lamps hang from. */
-export const CEILING = 3.75;
-
 const FRAG = /* glsl */ `${HEAD}
 in vec3 vWorld;
 ${OUT}
@@ -33,7 +30,7 @@ void main() {
 export function makeCeiling(shared: Shared) {
   const geometry = new THREE.PlaneGeometry(40, 12);
   geometry.rotateX(Math.PI / 2);
-  geometry.translate(4, CEILING, 6);
+  geometry.translate(4, 0, 6);
   const mesh = new THREE.Mesh(
     geometry,
     new THREE.RawShaderMaterial({ glslVersion: THREE.GLSL3, vertexShader: VERT, fragmentShader: FRAG, uniforms: { ...shared } }),

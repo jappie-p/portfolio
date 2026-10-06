@@ -18,12 +18,14 @@ import { FIREFLIES, FRAME_IVY, LINK, NARROW_SLOPE, ROOM_IVY, SLOPE, STONES, glow
  *  blocks thick it is, and a phase so no two move together. */
 type Piece = { art: Pixels; at: [number, number, number]; turn: [number, number, number]; size: number; thick: number; phase: number };
 
-/** The sword out over the frame's left side, hearts at its top right. */
+/** The sword out over the frame's left side; hearts at its top right, a
+ *  pair come out of the picture's corner and a pair off the frame beside it. */
 const PIECES: Piece[] = [
   { art: SWORD, at: [-0.76, 0.36, 0.16], turn: [0.16, -0.3, 0.9], size: 0.03, thick: 2, phase: 0.1 },
-  { art: HEART, at: [0.52, 0.6, 0.1], turn: [0.08, 0.22, -0.12], size: 0.02, thick: 2, phase: 0.37 },
-  { art: HEART, at: [0.72, 0.47, 0.18], turn: [-0.1, -0.26, 0.1], size: 0.022, thick: 2, phase: 0.61 },
-  { art: HEART, at: [0.86, 0.72, 0.27], turn: [0.16, -0.24, -0.2], size: 0.018, thick: 2, phase: 0.83 },
+  { art: HEART, at: [0.4, 0.4, 0.08], turn: [0.06, 0.18, -0.08], size: 0.019, thick: 2, phase: 0.37 },
+  { art: HEART, at: [0.55, 0.39, 0.11], turn: [-0.05, 0.12, 0.06], size: 0.019, thick: 2, phase: 0.52 },
+  { art: HEART, at: [0.8, 0.27, 0.18], turn: [-0.1, -0.26, 0.1], size: 0.021, thick: 2, phase: 0.68 },
+  { art: HEART, at: [0.95, 0.23, 0.24], turn: [0.16, -0.24, -0.12], size: 0.021, thick: 2, phase: 0.83 },
 ];
 
 /** How much further out of the picture the pieces come as the camera steps up. */
@@ -51,8 +53,10 @@ export function makeZelda(shared: Shared, art: Artwork, shades: Shades["uniforms
   // the slope of blocks, the flowers and glowing blocks in its grass and the
   // fireflies over it, once for each shape of room
   const slope = (shape: Slope) => {
-    const terrain = makeTerrain(shared, shades, work, shape);
-    const pixels = makePixels(shared, [...flowers(terrain.tops), ...glowing(terrain.tops), ...FIREFLIES], art.uniforms.uLevel);
+    const terrain = makeTerrain(shared, shades, work, shape, art.uniforms.uLevel);
+    const lamps = glowing(terrain.tops);
+    terrain.light(lamps);
+    const pixels = makePixels(shared, [...flowers(terrain.tops), ...lamps, ...FIREFLIES], art.uniforms.uLevel);
     const group = new THREE.Group();
     group.add(terrain.mesh, terrain.shadow, pixels.mesh, pixels.glow);
     return { group, tops: terrain.tops, fade: pixels.fade };

@@ -1,28 +1,77 @@
 import * as THREE from "three";
-import { HEAD, OUT, VERT } from "../glsl";
+import { HEAD, LIGHT, OUT, VERT } from "../glsl";
 import type { Shared } from "../lights";
 import { OFF, blurred } from "../foreground";
 import { MIRRORED } from "../reflector";
+
+/** How lit the gas is: a low hum, and now and then a stutter as if the
+ *  transformer caught. The tubes and the board they light share it. */
+const POWER = /* glsl */ `
+uniform float uTime;
+uniform float uLevel;
+uniform float uFade;
+float power() {
+  float t = uTime;
+  float hum = 0.95 + 0.05 * sin(t * 3.1) * sin(t * 1.7 + 1.0);
+  float stutter = fract(t / 9.0) < 0.028 ? 0.3 + 0.7 * step(0.5, fract(t * 23.0)) : 1.0;
+  return hum * stutter * uLevel;
+}
+`;
 
 const FRAG = /* glsl */ `${HEAD}
 in vec2 vUv;
 uniform sampler2D uMap;
 uniform vec3 uColor;
-uniform float uTime;
-uniform float uLevel;
-uniform float uFade;
 ${OUT}
+${POWER}
 void main() {
   // r: the tube, g: the light round it
   vec2 m = texture(uMap, vUv).rg;
-  // a low hum, and now and then a stutter as if the transformer caught
-  float t = uTime;
-  float hum = 0.95 + 0.05 * sin(t * 3.1) * sin(t * 1.7 + 1.0);
-  float stutter = fract(t / 9.0) < 0.028 ? 0.3 + 0.7 * step(0.5, fract(t * 23.0)) : 1.0;
-  float on = hum * stutter * uLevel * uFade;
   // the glass runs white-hot at its core, the gas's colour round it
   vec3 c = uColor * (m.r * 1.6 + m.g * 0.45) + vec3(1.0, 0.86, 0.95) * pow(m.r, 3.0) * 0.9;
-  glow(c * on);
+  glow(c * power() * uFade);
+}
+`;
+
+const BOARD = /* glsl */ `${HEAD}
+in vec3 vWorld;
+in vec3 vNormal;
+in vec2 vUv;
+uniform vec3 cameraPosition;
+uniform sampler2D uMap;
+uniform vec3 uColor;
+// the board's front in the sign's texture (offset, size), and its size in metres
+uniform vec4 uRect;
+uniform vec2 uSize;
+${OUT}
+${LIGHT}
+${POWER}
+void main() {
+  // gone before the project opens: nothing of it left in the depth either
+  if (uFade < 0.004) discard;
+  vec3 n = normalize(vNormal);
+  vec3 V = normalize(cameraPosition - vWorld);
+  float front = smoothstep(0.6, 0.9, n.z);
+  float on = power();
+  // black satin steel, the room's spots faint on it
+  vec3 light = uAmbient * 3.0;
+  float sheen = 0.0;
+  for (int i = 0; i < SPOTS; i++) {
+    vec3 L;
+    vec3 c = spot(i, vWorld, L);
+    light += c * max(dot(n, L), 0.0);
+    sheen += dot(c, vec3(0.33)) * pow(max(dot(n, normalize(L + V)), 0.0), 24.0);
+  }
+  vec3 col = vec3(0.011, 0.009, 0.013) * light + vec3(0.02) * sheen;
+  // the tubes' light thrown back off it, strongest right round them
+  float g = texture(uMap, uRect.xy + vUv * uRect.zw).g;
+  col += uColor * (0.5 * g + 0.018) * on * front;
+  // a fine lip of light round its face, and the gas's glow down its edges
+  vec2 e = min(vUv, 1.0 - vUv) * uSize;
+  float d = min(e.x, e.y);
+  float lip = 1.0 - smoothstep(0.0, 0.006 + fwidth(d), d);
+  col += uColor * on * (front * lip * 0.5 + (1.0 - front) * 0.05);
+  emit(col, uFade);
 }
 `;
 
@@ -53,9 +102,11 @@ const LETTERS: Record<string, Run> = {
 /** Between letters, in cap heights. */
 const GAP = 0.3;
 
-/** Pixels: the cap height in the texture, the clear margin the light needs round it. */
-const CAP = 140;
-const MARGIN = 58;
+/** Pixels: the cap height in the texture, the clear margin the light needs
+ *  round it, and how much finer than the first 140 px drawing it is. */
+const CAP = 190;
+const MARGIN = 80;
+const K = CAP / 140;
 
 /** The word bent in glass: the tube in red, the light it throws in green. */
 function drawSign(word: string) {
@@ -85,27 +136,36 @@ function drawSign(word: string) {
     [34, 20, "rgb(0, 150, 0)"],
     [12, 12, "rgb(0, 160, 0)"],
   ] as const) {
-    blurred(g, color, blur, (g) => {
-      g.lineWidth = width;
+    blurred(g, color, blur * K, (g) => {
+      g.lineWidth = width * K;
       g.strokeStyle = "#000";
       tubes(g, OFF);
     });
   }
   // the tube, a little soft at its edge
   g.strokeStyle = "rgb(110, 0, 0)";
-  g.lineWidth = 11;
+  g.lineWidth = 11 * K;
   tubes(g);
   g.strokeStyle = "rgb(145, 0, 0)";
-  g.lineWidth = 6;
+  g.lineWidth = 6 * K;
   tubes(g);
   return canvas;
 }
 
+/** The board, in cap heights: how far it runs past the word each side, and
+ *  how tall it is; its depth, and how far the tubes stand off its face, in
+ *  metres. */
+const BOARD_PAD = 0.34;
+const BOARD_TALL = 1.72;
+const BOARD_DEEP = 0.032;
+const STANDOFF = 0.022;
+
 /**
- * The festival's name as a neon sign, its tubes standing off the frame's
- * top bar on their brackets, tipped up a little to the right: light added
- * over the room (and its reflection in the floor), humming, now and then
- * stuttering.
+ * The festival's name as a neon sign: its tubes on a black steel board,
+ * hung flat on the wall, the board lit by them and edged in their colour.
+ * The tubes are light added over the room (and its reflection in the
+ * floor), humming, now and then stuttering. The group's origin is the
+ * board's back, at its centre.
  */
 export function makeNeon(shared: Shared, level: { value: number }, word: string, color: THREE.Color, height: number) {
   const canvas = drawSign(word);
@@ -113,8 +173,10 @@ export function makeNeon(shared: Shared, level: { value: number }, word: string,
   texture.colorSpace = THREE.NoColorSpace;
   const k = height / CAP;
   const fade = { value: 1 };
-  const mesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(canvas.width * k, canvas.height * k),
+  const W = canvas.width * k;
+  const H = canvas.height * k;
+  const tubes = new THREE.Mesh(
+    new THREE.PlaneGeometry(W, H),
     new THREE.RawShaderMaterial({
       glslVersion: THREE.GLSL3,
       vertexShader: VERT,
@@ -125,7 +187,32 @@ export function makeNeon(shared: Shared, level: { value: number }, word: string,
       blending: THREE.AdditiveBlending,
     }),
   );
-  mesh.layers.enable(MIRRORED);
-  mesh.renderOrder = 2;
-  return { mesh, texture, fade };
+  tubes.position.z = BOARD_DEEP + STANDOFF;
+  tubes.layers.enable(MIRRORED);
+  tubes.renderOrder = 2;
+  const bw = W - 2 * (MARGIN - BOARD_PAD * CAP) * k;
+  const bh = BOARD_TALL * height;
+  const board = new THREE.Mesh(
+    new THREE.BoxGeometry(bw, bh, BOARD_DEEP).translate(0, 0, BOARD_DEEP / 2),
+    new THREE.RawShaderMaterial({
+      glslVersion: THREE.GLSL3,
+      vertexShader: VERT,
+      fragmentShader: BOARD,
+      uniforms: {
+        ...shared,
+        uMap: { value: texture },
+        uColor: { value: color },
+        uLevel: level,
+        uFade: fade,
+        uRect: { value: new THREE.Vector4((W - bw) / 2 / W, (H - bh) / 2 / H, bw / W, bh / H) },
+        uSize: { value: new THREE.Vector2(bw, bh) },
+      },
+      transparent: true,
+    }),
+  );
+  board.layers.enable(MIRRORED);
+  board.renderOrder = 1;
+  const group = new THREE.Group();
+  group.add(board, tubes);
+  return { group, texture, fade, size: new THREE.Vector2(bw, bh) };
 }

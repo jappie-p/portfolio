@@ -93,7 +93,7 @@ function along(path: Vine["path"], t: number, out: THREE.Vector3) {
 function leaves(vines: Vine[]) {
   let seed = 4421;
   const rand = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
-  const greens = ["#2a5524", "#336a2b", "#3f7d33", "#22461f", "#4b8a3a"].map((h) => new THREE.Color(h));
+  const greens = ["#2a5524", "#336a2b", "#3f7d33", "#22461f", "#4b8a3a", "#5c9c3e", "#6fb048"].map((h) => new THREE.Color(h));
   const at: number[] = [];
   const turn: number[] = [];
   const tint: number[] = [];

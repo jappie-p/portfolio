@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import type { Room } from "../layout";
+import { NEAR } from "./focus";
 import { HEAD, OUT } from "./glsl";
 
 const VERT = /* glsl */ `${HEAD}
@@ -91,6 +92,7 @@ function card(canvas: HTMLCanvasElement, size: [number, number]) {
   );
   mesh.frustumCulled = false;
   mesh.renderOrder = 6;
+  mesh.layers.set(NEAR);
   return { mesh, texture, level };
 }
 
@@ -116,7 +118,7 @@ export function makeForeground() {
       const p = room.stations[0];
       fwd.set(Math.sin(p.yaw), 0, -Math.cos(p.yaw));
       right.set(Math.cos(p.yaw), 0, Math.sin(p.yaw));
-      corner.mesh.position.set(p.x, 0.62, p.z).addScaledVector(fwd, 0.9).addScaledVector(right, -0.7);
+      corner.mesh.position.set(p.x, 0.6, p.z).addScaledVector(fwd, 0.9).addScaledVector(right, -0.48);
     },
     /** the room's light coming on; `here` how near the walk still is to the
      *  entrance (it belongs to its view and goes as you walk on) */

@@ -9,8 +9,9 @@ import { LangToggle } from "./LangToggle";
 type NavId = Exclude<TopicId, "hero">;
 const ITEMS = TOPICS.filter((c) => c.id !== "hero").map((c) => c.id as NavId);
 
-/** Top bar: monogram home link, the topics (with the one you are in lit up),
- *  and the language switch. On phones the topics move into a full-screen menu. */
+/** Top bar: monogram home link, the topics as plain links (the one you are
+ *  in underlined), and the language switch, over a hairline. On phones the
+ *  topics move into a full-screen menu. */
 export function Nav() {
   const t = useT();
   const topic = useJourney((s) => s.topic);
@@ -31,6 +32,8 @@ export function Nav() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 flex [view-transition-name:site-nav] items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+      {/* a hairline under the bar, from the monogram to the language switch */}
+      <span aria-hidden className="pointer-events-none absolute inset-x-6 bottom-0 hidden h-px bg-white/10 sm:block" />
       <button
         type="button"
         data-nav="hero"
@@ -41,7 +44,7 @@ export function Nav() {
         JP
       </button>
 
-      <nav aria-label="Menu" className="glass hidden items-center gap-0.5 rounded-full p-1 text-sm sm:flex">
+      <nav aria-label="Menu" className="nav-links absolute left-1/2 hidden -translate-x-1/2 items-center gap-1 text-sm sm:flex lg:gap-4">
         {ITEMS.map((id) => {
           const active = current === id;
           return (
@@ -51,13 +54,13 @@ export function Nav() {
               data-nav={id}
               aria-current={active ? "location" : undefined}
               onClick={() => go(id)}
-              className={`relative rounded-full px-3.5 py-1.5 transition-colors duration-300 ${active ? "text-ink" : "text-ink-dim hover:text-ink"}`}
+              className={`relative px-2 py-2 transition-colors duration-300 md:px-3 ${active ? "text-ink" : "text-ink-dim hover:text-ink"}`}
             >
+              {t.nav[id]}
               <span
                 aria-hidden
-                className={`absolute inset-0 rounded-full bg-white/10 ring-1 ring-white/15 transition-opacity duration-300 ${active ? "opacity-100" : "opacity-0"}`}
+                className={`absolute inset-x-2 -bottom-0.5 h-0.5 md:inset-x-3 origin-center rounded-full bg-leaf transition-transform duration-300 ${active ? "scale-x-100" : "scale-x-0"}`}
               />
-              <span className="relative">{t.nav[id]}</span>
             </button>
           );
         })}

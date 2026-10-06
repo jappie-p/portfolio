@@ -60,10 +60,12 @@ void main() {
   vec3 m = abs(vLocal);
   float d = m.x > m.y && m.x > m.z ? min(edge.y, edge.z) : m.y > m.z ? min(edge.x, edge.z) : min(edge.x, edge.y);
   float worn = mix(0.25, 1.0, smoothstep(0.0, 0.007, d)) * mix(1.3, 1.0, smoothstep(0.007, 0.03, d));
-  vec3 stone = mix(vec3(0.21, 0.198, 0.178), vec3(0.165, 0.163, 0.158), vTone) * (0.45 + 0.85 * a.g + 0.3 * b.r) * worn;
-  float moss = smoothstep(0.1, 0.9, normalize(vNormal).y + (a.r - 0.5) * 0.9 + 0.25 * (1.0 - smoothstep(0.0, 0.02, d))) * smoothstep(0.4, 0.68, b.g + 0.2);
-  vec3 albedo = mix(stone, vec3(0.05, 0.15, 0.035) * (0.7 + 0.6 * b.r), moss);
-  vec3 light = uAmbient * 4.5 + glows(vWorld, n);
+  vec3 stone = mix(vec3(0.158, 0.146, 0.128), vec3(0.122, 0.12, 0.114), vTone) * (0.4 + 0.95 * a.g + 0.3 * b.r) * worn;
+  // moss thick on what faces up, in patches down the sides, and in the joints
+  float up = normalize(vNormal).y;
+  float moss = smoothstep(0.0, 0.75, up * 0.9 + (a.r - 0.5) * 1.2 + 0.3 * (1.0 - smoothstep(0.0, 0.02, d))) * smoothstep(0.34, 0.62, b.g + 0.2);
+  vec3 albedo = mix(stone, vec3(0.04, 0.16, 0.025) * (0.6 + 0.8 * b.r), moss);
+  vec3 light = uAmbient * 4.0 + glows(vWorld, n);
   for (int i = 0; i < SPOTS; i++) {
     vec3 L;
     light += spot(i, vWorld, L) * max(dot(n, L), 0.0);

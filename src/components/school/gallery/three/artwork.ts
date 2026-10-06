@@ -100,6 +100,8 @@ export function makeArtwork(work: Work, shared: Shared, opts: ArtworkOptions) {
     uLevel: { value: 0 },
     uNorm: { value: 1 },
     uRaw: { value: 0 },
+    // the prints hang a little richer than they are; the card is paper
+    uRich: { value: work.id === "berlijn" ? 0 : 1 },
     uGlare: { value: new THREE.Vector3(0.5, 0.5, 0) },
     uVideo: { value: opts.video?.texture ?? null },
     uHomography: { value: opts.video?.homography ?? new THREE.Matrix3() },

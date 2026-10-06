@@ -310,10 +310,11 @@ export function LiveGallery({ onLost }: { onLost: () => void }) {
         <div className={s.vignette} />
       </div>
       {/* the copy first (it reads first, and Tab reaches the works after it),
-          painted over the works' layer */}
+          painted over the works' layer; held to the left of the view, so
+          the wall gets the rest of it */}
       <div
         ref={keep(dom, "heading")}
-        className={`${s.heading} pointer-events-none relative z-10 flex w-full max-w-6xl`}
+        className={`${s.heading} pointer-events-none relative z-10 flex w-full`}
         onFocus={() => !rig.room.narrow && !rig.glide.on && goTo(rig, 0)}
       >
         <div className="pointer-events-auto">

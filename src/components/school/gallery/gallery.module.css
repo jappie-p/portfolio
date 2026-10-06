@@ -134,6 +134,9 @@
 
 /* the copy, as wall text at the entrance: left behind as you walk on */
 .heading {
+  /* the copy hangs about a twentieth of the view in from its left edge
+     (the panel already pads by 3rem) */
+  padding-left: max(0px, calc(5.5vw - 3rem));
   will-change: opacity, transform;
   /* the walk sets it every frame; this only softens a sudden change (a
      guided glide ending in the gallery) */

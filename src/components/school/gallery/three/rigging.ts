@@ -3,13 +3,14 @@ import type { Room } from "../layout";
 import { makeBeam, type Beam } from "./beams";
 import { makeDust } from "./dust";
 import { makeFixtures, type Fixtures } from "./fixtures";
-import type { Shared, Spot } from "./lights";
+import { trackOf, type Shared, type Spot } from "./lights";
 import type { FrameSlots } from "./wall";
 
-/** How thick the haze is in each spot's beam: the title's wash and the small
- *  card's corner kept quiet, and all of it thinner in the narrow room, where
+/** How thick the haze is in each spot's beam: none in the downlight by the
+ *  way in (it would stand between you and the room), the small card's
+ *  corner kept quiet, and all of it thinner in the narrow room, where
  *  the beams fall right behind the copy. */
-const haze = (s: Spot, narrow: boolean) => (s.work < 0 ? 0.025 : s.work === 3 ? 0.04 : 0.09) * (narrow ? 0.42 : 1);
+const haze = (s: Spot, narrow: boolean) => (s.work < 0 ? 0 : s.work === 3 ? 0.035 : 0.06) * (narrow ? 0.42 : 1);
 
 /** Everything the room's spots hang or throw: the track and its cans, the
  *  beams, the dust in them. Hung again whenever the room changes shape. */
@@ -29,7 +30,8 @@ export class Rigging {
     this.beams = spots.map((s) => makeBeam(this.shared, this.slots, s, haze(s, room.narrow)));
     this.dust = makeDust(this.shared, spots);
     const ends = room.works.map((w) => w.x);
-    this.fixtures = makeFixtures(this.shared, spots, Math.min(...ends) - 9, Math.max(...ends) + 6);
+    // the spare lamps are for the entrance's view down the wide room
+    this.fixtures = makeFixtures(this.shared, spots, trackOf(room), Math.min(...ends) - 9, Math.max(...ends) + 6, !room.narrow);
     this.group.add(...this.beams.map((b) => b.mesh), this.dust.points, this.fixtures.group);
   }
 
@@ -38,6 +40,7 @@ export class Rigging {
   light(level: number[], pixelsPerUnit: number, haze = 1) {
     this.beams.forEach((b, i) => b.color.set(b.tint.r, b.tint.g, b.tint.b).multiplyScalar(b.base * (level[i] ?? 0) * haze));
     this.fixtures?.glows.forEach((g, i) => (g.level.value = level[i] ?? 0));
+    if (this.fixtures) this.fixtures.spareLevel.value = level[0] ?? 0;
     if (this.dust) {
       this.dust.uPx.value = pixelsPerUnit;
       this.dust.uHaze.value = haze;

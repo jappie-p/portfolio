@@ -42,7 +42,7 @@ void main() {
   vec3 L;
   vec3 Lb;
   float lit = exposed(vWorld, n, L) + 0.22 * exposed(vWorld, -n, Lb);
-  emit(albedo * (uAmbient * 4.0 + uLevel * (0.1 + 0.85 * lit)), a);
+  emit(albedo * (uAmbient * 4.0 + uLevel * (0.2 + 0.85 * lit)), a);
 }
 `;
 
@@ -52,23 +52,27 @@ in vec2 uv;
 uniform mat4 modelMatrix;
 uniform int uWork;
 uniform float uFade;
+uniform float uLength;
 ${LIGHT}
 ${CAST_GLSL}
 void main() {
   vec3 w = (modelMatrix * vec4(position, 1.0)).xyz;
-  gl_Position = fromLamp(uWork, w, uFade * smoothstep(0.0, 0.035, uv.y));
+  gl_Position = fromLamp(uWork, w, uFade * smoothstep(0.0, 0.035, uv.y) * step(uv.y, uLength));
 }
 `;
 
 /**
  * A strip of paper, laid along a curve each frame: across its width it
- * stays straight, so the curve lives in the plane x = x0 and every point
- * needs only its height, its distance out from the picture and its bend.
+ * stays straight, so every point needs only where its centre is, its bend,
+ * the way it heads and its twist.
  * Lit by the print's spot; the print on it slides along as it feeds.
  */
 export class Ribbon {
+  /** points across the strip: enough for its edges' curl to read */
+  private static readonly COLS = 5;
   readonly geometry = new THREE.BufferGeometry();
-  readonly uniforms: { uFeed: { value: number }; uFade: { value: number } };
+  /** the print's feed, its fade, and how much of the strip there is (metres) */
+  readonly uniforms: { uFeed: { value: number }; uFade: { value: number }; uLength: { value: number } };
   readonly mesh: THREE.Mesh;
   readonly shadow: THREE.Mesh;
   private readonly pos: Float32Array;
@@ -84,24 +88,31 @@ export class Ribbon {
     private readonly segments: number,
     private readonly width: number,
     length: number,
+    /** how far its long edges curl up toward its face, as a roll leaves them */
+    private readonly bow = 0,
   ) {
-    const verts = (segments + 1) * 2;
+    const cols = Ribbon.COLS;
+    const verts = (segments + 1) * cols;
     this.pos = new Float32Array(verts * 3);
     this.nor = new Float32Array(verts * 3);
     const uv = new Float32Array(verts * 2);
     const index: number[] = [];
     for (let k = 0; k <= segments; k++) {
       const s = (k / segments) * length;
-      uv.set([0, s, 1, s], k * 4);
+      for (let j = 0; j < cols; j++) uv.set([j / (cols - 1), s], (k * cols + j) * 2);
       // wound so the front faces the way the strip's normal points
-      if (k < segments) index.push(2 * k, 2 * k + 2, 2 * k + 1, 2 * k + 1, 2 * k + 2, 2 * k + 3);
+      if (k < segments)
+        for (let j = 0; j + 1 < cols; j++) {
+          const a = k * cols + j;
+          index.push(a, a + cols, a + 1, a + 1, a + cols, a + cols + 1);
+        }
     }
     this.geometry.setIndex(index);
     this.geometry.setAttribute("position", new THREE.BufferAttribute(this.pos, 3).setUsage(THREE.DynamicDrawUsage));
     this.geometry.setAttribute("normal", new THREE.BufferAttribute(this.nor, 3).setUsage(THREE.DynamicDrawUsage));
     this.geometry.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
 
-    this.uniforms = { uFeed: { value: 0 }, uFade: { value: 1 } };
+    this.uniforms = { uFeed: { value: 0 }, uFade: { value: 1 }, uLength: { value: length } };
     this.mesh = new THREE.Mesh(
       this.geometry,
       new THREE.RawShaderMaterial({
@@ -116,7 +127,6 @@ export class Ribbon {
           uNorm: lamp.uNorm,
           uPrint: { value: print },
           uRepeat: { value: repeat },
-          uLength: { value: length },
         },
         side: THREE.DoubleSide,
         transparent: true,
@@ -125,25 +135,48 @@ export class Ribbon {
     this.mesh.frustumCulled = false;
     this.mesh.layers.enable(MIRRORED);
     this.mesh.renderOrder = 1;
-    this.shadow = caster(this.geometry, CAST_VERT, { ...shared, ...shades, uFade: this.uniforms.uFade, uWork: { value: lamp.uSpot.value - 1 } });
+    this.shadow = caster(this.geometry, CAST_VERT, { ...shared, ...shades, uFade: this.uniforms.uFade, uLength: this.uniforms.uLength, uWork: { value: lamp.uSpot.value - 1 } });
   }
 
-  /** Lay the strip along the curve: per point its height y, how far out from
-   *  the picture it is (z), its bend (0 runs straight down the wall, a
-   *  quarter turn straight out of it) and its twist about its own length. */
-  lay(x0: number, y: Float32Array, z: Float32Array, bend: Float32Array, twist: Float32Array) {
-    const h = this.width / 2;
+  /** Lay the strip along the curve: per point where its centre is, its
+   *  bend (0 runs straight down the wall, a quarter turn straight out of
+   *  it), its heading (the way it runs out, turned about the vertical: 0 is
+   *  straight out of the wall, toward +x as it grows) and its twist about
+   *  its own length. */
+  lay(x: Float32Array, y: Float32Array, z: Float32Array, bend: Float32Array, heading: Float32Array, twist: Float32Array) {
+    const cols = Ribbon.COLS;
     for (let k = 0; k <= this.segments; k++) {
       const sb = Math.sin(bend[k]);
       const cb = Math.cos(bend[k]);
+      const sh = Math.sin(heading[k]);
+      const ch = Math.cos(heading[k]);
       const st = Math.sin(twist[k]);
       const ct = Math.cos(twist[k]);
-      // across the strip, and its face, turned by the twist
-      const ax = ct * h;
-      const ay = st * sb * h;
-      const az = st * cb * h;
-      this.pos.set([x0 - ax, y[k] - ay, z[k] - az, x0 + ax, y[k] + ay, z[k] + az], k * 6);
-      this.nor.set([-st, ct * sb, ct * cb, -st, ct * sb, ct * cb], k * 6);
+      // across the strip and its face, untwisted, then turned by the twist
+      const nx = cb * sh;
+      const nz = cb * ch;
+      const ax = ct * ch + st * nx;
+      const ay = st * sb;
+      const az = -ct * sh + st * nz;
+      const fx = -st * ch + ct * nx;
+      const fy = ct * sb;
+      const fz = st * sh + ct * nz;
+      for (let j = 0; j < cols; j++) {
+        // across it, and its edges curled up toward its face (a parabola)
+        const u = j / (cols - 1) - 0.5;
+        const t = u * this.width;
+        const lift = this.bow * 4 * u * u;
+        const slope = (this.bow * 8 * u) / this.width;
+        const px = x[k] + ax * t + fx * lift;
+        const py = y[k] + ay * t + fy * lift;
+        const pz = z[k] + az * t + fz * lift;
+        const mx = fx - ax * slope;
+        const my = fy - ay * slope;
+        const mz = fz - az * slope;
+        const l = Math.hypot(mx, my, mz);
+        this.pos.set([px, py, pz], (k * cols + j) * 3);
+        this.nor.set([mx / l, my / l, mz / l], (k * cols + j) * 3);
+      }
     }
     this.geometry.attributes.position.needsUpdate = true;
     this.geometry.attributes.normal.needsUpdate = true;

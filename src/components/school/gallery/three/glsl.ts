@@ -5,8 +5,9 @@
 
 export const SPOTS = 5;
 /** Coloured light some works give off themselves (Zelda's fireflies, the
- *  festival's neon), soft and wide, bleeding onto the wall and the floor. */
-export const GLOWS = 2;
+ *  festival's neon and its stage's violet), soft and wide, bleeding onto
+ *  the wall and the floor. */
+export const GLOWS = 3;
 
 export const HEAD = /* glsl */ `precision highp float;
 precision highp int;

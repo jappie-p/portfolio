@@ -93,7 +93,9 @@ void main() {
   float side = max(dot(n, L), 0.0) + max(-dot(n, L), 0.0) * 0.3 * (1.0 - vFoil);
   float glint = pow(max(dot(reflect(-L, n), V), 0.0), mix(10.0, 40.0, vFoil)) * mix(0.15, 2.4, vFoil);
   vec3 base = vTint.rgb * mix(1.0, 0.45, vFoil);
-  vec3 col = base * (uAmbient * 4.0 + uLevel * (0.08 + 0.85 * light * side)) + mix(vec3(1.0, 0.96, 0.9), vTint.rgb, vFoil) * glint * light * uLevel;
+  // the stage's own light still on them as they leave it, so their colour
+  // reads out of the spot too
+  vec3 col = base * (uAmbient * 4.0 + uLevel * (0.16 + 0.85 * light * side)) + mix(vec3(1.0, 0.96, 0.9), vTint.rgb, vFoil) * glint * light * uLevel;
   emit(col, a);
 }
 `;
@@ -112,12 +114,15 @@ void main() {
 }
 `;
 
-const PAPER = ["#ff3b4f", "#ffc93c", "#39d3ff", "#ff4fc8", "#f6f6f6", "#4a6dff", "#3ee58a"];
-const FOIL = ["#f0c869", "#d9dee8"];
+/** The stage's colours: magenta, violet, cyan, a hot pink, white, blue. */
+const PAPER = ["#ff2fb4", "#9b4dff", "#39d8ff", "#ff5fd2", "#f6f2ff", "#5a6bff", "#d23cff"];
+const FOIL = ["#e9b8ff", "#c8f2ff"];
 
 /** Where the pieces leave the picture, how they drift and what they are:
- *  most from round the stage, drifting out and spreading a little; three in
- *  ten from near its sides, fast enough sideways to cross the frame. */
+ *  most from round the stage, drifting out and spreading a little, on the
+ *  way to the right; four in ten from near its sides (most of them its
+ *  right), caught in the stage's air: fast enough sideways to cross the
+ *  frame and out over the wall, some carried up over its top. */
 function pieces(count: number) {
   let seed = 4127;
   const rand = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
@@ -126,20 +131,20 @@ function pieces(count: number) {
   const tint: number[] = [];
   const c = new THREE.Color();
   for (let i = 0; i < count; i++) {
-    const edge = i % 10 < 3;
-    const sx = rand() < 0.5 ? -1 : 1;
+    const edge = i % 10 < 4;
+    const sx = rand() < 0.25 ? -1 : 1;
     const x = edge ? sx * (0.42 + 0.16 * rand()) : (rand() * 2 - 1) * 0.42;
     const y = edge ? -0.15 + 0.6 * rand() : 0.05 + 0.48 * rand();
     const foil = rand() < 0.25;
     c.set(foil ? FOIL[i % FOIL.length] : PAPER[i % PAPER.length]);
     from.push(x, y, (i * 0.6180339) % 1, foil ? 1 : 0);
     way.push(
-      edge ? sx * (0.014 + 0.016 * rand()) : (x / 0.42) * (0.004 + 0.012 * rand()),
-      -0.012 + 0.016 * rand(),
+      edge ? sx * (0.024 + 0.04 * rand()) : (x / 0.42) * (0.004 + 0.01 * rand()) + 0.004 + 0.008 * rand(),
+      edge && sx > 0 ? -0.006 + 0.026 * rand() : -0.012 + 0.016 * rand(),
       0.012 + 0.016 * rand(),
       (1.2 + 2 * rand()) * (rand() < 0.5 ? -1 : 1),
     );
-    tint.push(c.r, c.g, c.b, 0.022 + 0.01 * rand());
+    tint.push(c.r, c.g, c.b, 0.034 + 0.02 * rand());
   }
   return { from, way, tint };
 }

@@ -1,7 +1,9 @@
 import * as THREE from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 import { HEAD, OUT, VERT } from "./glsl";
-import { TRACK, type Shared, type Spot } from "./lights";
+import type { Shared, Spot } from "./lights";
+
+type Track = { y: number; z: number };
 import { MIRRORED } from "./reflector";
 
 const METAL = /* glsl */ `${HEAD}
@@ -79,27 +81,43 @@ void main() {
 `;
 
 /** Where a can hangs: its mouth at the spot, turned down its beam. */
-function can(s: Spot) {
+function can(s: Pick<Spot, "pos" | "dir">, track: Track) {
   const g = new THREE.CylinderGeometry(0.042, 0.05, 0.17, 18, 1, false);
   g.translate(0, 0.085, 0);
   g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), s.dir.clone().negate()));
   g.translate(s.pos.x, s.pos.y, s.pos.z);
   // the stem up to the track, from the can's middle
   const mid = s.pos.clone().addScaledVector(s.dir, -0.085);
-  const top = new THREE.Vector3(mid.x, TRACK.y + 0.04, TRACK.z);
+  const top = new THREE.Vector3(mid.x, track.y + 0.04, track.z);
   const stem = new THREE.CylinderGeometry(0.009, 0.009, top.distanceTo(mid), 6, 1, true);
   stem.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), top.clone().sub(mid).normalize()));
   stem.translate((top.x + mid.x) / 2, (top.y + mid.y) / 2, (top.z + mid.z) / 2);
   return [g, stem];
 }
 
+/** The lamps the track carries between the works: lit, but aimed low at the
+ *  wall's foot, so they read as a row of points running off down the room
+ *  (and again in the wet floor) without lighting anything the eye follows.
+ *  Every `step` metres, clear of the spots' own cans. */
+function spares(spots: Spot[], track: Track, from: number, to: number, step = 1.15) {
+  const lit = spots.filter((s) => s.power > 0).map((s) => s.pos.x);
+  const out: Pick<Spot, "pos" | "dir">[] = [];
+  for (let x = from + step / 2; x < to; x += step) {
+    if (lit.some((l) => Math.abs(l - x) < 0.55)) continue;
+    const pos = new THREE.Vector3(x, track.y, track.z);
+    out.push({ pos, dir: new THREE.Vector3(0, 0.6 - track.y, -track.z).normalize() });
+  }
+  return out;
+}
+
 /**
  * The lighting track along the ceiling and a can on it for every spot, with
- * a soft glow at each lamp's mouth (it follows the lamp's power and hover).
+ * a soft glow at each lamp's mouth (it follows the lamp's power and hover);
+ * spare lamps fill the track between them.
  * The cans are one draw; the rail, a long thin line across the view, is a
  * ribbon feathered at its edges, since there is no multisampling.
  */
-export function makeFixtures(shared: Shared, spots: Spot[], from: number, to: number) {
+export function makeFixtures(shared: Shared, spots: Spot[], track: Track, from: number, to: number, withSpares = true) {
   const rail = new THREE.Mesh(
     new THREE.PlaneGeometry(to - from, 1, 64, 1),
     new THREE.RawShaderMaterial({
@@ -112,9 +130,11 @@ export function makeFixtures(shared: Shared, spots: Spot[], from: number, to: nu
       side: THREE.DoubleSide,
     }),
   );
-  rail.position.set((from + to) / 2, TRACK.y + 0.055, TRACK.z);
+  rail.position.set((from + to) / 2, track.y + 0.055, track.z);
   rail.frustumCulled = false;
-  const parts = spots.filter((s) => s.power > 0).flatMap(can);
+  const spare = withSpares ? spares(spots, track, from, to) : [];
+  // the downlight by the way in is set into the ceiling: no can
+  const parts = [...spots.filter((s) => s.power > 0 && s.work >= 0), ...spare].flatMap((s) => can(s, track));
   const geometry = mergeGeometries(parts.map((p) => (p.index ? p.toNonIndexed() : p)));
   parts.forEach((p) => p.dispose());
   const metal = new THREE.Mesh(
@@ -124,30 +144,35 @@ export function makeFixtures(shared: Shared, spots: Spot[], from: number, to: nu
   metal.frustumCulled = false;
 
   const card = new THREE.PlaneGeometry(1, 1);
-  const glows = spots.map((s) => {
-    const level = { value: 0 };
-    const m = new THREE.Mesh(
-      card,
-      new THREE.RawShaderMaterial({
-        glslVersion: THREE.GLSL3,
-        vertexShader: GLOW_VERT,
-        fragmentShader: GLOW_FRAG,
-        uniforms: { ...shared, uLevel: level, uTint: { value: s.color.clone() }, uSize: { value: s.work < 0 ? 0.3 : 0.42 } },
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-      }),
-    );
+  const shine = (level: { value: number }, tint: THREE.Color, size: number) =>
+    new THREE.RawShaderMaterial({
+      glslVersion: THREE.GLSL3,
+      vertexShader: GLOW_VERT,
+      fragmentShader: GLOW_FRAG,
+      uniforms: { ...shared, uLevel: level, uTint: { value: tint }, uSize: { value: size } },
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+  const lamp = (s: Pick<Spot, "pos" | "dir">, material: THREE.RawShaderMaterial) => {
+    const m = new THREE.Mesh(card, material);
     m.position.copy(s.pos).addScaledVector(s.dir, 0.03);
     m.frustumCulled = false;
     m.renderOrder = 4;
-    return { mesh: m, level };
+    return m;
+  };
+  const glows = spots.map((s) => {
+    const level = { value: 0 };
+    return { mesh: lamp(s, shine(level, s.color.clone(), s.work < 0 ? 0.24 : 0.3)), level };
   });
+  // the spares share one glow, which comes on with the room and goes down with it
+  const spareLevel = { value: 0 };
+  const spareShine = shine(spareLevel, new THREE.Color(1.0, 0.78, 0.52), 0.24);
   const group = new THREE.Group();
-  group.add(rail, metal, ...glows.map((g) => g.mesh));
+  group.add(rail, metal, ...glows.map((g) => g.mesh), ...spare.map((s) => lamp(s, spareShine)));
   // the wet floor shows the lamps back, warm spots in the foreground
   group.children.forEach((o) => o.layers.enable(MIRRORED));
-  return { group, glows };
+  return { group, glows, spareLevel };
 }
 
 export type Fixtures = ReturnType<typeof makeFixtures>;

@@ -49,8 +49,10 @@ export const LIP = 0.018;
 
 /** Below this width-to-height ratio the room narrows: phones, portrait tablets. */
 export const NARROW = 0.9;
-/** The entrance: a wide lens, low and close to the wall, turned far down it. */
-const ENTRANCE = { fov: 52, eye: 0.95, z: 2.25, yaw: 0.8, shift: -0.06 };
+/** The entrance: a longer lens, low, standing back from the wall and turned
+ *  down it; how far it may turn; where the last print's far edge and the
+ *  first frame's top fall (NDC across and up the view). */
+const ENTRANCE = { fov: 38, eye: 1.0, z: 3.4, turn: [0.55, 1.15], far: 0.86, top: 0.76 };
 
 const tan = (deg: number) => Math.tan((deg * Math.PI) / 360);
 
@@ -71,24 +73,45 @@ function hang(gap: number, cardGap: number): Work[] {
   return works;
 }
 
-/** The entrance: low and close to the wall and turned far down it, so the
- *  frames loom above you and the wall runs away to the right; standing just
- *  far enough left that the first frame starts where the copy ends (`clear`,
- *  in NDC across the view). The lens shifts instead of the head tilting, so
- *  the frames stay upright. */
-function entrance(first: Work, aspect: number, clear: number): Pose {
+/** The entrance: low and back from the wall and turned down it, so the
+ *  three prints line up along the wall running away to the right. It stands
+ *  just far enough left that the first frame starts where the copy ends
+ *  (`clear`, in NDC across the view), turns down the wall just far enough
+ *  that the last print's far edge is still in view, and shifts its lens so
+ *  the first frame's top sits clear of the site's bar: the frames stay
+ *  upright, and a narrower screen sees the wall at a steeper angle. */
+function entrance(works: Work[], aspect: number, clear: number): Pose {
   const e = ENTRANCE;
-  const p = pose(first.x - 3, e.eye, e.z, e.yaw, 0, e.shift, e.fov);
+  const first = works[0];
+  const last = works.find((w) => w.id === "festival") ?? works[works.length - 1];
+  const p = pose(first.x - 3, e.eye, e.z, e.turn[0], 0, 0, e.fov);
   const edge = [0, 0, 0];
-  let lo = first.x - 10;
-  let hi = first.x - 1;
-  for (let i = 0; i < 24; i++) {
-    p.x = (lo + hi) / 2;
-    project(p, aspect, 1, first.x - outerW(first) / 2, first.y + outerH(first) / 2, first.depth, edge);
-    // further left puts the frame further right
-    if ((edge[0] / aspect) * 2 - 1 < clear) hi = p.x;
-    else lo = p.x;
+  const ndc = (x: number, y: number, z: number) => {
+    project(p, aspect, 1, x, y, z, edge);
+    return [(edge[0] / aspect) * 2 - 1, 1 - edge[1] * 2];
+  };
+  // stand where the first frame starts at `clear` (further left puts it further right)
+  const stand = () => {
+    let lo = first.x - 12;
+    let hi = first.x - 1;
+    for (let i = 0; i < 24; i++) {
+      p.x = (lo + hi) / 2;
+      if (ndc(first.x - outerW(first) / 2, first.y, first.depth)[0] < clear) hi = p.x;
+      else lo = p.x;
+    }
+  };
+  // turning further down the wall draws the far prints in toward the first
+  let lo = e.turn[0];
+  let hi = e.turn[1];
+  for (let i = 0; i < 20; i++) {
+    p.yaw = (lo + hi) / 2;
+    stand();
+    if (ndc(last.x + outerW(last) / 2, last.y, last.depth)[0] > e.far) lo = p.yaw;
+    else hi = p.yaw;
   }
+  p.yaw = hi;
+  stand();
+  p.shift = e.top - ndc(first.x - outerW(first) / 2, first.y + outerH(first) / 2, first.depth)[1];
   return p;
 }
 
@@ -97,7 +120,7 @@ function wide(aspect: number, clear: number): Room {
   const fov = 38;
   const t = tan(fov);
   const f = 1 / t;
-  const works = hang(1.8, 1.3);
+  const works = hang(1.2, 1.1);
   const stations: Pose[] = [];
   const faces: number[] = [];
   const close: Pose[] = [];
@@ -114,7 +137,7 @@ function wide(aspect: number, clear: number): Room {
     const fill = w.id === "berlijn" ? outerH(w) / (0.82 * 2 * t) : Math.max(w.h / (2 * t), w.w / (2 * t * aspect));
     close.push(pose(w.x, w.y, fill, 0, 0, 0, fov));
   }
-  stations.unshift(entrance(works[0], aspect, clear));
+  stations.unshift(entrance(works, aspect, clear));
   faces.unshift(-1);
   const stride = (works[1].x - works[0].x) / (2 * t * aspect * stations[1].z);
   return { narrow: false, fov, works, stations, faces, close, stride };
@@ -170,9 +193,9 @@ export type Exhibit = { title: string; neon: boolean; plaque: { name: string; ki
 
 export const EXHIBITS: Partial<Record<WorkId, Exhibit>> = {
   // a warm white: its green comes off the work itself (see glowsFor)
-  zelda: { title: "ZELDA", neon: false, plaque: { name: "Zelda", kind: "Game Development" }, light: "#ffeccb" },
+  zelda: { title: "ZELDA", neon: false, plaque: { name: "Zelda", kind: "Game Development" }, light: "#ffdcae" },
   // a warm white, like a restaurant counter
-  kiosk: { title: "KIOSK", neon: false, plaque: { name: "Kiosk", kind: "Interactieve bestelzuil" }, light: "#ffe9c8" },
+  kiosk: { title: "KIOSK", neon: false, plaque: { name: "Kiosk", kind: "Interactieve bestelzuil" }, light: "#ffd9a6" },
   // the stage's magenta
   festival: { title: "FESTIVAL", neon: true, plaque: { name: "Festival", kind: "Festival-app" }, light: "#ff86e6" },
 };

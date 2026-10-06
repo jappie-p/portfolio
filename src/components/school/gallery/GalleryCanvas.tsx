@@ -79,6 +79,9 @@ function Stage({ rig, active, copy, pictures, crops, trailer, onReady, onFrame, 
         await pause();
         if (cancelled) return;
         await gl.compileAsync(built.reflector.quad, built.camera, built.scene);
+        await gl.compileAsync(built.focus.blur, built.camera, built.scene);
+        await gl.compileAsync(built.focus.over, built.camera, built.scene);
+        for (const pass of [built.bloom.bright, built.bloom.blur, built.bloom.add]) await gl.compileAsync(pass, built.camera, built.scene);
         for (const t of built.textures()) {
           await pause();
           if (cancelled) return;
@@ -125,9 +128,10 @@ function Stage({ rig, active, copy, pictures, crops, trailer, onReady, onFrame, 
 }
 
 /** The gallery's live view: at most 1.5x pixels, stepping down when frames
- *  drop, and no loop at all while the panel is off screen. No
- *  post-processing: the light, the reflection and the haze are all drawn
- *  directly. */
+ *  drop, and no loop at all while the panel is off screen. The light, the
+ *  reflection and the haze are all drawn directly; only a glow round the
+ *  brightest light and the blur of what stands right by the lens are added
+ *  after, in small passes. */
 export function GalleryCanvas({ onLost, ...stage }: GalleryCanvasProps) {
   const [screen] = useState(() => window.devicePixelRatio || 1);
   const maxDpr = Math.max(MIN_DPR, Math.min(screen, 1.5));

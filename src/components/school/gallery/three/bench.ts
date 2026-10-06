@@ -4,6 +4,7 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 import type { Room } from "../layout";
 import { HEAD, LIGHT, NOISE, OUT, VERT } from "./glsl";
 import type { Shared } from "./lights";
+import { NEAR } from "./focus";
 import { MIRRORED } from "./reflector";
 
 const LEATHER = /* glsl */ `${HEAD}
@@ -30,7 +31,10 @@ void main() {
     sheen += uSpotCol[i] / (1.0 + dot(d, d)) * (pow(h, 60.0) + 0.04 * pow(h, 8.0));
   }
   float fres = 0.04 + 0.96 * pow(1.0 - max(dot(n, V), 0.0), 5.0);
-  emit(vec3(0.014, 0.013, 0.013) * light + sheen * (0.05 + 0.35 * fres), 1.0);
+  // the lit room behind it, caught along its top and the edges turned toward
+  // the works: what gives it its shape once it is out of focus
+  vec3 room = vec3(0.11, 0.08, 0.055) * (0.5 * pow(1.0 - max(dot(n, V), 0.0), 2.0) + 0.3 * max(n.y, 0.0) + 0.35 * max(n.x, 0.0));
+  emit(vec3(0.03, 0.026, 0.023) * light + sheen * (0.12 + 0.6 * fres) + room, 1.0);
 }
 `;
 
@@ -52,8 +56,8 @@ const pad = (w: number, h: number, d: number, r: number, x: number, y: number) =
 const SIZE = { long: 1.34, deep: 0.5 };
 
 /**
- * A black leather gallery bench against the wall left of the first work,
- * seen low from the entrance: a long cushion on a recessed base, a square
+ * A black leather gallery bench out in the room by the way in, seen low
+ * and out of focus from the entrance: a long cushion on a recessed base, a square
  * arm at its far end, little feet. Lit by the spots, the lamps caught in its
  * sheen, seen again in the floor; only the wide room has one.
  */
@@ -70,6 +74,8 @@ export function makeBench(shared: Shared) {
     geometry,
     new THREE.RawShaderMaterial({ glslVersion: THREE.GLSL3, vertexShader: VERT, fragmentShader: LEATHER, uniforms: { ...shared } }),
   );
+  // right in front of the entrance's lens: drawn out of focus (see focus.ts)
+  body.layers.set(NEAR);
   body.layers.enable(MIRRORED);
   const shadow = new THREE.Mesh(
     new THREE.PlaneGeometry(SIZE.long + 0.3, SIZE.deep + 0.3).rotateX(-Math.PI / 2).translate(0, 0.002, 0),
@@ -80,10 +86,12 @@ export function makeBench(shared: Shared) {
   group.add(body, shadow);
   return {
     group,
-    /** Stand it for a room: along the wall, its far end short of the first work's ruins. */
+    /** Stand it for a room: out in the room right in front of the way in,
+     *  low at the left of the entrance's view, along the wall like the
+     *  works it faces. */
     place(room: Room) {
-      const first = room.works[0];
-      group.position.set(first.x - 2.45, 0, 0.6);
+      const p = room.stations[0];
+      group.position.set(p.x + Math.sin(p.yaw) * 2.5 - Math.cos(p.yaw) * 0.85, 0, p.z - Math.cos(p.yaw) * 2.5 - Math.sin(p.yaw) * 0.85);
       group.scale.setScalar(0.92);
       group.visible = !room.narrow;
     },

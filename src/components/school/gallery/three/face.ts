@@ -22,6 +22,7 @@ uniform float uLip;
 uniform float uLevel;
 uniform float uNorm;
 uniform float uRaw;
+uniform float uRich;
 uniform vec3 uGlare;
 #ifdef VIDEO
 uniform sampler2D uVideo;
@@ -69,7 +70,7 @@ void main() {
   float cone = smoothstep(uSpotCone[uSpot].x, uSpotCone[uSpot].y, dot(-L, uSpotDir[uSpot]));
   float shape = cone * cone / dot(dl, dl) * lambert * uNorm;
   // what breaks out of the picture stands in this spot's light
-  float open = 1.0 - 0.78 * shade(uSpot - 1, p);
+  float open = 1.0 - 0.45 * shade(uSpot - 1, p);
   vec3 warm = vec3(1.0, 0.93, 0.84) * uLevel * mix(1.0, shape, 0.45) * open;
 
   // print, bevel and mat, blended over a pixel so the edges never crawl
@@ -81,10 +82,13 @@ void main() {
   float wPrint = inPrint.x * inPrint.y;
   float wBevel = inWindow.x * inWindow.y - wPrint;
 
-  // the print, lit evenly by its spot and a little brighter toward the top;
+  // the print, lit evenly by its spot (hung a little richer and brighter
+  // than its own exposure, so it glows against the dark wall; the panel it
+  // opens into shows it as it is) and a little brighter toward the top;
   // the mat's cut edge throws a hairline of shade along its top
   vec3 tex = print(clamp(q / uPic + 0.5, 0.0, 1.0));
-  vec3 lit = tex * uLevel * mix(1.0, shape, 0.3) * mix(0.8, 1.0, smoothstep(0.0, 0.004, uPic.y * 0.5 - q.y)) * open;
+  vec3 hung = max(mix(vec3(dot(tex, vec3(0.2126, 0.7152, 0.0722))), tex, 1.0 + 0.18 * uRich), 0.0) * (1.0 + 0.22 * uRich);
+  vec3 lit = hung * uLevel * mix(1.0, shape, 0.3) * mix(0.8, 1.0, smoothstep(0.0, 0.004, uPic.y * 0.5 - q.y)) * open;
   vec3 printCol = mix(lit, tex, uRaw);
 
   // the frame's lip shades the top of the mat, the light coming from above

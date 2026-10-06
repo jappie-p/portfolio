@@ -2,8 +2,13 @@ import * as THREE from "three";
 import { EXHIBITS, outerH, type Room } from "../layout";
 import { GLOWS, SPOTS } from "./glsl";
 
-/** Where the track runs: just under a 3.7 m ceiling, 1.25 m out from the wall. */
-export const TRACK = { y: 3.55, z: 1.25 };
+/** Where the track runs: in the wide room low and near the wall, so the
+ *  entrance sees its lamps in a row just over the frames, running off down
+ *  the room; in the narrow one high up and further out, out of sight over
+ *  the copy. */
+export const trackOf = (room: Room) => (room.narrow ? { y: 3.55, z: 1.25 } : { y: 2.78, z: 0.95 });
+/** The ceiling just above the track. */
+export const ceilingOf = (room: Room) => trackOf(room).y + 0.17;
 
 /** Warm gallery light, about 2700 K. */
 const WARM = new THREE.Color(1.0, 0.8, 0.58);
@@ -29,22 +34,27 @@ function tint(hex: string | undefined) {
   return c.multiplyScalar(1 / Math.max(c.r, c.g, c.b));
 }
 
-/** One spot per work on the ceiling track, aimed a touch below its centre so
- *  the scallop of light peaks just above the frame, each in its work's own
- *  colour; on wide screens one more, a wide dim wash on the wall behind the
- *  exhibition title. */
+/** One spot per work on the ceiling track, aimed at its centre with a cone
+ *  wide enough that the scallop of light climbs the wall above the frame
+ *  and spills on the floor below, each in its work's own
+ *  colour; on wide screens one more, a downlight pooling on the floor by
+ *  the way in. */
 export function spotsFor(room: Room): Spot[] {
+  const track = trackOf(room);
   const spots: Spot[] = room.works.map((w, i) => {
     const card = w.id === "berlijn";
-    const pos = new THREE.Vector3(w.x, TRACK.y, TRACK.z);
-    const aim = new THREE.Vector3(w.x, w.y - outerH(w) * 0.12, 0);
-    return { pos, dir: aim.sub(pos).normalize(), outer: card ? 20 : 28, inner: card ? 9 : 12, power: card ? 10 : 20, work: i, color: tint(EXHIBITS[w.id]?.light) };
+    const pos = new THREE.Vector3(w.x, track.y, track.z);
+    const aim = new THREE.Vector3(w.x, w.y - outerH(w) * 0.04, 0);
+    // the narrow room keeps a tighter pool: it falls right behind the copy
+    const cone = room.narrow ? { outer: card ? 20 : 28, inner: card ? 9 : 12, power: card ? 10 : 22 } : { outer: card ? 22 : 31, inner: card ? 9 : 12, power: card ? 9 : 32 };
+    return { pos, dir: aim.sub(pos).normalize(), ...cone, work: i, color: tint(EXHIBITS[w.id]?.light) };
   });
   const first = room.works[0];
-  // the wash sits behind the copy, which hangs where the entrance looks
-  const wash = new THREE.Vector3(first.x - 3.3, TRACK.y, TRACK.z + 0.2);
-  const aim = new THREE.Vector3(wash.x + 0.2, 1.2, 0);
-  spots.unshift({ pos: wash, dir: aim.sub(wash).normalize(), outer: 28, inner: 6, power: room.narrow ? 0 : 1.6, work: -1, color: WARM.clone() });
+  // a downlight set in the ceiling over the way in: a warm pool on the
+  // polished floor in front of the first work, the bench at its edge
+  const pool = new THREE.Vector3(first.x - 1.5, ceilingOf(room) - 0.02, 1.9);
+  const aim = new THREE.Vector3(first.x - 1.0, 0, 1.45);
+  spots.unshift({ pos: pool, dir: aim.sub(pool).normalize(), outer: 48, inner: 14, power: room.narrow ? 0 : 8, work: -1, color: WARM.clone() });
   return spots.slice(0, SPOTS);
 }
 
@@ -52,7 +62,8 @@ export function spotsFor(room: Room): Spot[] {
 export type Glow = { pos: THREE.Vector3; work: number; color: THREE.Color; power: number };
 
 /** The light the works give off themselves: Zelda's fireflies and glowing
- *  blocks low by its foot, the festival's neon above and beside its frame. */
+ *  blocks low by its foot, the festival's neon above its frame and its
+ *  stage's violet past it. */
 export function glowsFor(room: Room): Glow[] {
   const at = (id: string) => room.works.findIndex((w) => w.id === id);
   const zelda = at("zelda");
@@ -60,8 +71,10 @@ export function glowsFor(room: Room): Glow[] {
   const z = room.works[zelda];
   const f = room.works[festival];
   return [
-    { pos: new THREE.Vector3(z.x + 0.6, 0.45, 0.6), work: zelda, color: new THREE.Color(0.42, 0.95, 0.25), power: 0.45 },
-    { pos: new THREE.Vector3(f.x - 0.15, 2.4, 0.45), work: festival, color: new THREE.Color(1.0, 0.22, 0.85), power: 0.7 },
+    { pos: new THREE.Vector3(z.x + 0.6, 0.3, 0.7), work: zelda, color: new THREE.Color(0.42, 0.95, 0.25), power: 0.38 },
+    { pos: new THREE.Vector3(f.x + 0.1, 2.5, 0.7), work: festival, color: new THREE.Color(0.95, 0.2, 1.0), power: 1.4 },
+    // the stage's violet wash, high on the wall and the ceiling past it
+    { pos: new THREE.Vector3(f.x + 0.9, 2.6, 0.6), work: festival, color: new THREE.Color(0.55, 0.22, 1.0), power: 0.85 },
   ].slice(0, GLOWS);
 }
 

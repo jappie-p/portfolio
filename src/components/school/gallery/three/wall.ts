@@ -72,7 +72,7 @@ void main() {
     // the halo every spot spills round its beam, so the wall between works
     // falls into shadow instead of a void
     float halo = smoothstep(0.2, 1.0, facing);
-    light += uSpotCol[i] * (halo * halo * 0.055 / d2) * lambert;
+    light += uSpotCol[i] * (halo * halo * 0.03 / d2) * lambert;
     float cone = smoothstep(uSpotCone[i].x, uSpotCone[i].y, facing);
     if (cone <= 0.0) continue;
     // a little light still reaches the shadow, off the floor and the walls;
@@ -113,7 +113,7 @@ export function makeWall(shared: Shared, slots: FrameSlots, shades: Shades) {
     glslVersion: THREE.GLSL3,
     vertexShader: VERT,
     fragmentShader: FRAG,
-    uniforms: { ...shared, ...slots, ...shades.uniforms, uWall: { value: new THREE.Color(0.08, 0.076, 0.071) } },
+    uniforms: { ...shared, ...slots, ...shades.uniforms, uWall: { value: new THREE.Color(0.064, 0.06, 0.056) } },
   });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;

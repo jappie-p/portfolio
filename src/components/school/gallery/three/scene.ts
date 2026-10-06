@@ -5,15 +5,17 @@ import { pose, type Pose } from "../path";
 import { ease, inFront, type Rig } from "../rig";
 import { makeArtwork, type Artwork } from "./artwork";
 import { makeBench, type Bench } from "./bench";
+import { Bloom } from "./bloom";
 import { makeFestival } from "./breakout/festival";
 import { makeKiosk } from "./breakout/kiosk";
 import type { Breakout } from "./breakout/types";
 import { makeZelda } from "./breakout/zelda";
 import { makeCeiling } from "./ceiling";
 import { makeFloor } from "./floor";
+import { Focus, NEAR } from "./focus";
 import { makeForeground, type Foreground } from "./foreground";
 import { fontReady, letterTitles } from "./lettering";
-import { applyGlows, applySpots, glowsFor, shapeAt, sharedUniforms, smooth, spotsFor, type Glow, type Spot } from "./lights";
+import { applyGlows, applySpots, ceilingOf, glowsFor, shapeAt, sharedUniforms, smooth, spotsFor, type Glow, type Spot } from "./lights";
 import type { BarTitle } from "./moulding";
 import { noiseTexture } from "./noise";
 import { makePlants, plantsFor } from "./plants";
@@ -44,6 +46,13 @@ const leanState = () => ({ x: 0, y: 0, lift: 0, glow: 0 });
  *  spots dim by this much, the haze in every beam by this much. */
 const DIM = { spots: 0.78, haze: 0.85 };
 
+/** How strongly the brightest light glows. */
+const BLOOM = 0.9;
+
+/** How far out of focus the bench and the leaves by the entrance are, in
+ *  quarter-resolution steps of the blur. */
+const FOCUS_BLUR = 1.5;
+
 /** Point a three.js camera along a pose: the maths project() in path.ts mirrors. */
 function aim(cam: THREE.PerspectiveCamera, p: Pose, aspect: number) {
   cam.fov = p.fov;
@@ -63,6 +72,10 @@ export class GalleryScene {
   readonly camera = new THREE.PerspectiveCamera(36, 1, 0.05, 60);
   readonly shared = sharedUniforms();
   readonly reflector = new Reflector();
+  readonly focus = new Focus();
+  readonly bloom = new Bloom();
+  /** hung at each room's own height (see lights.ts) */
+  private readonly ceiling = makeCeiling(this.shared);
   /** the camera's pose this frame, head turn and dolly included */
   readonly pose: Pose = pose(0, 1.5, 4);
   room: Room;
@@ -84,6 +97,10 @@ export class GalleryScene {
   private leans = Array.from({ length: 4 }, leanState);
   private level = [0, 0, 0, 0, 0];
   private haze = 1;
+  /** how near the camera has stepped to any work, 0..1 */
+  private close = 0;
+  /** how near the walk still is to the entrance, 0..1 */
+  private entrance = 1;
   private time = 0;
   private boot = -1;
   private card: THREE.CanvasTexture | null = null;
@@ -126,7 +143,7 @@ export class GalleryScene {
     yield;
     const wall = makeWall(this.shared, this.slots, this.shades);
     wall.layers.enable(MIRRORED);
-    this.scene.add(wall, makeFloor(this.shared, this.reflector), makeCeiling(this.shared), this.rigging.group);
+    this.scene.add(wall, makeFloor(this.shared, this.reflector), this.ceiling, this.rigging.group);
     yield;
     this.card = cardTexture(this.copy, anisotropy);
     this.owned.push(this.card);
@@ -206,6 +223,14 @@ export class GalleryScene {
       this.reflector.render(gl, this.scene, this.camera);
       this.shared.uScreen.value = 1;
       yield;
+      this.focus.setSize(buffer.x, buffer.y);
+      this.focus.render(gl, this.scene, this.camera, 1);
+      yield;
+      this.bloom.setSize(buffer.x, buffer.y);
+      gl.setRenderTarget(this.bloom.frame);
+      gl.render(this.scene, this.camera);
+      this.bloom.render(gl, 1);
+      yield;
     } finally {
       restore();
       gl.setRenderTarget(null);
@@ -223,6 +248,7 @@ export class GalleryScene {
     this.room = room;
     this.spots = spotsFor(room);
     this.glows = glowsFor(room);
+    this.ceiling.position.y = ceilingOf(room);
     room.works.forEach((w, i) => {
       const a = this.art[i];
       if (!a) return;
@@ -248,8 +274,20 @@ export class GalleryScene {
       (m.material as THREE.Material).dispose();
     });
     this.beds.clear();
-    if (!room.narrow) this.beds.add(makePlants(this.shared, plantsFor(room)));
+    if (!room.narrow) this.beds.add(makePlants(this.shared, plantsFor(room)), this.nearPlant(room));
     applySpots(this.shared, this.spots, this.level);
+  }
+
+  /** A tall plant right by the entrance's lens, low at the left of the view:
+   *  out of focus (layer NEAR), so the room reads as seen past it. */
+  private nearPlant(room: Room) {
+    const p = room.stations[0];
+    const fwd = [Math.sin(p.yaw), -Math.cos(p.yaw)];
+    const right = [Math.cos(p.yaw), Math.sin(p.yaw)];
+    const at = (f: number, r: number) => ({ x: p.x + fwd[0] * f + right[0] * r, z: p.z + fwd[1] * f + right[1] * r });
+    const plant = makePlants(this.shared, [{ ...at(1.45, -0.9), pot: 0.4, size: 1.45 }]);
+    plant.traverse((o) => o.layers.set(NEAR));
+    return plant;
   }
 
   /** Redraw what the room prints in the reader's language: the Berlijn card
@@ -312,10 +350,12 @@ export class GalleryScene {
       if (a) a.uniforms.uLevel.value = this.level[i];
     });
     this.haze = 1 - DIM.haze * smooth(0.05, 0.85, all);
+    this.close = all;
     applySpots(this.shared, this.spots, this.level);
     // what the works give off comes and goes with their light
     applyGlows(this.shared, this.glows, (work) => this.level[work + 1] ?? 0);
-    this.foreground?.light(this.level[0] ?? 0, 1 - smooth(0.08, 0.45, Math.abs(rig.pos)));
+    this.entrance = 1 - smooth(0.08, 0.45, Math.abs(rig.pos));
+    this.foreground?.light(this.level[0] ?? 0, this.entrance);
     this.breakouts.forEach((b, i) => b?.update(this.time, near[i]));
 
     // the trailer plays while the Zelda print is anywhere near the view
@@ -331,8 +371,19 @@ export class GalleryScene {
     this.shared.uScreen.value = 0;
     this.reflector.render(gl, this.scene, this.camera);
     this.shared.uScreen.value = 1;
-    gl.setRenderTarget(null);
+    // the glow round the brightest light; gone by the time a picture opens
+    // into its project, so the hand-over shows the picture as it is
+    // (fullest at the entrance's view down the room, softer in front of a work)
+    const glow = BLOOM * (0.55 + 0.45 * this.entrance) * (1 - smooth(0.05, 0.8, this.close));
+    this.bloom.setSize(buffer.x, buffer.y);
+    gl.setRenderTarget(glow > 0.002 ? this.bloom.frame : null);
     gl.render(this.scene, this.camera);
+    if (glow > 0.002) this.bloom.render(gl, glow);
+    // the bench and the leaves by the entrance, out of focus over the room
+    if (this.bench?.group.visible) {
+      this.focus.setSize(buffer.x, buffer.y);
+      this.focus.render(gl, this.scene, this.camera, FOCUS_BLUR);
+    }
   }
 
   dispose() {
@@ -345,6 +396,8 @@ export class GalleryScene {
       (m.material as THREE.Material).dispose();
     });
     this.reflector.dispose();
+    this.focus.dispose();
+    this.bloom.dispose();
     this.owned.forEach((t) => t.dispose());
     Object.values(this.pictures).forEach((t) => t.dispose());
     this.trailer?.dispose();

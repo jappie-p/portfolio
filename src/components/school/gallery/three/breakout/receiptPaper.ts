@@ -1,29 +1,36 @@
 import * as THREE from "three";
-import { ITEMS, eanModules, euro, type ReceiptLabels } from "@/components/art/kiosk/receipt";
+import { ITEMS, euro, type ReceiptLabels } from "@/components/art/kiosk/receipt";
+import { qrModules } from "./qr";
 
 /** The paper strip as the kiosk prints it: two orders after the one in the
  *  picture (#0427), one after the other, so the strip repeats as it feeds.
  *  Its words are the reader's; the menu and the prices (the Dutch way)
- *  stay the kiosk's own, as on KioskReceipt. */
-const W = 256;
-const ORDER_H = 448;
+ *  stay the kiosk's own, as on KioskReceipt. Set large, so the header, the
+ *  total and the QR code read from across the room. */
+const W = 320;
 const PAPER = "#f4f0e6";
-const INK = "rgba(33, 30, 27, 0.9)";
+const INK = "rgba(33, 30, 27, 0.92)";
 const MONO = 'ui-monospace, "SFMono-Regular", Menlo, monospace';
 const ORDERS = [
-  { no: "0428", time: "12:43", items: [0, 1, 2] },
-  { no: "0429", time: "12:46", items: [0, 2] },
+  { no: "0428", time: "12:43", items: [[0, 1], [1, 1], [2, 1]] },
+  { no: "0429", time: "12:46", items: [[0, 2], [2, 1], [1, 1]] },
 ] as const;
+/** The QR code under the total opens the kiosk itself (it is live). */
+const LIVE = "kiosk.hyphosting.com";
+const QR = qrModules(`https://${LIVE}`);
+const MODULE = 7;
+const MARGIN = 20;
+/** An order on the paper, top to bottom: the brand, the order, a line per
+ *  item (both orders have three, so the print repeats evenly), the total,
+ *  the code. */
+const LINE = 22;
+const HEAD = 234;
+const ITEMS_END = HEAD + 3 * LINE;
+const QR_TOP = ITEMS_END + 56;
+const ORDER_H = QR_TOP + QR.length * MODULE + 72;
 
 /** The strip's width over one repeat of its print. */
 export const PAPER_ASPECT = W / (ORDER_H * ORDERS.length);
-
-/** A real EAN-13 for an order (871 is the Dutch prefix), as the kiosk prints. */
-function ean(order: string) {
-  const base = `871234${order.padStart(6, "0")}`;
-  const sum = [...base].reduce((s, d, i) => s + Number(d) * (i % 2 ? 3 : 1), 0);
-  return base + ((10 - (sum % 10)) % 10);
-}
 
 /** Text set a little open, centred on x. */
 function tracked(g: CanvasRenderingContext2D, text: string, x: number, y: number, track: number) {
@@ -72,59 +79,55 @@ function dino(g: CanvasRenderingContext2D, x: number, y: number, k: number) {
 }
 
 function rule(g: CanvasRenderingContext2D, y: number) {
-  for (let x = 16; x < W - 16; x += 6.6) g.fillRect(x, y, 3.8, 1.2);
+  for (let x = MARGIN; x < W - MARGIN; x += 7.4) g.fillRect(x, y, 4.2, 1.5);
 }
 
 function row(g: CanvasRenderingContext2D, left: string, right: string, y: number) {
   g.textAlign = "left";
-  g.fillText(left, 16, y);
+  g.fillText(left, MARGIN, y);
   g.textAlign = "right";
-  g.fillText(right, W - 16, y);
+  g.fillText(right, W - MARGIN, y);
   g.textAlign = "left";
 }
 
 function order(g: CanvasRenderingContext2D, top: number, o: (typeof ORDERS)[number], words: ReceiptLabels) {
   g.fillStyle = INK;
   // between two orders, the perforation the cutter follows
-  for (let x = 4; x < W; x += 9) g.fillRect(x, top + 2, 4, 1);
-  dino(g, W / 2 - 30, top + 20, 60 / 64);
+  for (let x = 4; x < W; x += 10) g.fillRect(x, top + 2, 5, 1.2);
+  dino(g, W / 2 - 38, top + 22, 76 / 64);
   g.fillStyle = INK;
   g.textBaseline = "alphabetic";
-  g.font = `700 17px ${MONO}`;
-  tracked(g, "HAPPY HERBIVORE", W / 2, top + 92, 1.4);
-  g.font = `400 10px ${MONO}`;
-  tracked(g, "healthy in a hurry", W / 2, top + 107, 2.2);
-  rule(g, top + 118);
-  g.font = `400 11px ${MONO}`;
-  row(g, `${words.order} #${o.no}`, o.time, top + 138);
-  g.fillText(words.eatIn, 16, top + 154);
-  rule(g, top + 164);
-  let y = top + 184;
+  g.font = `800 26px ${MONO}`;
+  tracked(g, "HAPPY HERBIVORE", W / 2, top + 112, 1.2);
+  g.font = `400 13px ${MONO}`;
+  tracked(g, "healthy in a hurry", W / 2, top + 132, 2.6);
+  rule(g, top + 148);
+  g.font = `500 14px ${MONO}`;
+  row(g, `${words.order} #${o.no}`, o.time, top + 174);
+  g.fillText(words.eatIn, MARGIN, top + 194);
+  rule(g, top + 208);
+  let y = top + HEAD;
   let cents = 0;
-  g.font = `400 10px ${MONO}`;
-  for (const i of o.items) {
+  g.font = `500 12px ${MONO}`;
+  for (const [i, n] of o.items) {
     const item = ITEMS[i];
-    cents += item.cents;
-    row(g, `1x ${item.name}`, euro(item.cents), y);
-    y += 16;
+    cents += item.cents * n;
+    row(g, `${n}x ${item.name}`, euro(item.cents * n), y);
+    y += LINE;
   }
-  rule(g, y - 6);
-  g.font = `700 14px ${MONO}`;
-  row(g, words.total, euro(cents), y + 14);
-  rule(g, y + 24);
-  // the barcode scans: two pixels a module, the guard bars run long
-  const bits = eanModules(ean(o.no));
-  const x0 = (W - bits.length * 2) / 2;
-  const guard = (i: number) => i < 3 || (i >= 45 && i < 50) || i >= 92;
-  [...bits].forEach((b, i) => b === "1" && g.fillRect(x0 + i * 2, y + 40, 2, guard(i) ? 40 : 34));
-  g.font = `400 10px ${MONO}`;
-  const code = ean(o.no);
-  // the first digit outside the bars, a group under each half
-  g.fillText(code[0], x0 - 10, y + 92);
-  tracked(g, code.slice(1, 7), x0 + 48, y + 92, 1.6);
-  tracked(g, code.slice(7), x0 + 142, y + 92, 1.6);
-  g.font = `400 11px ${MONO}`;
-  tracked(g, words.thanks, W / 2, y + 116, 0.6);
+  rule(g, y - 8);
+  g.font = `800 23px ${MONO}`;
+  row(g, words.total, euro(cents), y + 24);
+  rule(g, y + 40);
+  // the code scans: it opens the kiosk
+  const size = QR.length * MODULE;
+  const x0 = Math.round((W - size) / 2);
+  const y0 = top + QR_TOP;
+  QR.forEach((line, r) => line.forEach((dark, c) => dark && g.fillRect(x0 + c * MODULE, y0 + r * MODULE, MODULE, MODULE)));
+  g.font = `500 13px ${MONO}`;
+  tracked(g, LIVE, W / 2, y0 + size + 26, 0.8);
+  g.font = `400 13px ${MONO}`;
+  tracked(g, words.thanks, W / 2, y0 + size + 50, 0.6);
 }
 
 /** Print the strip onto its canvas, in the reader's words. */
