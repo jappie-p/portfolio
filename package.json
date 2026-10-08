@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "cv": "node scripts/cv-pdf.mjs",
-    "voice": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/voice/record.mts"
+    "voice": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/voice/record.mts",
+    "room": "/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup --python scripts/room/room.py -- export && npx -y @gltf-transform/cli@4 meshopt public/room/room.glb public/room/room.glb"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

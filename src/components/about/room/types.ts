@@ -21,9 +21,18 @@ export type Piece = {
   group: THREE.Group;
   pin: THREE.Vector3;
   /** what the camera looks at, and from where (an offset from that point) */
-  view: { target: THREE.Vector3; offset: THREE.Vector3 };
+  view: { target: THREE.Vector3; offset: THREE.Vector3; fov?: number };
   update?: (time: number, dt: number) => void;
 };
 
 /** A prop that is only part of the room: plants, the rug, the shelves. */
 export type Prop = { group: THREE.Group; update?: (time: number, dt: number) => void };
+
+/** The whole room as the canvas uses it: the pieces you can open (each
+ *  with its own tone), everything else, and a way to free it all. */
+export type RoomModel = {
+  pieces: Piece[];
+  props: Prop[];
+  tones: Record<StoryId, Tone>;
+  dispose: () => void;
+};

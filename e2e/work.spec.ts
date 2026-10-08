@@ -1,4 +1,4 @@
-import { test, expect, type Locator } from "@playwright/test";
+import { test, expect, type Locator } from "./test";
 import { topicPanelCount } from "../src/lib/chapters";
 
 /** Wait until a topic row has finished its smooth scroll and sits flush at the top. */

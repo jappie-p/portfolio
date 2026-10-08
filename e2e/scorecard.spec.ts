@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "./test";
 
 // The school's "Validatie formulier" for the portfolio, line by line, checked
 // against the live page. Each test names the form line it proves.

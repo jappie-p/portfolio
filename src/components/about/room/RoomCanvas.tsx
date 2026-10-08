@@ -16,15 +16,16 @@ import {
 import {
   Bloom,
   EffectComposer,
-  N8AO,
   SMAA,
   ToneMapping,
 } from "@react-three/postprocessing";
 import { ToneMappingMode } from "postprocessing";
+import { fitDistance, orbit } from "./fit";
 import { OVERVIEW } from "./layout";
-import { makeRoom } from "./pieces";
+import { loadRoom } from "./baked";
+import { LookEffect } from "./look";
 import { kindOf, numberOf } from "./stories";
-import type { Kind, StoryId } from "./types";
+import type { Kind, RoomModel, StoryId } from "./types";
 import r from "./room.module.css";
 
 const MIN_DPR = 1;
@@ -59,41 +60,45 @@ function pieceOf(o: THREE.Object3D | null): StoryId | null {
 
 const damp = (dt: number, rate: number) => 1 - Math.exp(-dt * rate);
 
-/** The overview's camera position for a look at `target` from a direction. */
-function orbit(
-  target: THREE.Vector3,
-  azimuth: number,
-  elevation: number,
-  distance: number,
-  out: THREE.Vector3,
-) {
-  return out
-    .set(
-      Math.sin(azimuth) * Math.cos(elevation),
-      Math.sin(elevation),
-      Math.cos(azimuth) * Math.cos(elevation),
-    )
-    .multiplyScalar(distance)
-    .add(target);
+type RoomProps = Omit<RoomCanvasProps, "active">;
+
+/** The baked room, once it has loaded (scripts/room bakes it). */
+function Room(props: RoomProps) {
+  const gl = useThree((s) => s.gl);
+  const [room, setRoom] = useState<RoomModel | null>(null);
+  useEffect(() => {
+    const ac = new AbortController();
+    let model: RoomModel | null = null;
+    loadRoom(gl, ac.signal)
+      .then((m) => {
+        if (ac.signal.aborted) return m.dispose();
+        model = m;
+        setRoom(m);
+      })
+      .catch((e) => {
+        if (!ac.signal.aborted) console.error(e);
+      });
+    return () => {
+      ac.abort();
+      model?.dispose();
+    };
+  }, [gl]);
+  return room ? <RoomScene room={room} {...props} /> : null;
 }
 
-function Room({
+function RoomScene({
+  room,
   still,
   filter,
   selected,
   onSelect,
   labels,
   onReady,
-}: Omit<RoomCanvasProps, "active">) {
+}: RoomProps & { room: RoomModel }) {
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const size = useThree((s) => s.size);
-  const room = useMemo(
-    () => makeRoom(Math.min(8, gl.capabilities.getMaxAnisotropy())),
-    [gl],
-  );
-  useEffect(() => () => room.dispose(), [room]);
   useEffect(
     () => room.pieces.forEach((p) => (p.group.userData.story = p.id)),
     [room],
@@ -111,11 +116,7 @@ function Room({
     gl.compileAsync(scene, camera)
       .catch(() => {})
       .then(() => {
-        if (!live) return;
-        // nothing in the room moves but the camera: its shadows are drawn once
-        gl.shadowMap.autoUpdate = false;
-        gl.shadowMap.needsUpdate = true;
-        setShown(true);
+        if (live) setShown(true);
       });
     r.visible = false;
     return () => {
@@ -123,32 +124,6 @@ function Room({
     };
   }, [gl, scene, camera, room]);
   const [hover, setHover] = useState<StoryId | null>(null);
-
-  // the key light from the front left, high, and the sun through the window
-  const lights = useMemo(() => {
-    const key = new THREE.DirectionalLight("#fff0de", 2.1);
-    key.position.set(-3.2, 8, 7.5);
-    key.target.position.set(2.6, 0.6, 1.8);
-    const sun = new THREE.DirectionalLight("#ffdcae", 4.2);
-    sun.position.set(2.2, 6.5, -6);
-    sun.target.position.set(3.3, 0, 2.6);
-    for (const l of [key, sun]) {
-      l.castShadow = true;
-      l.shadow.mapSize.set(2048, 2048);
-      l.shadow.bias = -0.0004;
-      l.shadow.normalBias = 0.02;
-      l.shadow.radius = l === sun ? 4 : 9;
-      l.shadow.blurSamples = 16;
-      const c = l.shadow.camera;
-      c.left = -5.5;
-      c.right = 5.5;
-      c.top = 5.5;
-      c.bottom = -5.5;
-      c.near = 1;
-      c.far = 22;
-    }
-    return { key, sun };
-  }, []);
 
   const look = useRef(new THREE.Vector3(...OVERVIEW.target));
   const goal = useMemo(
@@ -159,6 +134,15 @@ function Room({
     }),
     [],
   );
+  // how far back the overview stands: the whole room between the copy, the
+  // header and the filter (on a narrow screen, across the width under the copy)
+  const distance = useMemo(() => {
+    const aspect = size.width / Math.max(size.height, 1);
+    const h = Math.max(size.height, 1);
+    return aspect < 1.1
+      ? fitDistance(aspect, { left: -1.02, right: 1.02, bottom: -0.98, top: 0.42 }, { x: 0, y: -NARROW_DOWN })
+      : fitDistance(aspect, { left: -0.38, right: 0.96, bottom: -1 + 210 / h, top: 1 - 170 / h }, { x: SHIFT, y: 0 });
+  }, [size.width, size.height]);
   const ready = useRef(0);
   const lens = useRef(-SHIFT);
   const lensY = useRef(0);
@@ -168,14 +152,6 @@ function Room({
     const dt = Math.min(delta, 1 / 20);
     const time = state.clock.elapsedTime;
     const aspect = size.width / Math.max(size.height, 1);
-    // the whole room in view: far enough back for its width at this shape
-    const t = Math.tan((OVERVIEW.fov * Math.PI) / 360);
-    // (a narrow view crops the room's empty front corners a little closer)
-    const half = aspect < 1.1 ? 3.85 : 4.5;
-    const distance = Math.max(
-      aspect < 1.1 ? 0 : OVERVIEW.distance,
-      half / (t * Math.min(aspect, 1.3)),
-    );
     const open = selected
       ? room.pieces.find((p) => p.id === selected)
       : undefined;
@@ -217,7 +193,9 @@ function Room({
     camera.position.lerp(goal.pos, k);
     look.current.lerp(goal.look, k);
     camera.lookAt(look.current);
-    camera.fov = OVERVIEW.fov;
+    // an opened piece may ask for its own lens; the change eases in with the move
+    const fov = open?.view.fov ?? OVERVIEW.fov;
+    camera.fov += (fov - camera.fov) * k;
     camera.updateProjectionMatrix();
     // on a wide panel the room stands right of the copy: shift the lens, not
     // the camera, so the room keeps its angle (none once a story is open)
@@ -268,11 +246,8 @@ function Room({
 
   return (
     <>
-      <hemisphereLight args={["#fff3e2", "#6b4f35", 0.5]} />
-      <primitive object={lights.key} />
-      <primitive object={lights.key.target} />
-      <primitive object={lights.sun} />
-      <primitive object={lights.sun.target} />
+      {/* the light is baked into the room; the environment is only what
+          its glossy parts and glass reflect */}
       <Environment resolution={256} frames={1} environmentIntensity={0.55}>
         {/* a warm ceiling, the window's daylight, and a soft fill from the front */}
         <Lightformer
@@ -359,22 +334,23 @@ function Room({
 }
 
 /**
- * My room as a live diorama: oak, plaster and plants in a warm morning
- * light, soft shadows, a little ambient occlusion where things meet, a
- * glow on what gives off light of its own. Every piece with a story has a
+ * My room as a live diorama: modelled and lit in Blender, its light (sun,
+ * bounce, soft shadows) baked into its textures, so it looks rendered and
+ * runs light; a glow on what gives off light of its own. Every piece with a story has a
  * pin; pointing at a piece lights it up, opening it moves the camera in.
  */
 export function RoomCanvas({ active, ...room }: RoomCanvasProps) {
   const [screen] = useState(() => window.devicePixelRatio || 1);
   const maxDpr = Math.max(MIN_DPR, Math.min(screen, 1.5));
   const [dpr, setDpr] = useState(maxDpr);
+  const grade = useMemo(() => new LookEffect(), []);
+  useEffect(() => () => grade.dispose(), [grade]);
   return (
     <Canvas
       className={r.canvas}
       frameloop={room.still ? "demand" : active ? "always" : "never"}
       dpr={dpr}
       flat
-      shadows="variance"
       gl={{
         antialias: false,
         alpha: true,
@@ -396,21 +372,15 @@ export function RoomCanvas({ active, ...room }: RoomCanvasProps) {
       )}
       <Room {...room} />
       <EffectComposer multisampling={0} enableNormalPass={false}>
-        <N8AO
-          halfRes
-          aoRadius={0.55}
-          distanceFalloff={0.7}
-          intensity={2.4}
-          quality="performance"
-          color="#2a1c10"
-        />
         <Bloom
           mipmapBlur
           luminanceThreshold={1}
           luminanceSmoothing={0.2}
           intensity={0.55}
         />
-        <ToneMapping mode={ToneMappingMode.NEUTRAL} />
+        {/* AgX with its Medium High Contrast look, as Blender rendered the bake */}
+        <primitive object={grade} />
+        <ToneMapping mode={ToneMappingMode.AGX} />
         <SMAA />
       </EffectComposer>
     </Canvas>

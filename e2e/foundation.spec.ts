@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./test";
 
 test("defaults to Dutch and persists an English toggle", async ({ page }) => {
   await page.goto("/experience");

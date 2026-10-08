@@ -1,38 +1,15 @@
-import type { StoryId } from "./types";
+/** Where the camera looks from to see the whole room, and what it looks at
+ *  (scripts/room/space.py holds the same numbers); how far back it stands
+ *  is fitted to the screen (fit.ts). */
+export const OVERVIEW = { target: [2.9, 1.15, 1.6] as const, azimuth: -0.52, elevation: 0.36, fov: 24 };
 
-/**
- * The room, in metres: x along the back wall from its left end, y up from
- * the floor, z out from the back wall toward you. Two walls stand, the back
- * one and the right one; the room is cut open at the front and the left, a
- * diorama on its own slab.
- */
-export const ROOM = {
-  /** along the back wall, into the room from it, floor to the walls' top */
-  w: 5.2,
-  d: 4.0,
-  h: 2.9,
-  /** how thick the walls and the slab under the floor are */
-  wall: 0.14,
-  slab: 0.22,
-  /** the window in the back wall: left, right, sill, head */
-  window: { x0: 2.8, x1: 4.2, y0: 1.5, y1: 2.55 },
-} as const;
-
-/** Where each piece stands: position, and its turn about y (radians). */
-export const PLACES: Record<StoryId, { at: [number, number, number]; turn: number }> = {
-  // the desk against the back wall at the left, the chair before it
-  werk: { at: [1.55, 0, 0.42], turn: 0 },
-  // the medal board on the back wall over the desk
-  groei: { at: [1.4, 1.95, 0.02], turn: 0 },
-  // the homelab rack against the back wall under the window
-  homelab: { at: [3.55, 0, 0.4], turn: 0 },
-  // on the right wall: the mountain bike hung up high, the road bike on the
-  // floor below it, the helmet on the rack, the board in the front corner
-  mountainbiken: { at: [ROOM.w - 0.22, 1.25, 1.75], turn: -Math.PI / 2 },
-  wielrennen: { at: [ROOM.w - 0.3, 0, 1.55], turn: -Math.PI / 2 },
-  motorrijden: { at: [3.7, 1.27, 0.42], turn: -0.5 },
-  windsurfen: { at: [ROOM.w - 0.38, 0, 3.15], turn: -Math.PI / 2 },
-};
-
-/** Where the camera stands back to see the whole room, and what it looks at. */
-export const OVERVIEW = { target: [2.6, 1.15, 1.8] as const, azimuth: -0.6, elevation: 0.48, distance: 13.5, fov: 26 };
+/** The room's outline, the points the overview must keep on screen
+ *  (scripts/room): the slab's corners under its stepped front edge, and the
+ *  tops of the two walls, low at the back wall's left end and at the right
+ *  wall's front end. */
+export const HULL: readonly (readonly [number, number, number])[] = [
+  [0, -0.22, -0.12], [5.72, -0.22, -0.12], [5.72, -0.22, 3.35], [3.95, -0.22, 3.35], [3.5, -0.22, 2.95], [0, -0.22, 2.95],
+  [0, 0, 2.95], [3.5, 0, 2.95], [3.95, 0, 3.35], [5.72, 0, 3.35],
+  [0, 2.35, -0.12], [0, 2.35, 0], [0.9, 2.9, -0.12], [5.72, 2.9, -0.12],
+  [5.6, 2.9, 0], [5.72, 2.9, 3.1], [5.72, 2.45, 3.35], [5.6, 2.45, 3.35],
+];

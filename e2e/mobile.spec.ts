@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./test";
 
 // Phone-sized WebKit (see playwright.config.ts): the menu sheet replaces the
 // top nav, nothing scrolls sideways by accident, and the key flows still work.

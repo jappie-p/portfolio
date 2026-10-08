@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, mute } from "./test";
 import { gotoCyber, renderer, SOFTWARE } from "./cyber-helpers";
 
 // Installed Chrome runs headless on the GPU; Playwright's headless shell does not.
@@ -38,6 +38,7 @@ test("cyber scene renders live WebGL and plays its chapters sideways", async ({ 
 
 test("reduced motion still renders the scene, one frame per chapter", async ({ browser }) => {
   const ctx = await browser.newContext({ reducedMotion: "reduce" });
+  await mute(ctx);
   const page = await ctx.newPage();
   await page.goto("/experience");
   await gotoCyber(page);

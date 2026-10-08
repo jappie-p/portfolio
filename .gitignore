@@ -48,3 +48,7 @@ playwright-report/
 .data/
 # unused assets kept locally, out of the repo and out of public/
 .archive/
+
+# Poly Haven downloads and Blender working files for the About room (scripts/room)
+.room-cache/
+__pycache__/

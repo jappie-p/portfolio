@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "./test";
 import AxeBuilder from "@axe-core/playwright";
 
 // WCAG 2.1 A and AA, checked with axe on the whole page (every topic is in the

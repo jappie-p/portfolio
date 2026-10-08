@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./test";
 import { gotoCyber, renderer, SOFTWARE } from "./cyber-helpers";
 
 // Playwright's headless shell renders WebGL in software (SwiftShader).

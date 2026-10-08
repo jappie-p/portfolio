@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./test";
 
 // The endpoint allows a few messages per visitor per ten minutes; give every
 // run its own visitor so repeated runs don't trip the limit.

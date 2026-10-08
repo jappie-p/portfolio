@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "./test";
 import { renderer, SOFTWARE } from "./cyber-helpers";
 
 // The School gallery's guided way between its projects needs the live
