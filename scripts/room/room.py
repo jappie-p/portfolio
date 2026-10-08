@@ -30,7 +30,7 @@ import light  # noqa: E402
 from kit import Kit  # noqa: E402
 from space import OVERVIEW, T, orbit  # noqa: E402
 
-STORIES = ["werk", "homelab", "windsurfen", "mountainbiken", "wielrennen", "motorrijden", "groei"]
+STORIES = ["werk", "homelab", "windsurfen", "mountainbiken", "wielrennen", "motorrijden", "groei", "skien", "gamen"]
 
 
 def modules():

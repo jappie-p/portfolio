@@ -1,35 +1,38 @@
-"""The two walls (bible 2.1, 2.2, 2.4 to 2.6, 2.9): stepped plaster walls
-with the window openings cut in, rounded tops and a soft front corner, two
-black clerestory windows looking out on trees, skirting and sockets.
+"""The two walls (bible 2.1, 2.2, 2.4 to 2.6, 2.9): stepped plaster walls,
+rounded tops and a soft front corner, the black clerestory window over the
+desk looking out on trees, skirting and sockets. The right wall has no
+window: it is the gear wall (sail, skis, motor suit).
 
 Each wall is built in its own (u along, v up, w into the wall) space and
 mapped into the room by `site`; every edge gets its own bevel weight."""
 
 import bmesh
 
-from space import T
+from space import ROOM, T
 
 from decor import _a_tex as tx
 from decor._a_trees import draw as draw_trees
 from decor._a_util import rbox
 
-THICK = 0.12
+W, D, H = ROOM["w"], ROOM["d"], ROOM["h"]
+THICK = ROOM["wall"]
 WIN_V = (2.15, 2.75)
+STEP = 2.45  # the low ends: the back wall's left end, the right wall's front end
 BACK = {
-    "us": [0.0, 0.9, 1.15, 2.55, 5.6, 5.72],
-    "vs": [0.0, 2.15, 2.35, 2.75, 2.9],
-    "height": lambda u: 2.35 if u < 0.9 else 2.9,
+    "us": [0.0, 0.9, 1.15, 2.55, W, W + THICK],
+    "vs": [0.0, 2.15, 2.35, 2.75, H],
+    "height": lambda u: 2.35 if u < 0.9 else H,
     "window": (1.15, 2.55, 1.85),
     "site": lambda u, v, w: (u, v, -w),
     "end": 0.0,
 }
 RIGHT = {
-    "us": [0.0, 0.55, 1.95, 3.1, 3.35],
-    "vs": [0.0, 2.15, 2.45, 2.75, 2.9],
-    "height": lambda u: 2.9 if u < 3.1 else 2.45,
-    "window": (0.55, 1.95, 1.25),
-    "site": lambda u, v, w: (5.6 + w, v, u),
-    "end": 3.35,
+    "us": [0.0, D - 0.25, D],
+    "vs": [0.0, STEP, H],
+    "height": lambda u: H if u < D - 0.25 else STEP,
+    "window": None,
+    "site": lambda u, v, w: (W + w, v, u),
+    "end": D,
 }
 WIDTH = 0.08
 
@@ -62,6 +65,8 @@ def plaster(k):
 
 
 def _in_window(spec, u, v):
+    if not spec["window"]:
+        return False
     u0, u1, _ = spec["window"]
     return u0 < u < u1 and WIN_V[0] < v < WIN_V[1]
 
@@ -73,10 +78,10 @@ def _weight(spec, a, b, sharp):
     (ua, va, wa), (ub, vb, wb) = a, b
     if not sharp or max(va, vb) < 1e-3:
         return 0.0
-    if (spec is BACK and min(ua, ub) > 5.6 - 1e-4) or (spec is RIGHT and max(ua, ub) < 1e-4):
+    if (spec is BACK and min(ua, ub) > W - 1e-4) or (spec is RIGHT and max(ua, ub) < 1e-4):
         return 0.0
-    u0, u1, _ = spec["window"]
-    if u0 - 1e-4 <= min(ua, ub) and max(ua, ub) <= u1 + 1e-4 and WIN_V[0] - 1e-4 <= min(va, vb) and max(va, vb) <= WIN_V[1] + 1e-4:
+    win = spec["window"]
+    if win and win[0] - 1e-4 <= min(ua, ub) and max(ua, ub) <= win[1] + 1e-4 and WIN_V[0] - 1e-4 <= min(va, vb) and max(va, vb) <= WIN_V[1] + 1e-4:
         return 0.004 / WIDTH
     end = spec["end"]
     if abs(ua - end) < 1e-4 and abs(ub - end) < 1e-4 and min(va, vb) < 2.3:
@@ -130,7 +135,7 @@ def _wall_space(spec, co):
     x, y, z = co.x, co.z, -co.y
     if spec is BACK:
         return (x, y, -z)
-    return (z, y, x - 5.6)
+    return (z, y, x - W)
 
 
 def _box(bm, site, u0, u1, v0, v1, w0, w1):
@@ -169,10 +174,9 @@ def backdrop(k, name, spec, segs=16):
     """A curved band of tree canopy outside the window, glowing like daylight
     (emission 1.5), not casting shadows. Its foot stands 0.5 to 0.65 m out,
     its top leans in against the wall just under the wall top, so no camera
-    above the room sees it over the wall; on the right wall it runs well
-    back past the window, where the site's camera looks out through it."""
+    above the room sees it over the wall."""
     u0, u1, _ = spec["window"]
-    a, b = u0 - (0.15 if spec is BACK else 0.6), u1 + 0.45
+    a, b = u0 - 0.15, u1 + 0.45
     v0, v1 = 1.45, spec["vs"][-1] - 0.04
     site = spec["site"]
     bm = bmesh.new()
@@ -182,14 +186,14 @@ def backdrop(k, name, spec, segs=16):
         t = i / segs
         u = a + (b - a) * t
         # out to 0.65 m and back, but tucked in against the wall at the
-        # back window's left end, where the low wall would show it
-        reach = min(1.0, t / 0.3) if spec is BACK else 1.0
+        # left end, where the low wall would show it
+        reach = min(1.0, t / 0.3)
         w = THICK + 0.02 + (0.5 + 0.15 * (1 - (2 * t - 1) ** 2)) * (3 * reach**2 - 2 * reach**3)
         cols.append((bm.verts.new(T(*site(u, v0, w))), bm.verts.new(T(*site(u, v1, THICK + 0.005))), t))
     for (a0, a1, ta), (b0, b1, tb) in zip(cols, cols[1:]):
         face = bm.faces.new((a0, b0, b1, a1))
         for loop, co in zip(face.loops, ((ta, 0), (tb, 0), (tb, 1), (ta, 1))):
-            loop[uv].uv = co if spec is BACK else (1 - co[0], co[1])
+            loop[uv].uv = co
     obj = k._mesh_obj(name, bm)
     k.finish(obj, k.image_mat("a_outside", draw_trees(), rough=1.0, emission=1.5))
     obj.visible_shadow = False
@@ -199,8 +203,8 @@ def backdrop(k, name, spec, segs=16):
 def skirting(k):
     """0.09 high, 0.014 proud, chamfered top, a 2 mm shadow gap to the floor."""
     m = k.mat("a_skirting", "#f1ebe0", 0.5)
-    k.box("skirting_back", (5.6, 0.09, 0.014), (2.8, 0.047, 0.007), m, bevel=0.004)
-    k.box("skirting_right", (0.014, 0.09, 3.25), (5.593, 0.047, 1.625), m, bevel=0.004)
+    k.box("skirting_back", (W, 0.09, 0.014), (W / 2, 0.047, 0.007), m, bevel=0.004)
+    k.box("skirting_right", (0.014, 0.09, D - 0.1), (W - 0.007, 0.047, (D - 0.1) / 2), m, bevel=0.004)
 
 
 def socket(k, name, at, facing):
@@ -220,7 +224,6 @@ def build_walls(k):
     wall(k, "wall_back", BACK)
     wall(k, "wall_right", RIGHT)
     window(k, "window_back", BACK)
-    window(k, "window_right", RIGHT)
     skirting(k)
     socket(k, "socket_back", (0.45, 0.32, 0.005), "z")
-    socket(k, "socket_right", (5.595, 0.32, 0.9), "-x")
+    socket(k, "socket_right", (W - 0.005, 0.32, 0.9), "-x")

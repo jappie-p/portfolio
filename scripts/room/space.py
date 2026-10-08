@@ -10,13 +10,13 @@ from math import cos, sin
 
 from mathutils import Vector
 
-ROOM = {"w": 5.6, "d": 3.35, "h": 2.9, "wall": 0.12, "slab": 0.22}
+ROOM = {"w": 8.0, "d": 4.4, "h": 3.0, "wall": 0.12, "slab": 0.22}
 
 # Where the camera stands back to see the whole room, and what it looks at
 # (the same angles and target as OVERVIEW in layout.ts; the site fits the
 # distance to the screen, the previews use this one): lower and closer than
 # a plain isometric view, as in the design.
-OVERVIEW = {"target": (2.9, 1.15, 1.6), "azimuth": -0.52, "elevation": 0.36, "distance": 12.0, "fov": 24.0}
+OVERVIEW = {"target": (4.15, 1.2, 2.1), "azimuth": -0.52, "elevation": 0.36, "distance": 16.5, "fov": 24.0}
 
 
 def T(x, y, z):

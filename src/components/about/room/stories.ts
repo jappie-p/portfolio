@@ -9,6 +9,8 @@ export const STORIES: { id: StoryId; kind: Kind }[] = [
   { id: "wielrennen", kind: "buiten" },
   { id: "motorrijden", kind: "buiten" },
   { id: "groei", kind: "groei" },
+  { id: "skien", kind: "buiten" },
+  { id: "gamen", kind: "groei" },
 ];
 
 export const kindOf = (id: StoryId) => STORIES.find((s) => s.id === id)?.kind ?? "bouwen";

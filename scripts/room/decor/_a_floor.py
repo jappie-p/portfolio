@@ -1,5 +1,5 @@
 """The slab and its oak floor (bible 2.3, 2.7). The slab's front edge steps
-forward through an S of two quarter ellipses between x 3.5 and 3.95; the planks
+forward through an S of two quarter ellipses between x 5.0 and 5.5; the planks
 are real boards with V-grooves, clipped to that edge 0.012 short of it so
 a dark lip shows, each with its own random value for grain and tone."""
 
@@ -8,12 +8,13 @@ import random
 
 import bmesh
 
-from space import T
+from space import ROOM, T
 
 from decor import _a_tex as tx
 from decor._a_util import prism
 
-FRONT_L, FRONT_R, S0, S1 = 2.95, 3.35, 3.5, 3.95
+W = ROOM["w"]
+FRONT_L, FRONT_R, S0, S1 = ROOM["d"] - 0.5, ROOM["d"], 5.0, 5.5
 R, RZ = (S1 - S0) / 2, (FRONT_R - FRONT_L) / 2
 LIP = 0.012
 PLANK_W = 0.14
@@ -39,7 +40,7 @@ def _arc(cx, cz, r, a0, a1, n=10, rz=None):
 
 def outline(wall=0.12, corner=0.08):
     """The slab seen from above, (x, z) points, walls' footprint included."""
-    xw, mid = 5.6 + wall, (FRONT_L + FRONT_R) / 2
+    xw, mid = W + wall, (FRONT_L + FRONT_R) / 2
     pts = [(0.0, -wall), (xw, -wall)]
     pts += _arc(xw - corner, FRONT_R - corner, corner, 0, 90, 6)
     pts += _arc(S1, mid, R, 90, 180, 10, RZ)
@@ -88,7 +89,7 @@ def _clip(xa, xb, z0, z1):
 
 def plank_outlines(seed=11):
     rng = random.Random(seed)
-    x0, x1 = LIP, 5.6
+    x0, x1 = LIP, W
     z0 = 0.0
     out = []
     while z0 < FRONT_R - LIP:

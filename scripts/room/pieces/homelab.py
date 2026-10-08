@@ -205,5 +205,5 @@ def build(k):
         loom(k)
         glow(k)
         on_top(k)
-        k.pin("homelab", (4.3, 0.95, 0.75))
-        k.view("homelab", (4.62, 0.85, 0.45), (-1.4, 0.7, 1.9), fov=30)
+        k.pin("homelab", (4.62, 1.5, 0.75))
+        k.view("homelab", (4.55, 1.0, 0.45), (-1.7, 0.6, 2.4), fov=30)

@@ -52,12 +52,12 @@ def setup():
     sun.rotation_euler = d.to_track_quat("-Z", "Y").to_euler()
     # a faint warm fill from the open front, so the room's front never goes
     # black where neither window reaches
-    fill = _light("fill", "AREA", (1.0, 3.6, 8.0), 70, (1.0, 0.84, 0.66), shape="RECTANGLE", size=7, size_y=4)
-    aim(fill, (2.8, 0.9, 1.6))
+    fill = _light("fill", "AREA", (1.6, 4.4, 10.6), 125, (1.0, 0.84, 0.66), shape="RECTANGLE", size=10, size_y=5)
+    aim(fill, (4.0, 0.9, 2.1))
     # the sun leaves the right wall in its own shadow: a warm bounce, as off
-    # the sunlit floor, lifts it so the board and the sail read
-    bounce = _light("bounce", "AREA", (3.2, 1.4, 2.6), 80, (1.0, 0.76, 0.5), shape="RECTANGLE", size=1.6, size_y=1.6)
-    aim(bounce, (5.6, 1.3, 2.3))
+    # the sunlit floor, lifts the gear wall (sail, skis, suit) so it reads
+    bounce = _light("bounce", "AREA", (4.8, 1.5, 3.1), 140, (1.0, 0.76, 0.5), shape="RECTANGLE", size=2.4, size_y=1.8)
+    aim(bounce, (8.0, 1.5, 2.2))
 
 
 # The room's own lights (the lamp, the shelf strips, the rack, the candle)

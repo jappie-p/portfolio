@@ -3,6 +3,8 @@ calathea at the front left, and the cable run under the desk: a power
 strip by the wall with the leads of the lamp, the screens, the LED strip
 and the tray running to it."""
 
+import math
+
 import bmesh
 from mathutils import Vector, noise
 
@@ -11,24 +13,23 @@ from space import T
 from decor import _a_tex as tx
 from decor._a_util import lathe, ph, rbox, tube
 
-RUG_C, RUG_W, RUG_D = (3.0, 2.12), 1.8, 1.2
+RUG_C, RUG_W, RUG_D, RUG_YAW = (2.65, 2.05), 2.1, 1.45, -9
 RUG_Y = 0.012
 CELL = 0.025
 
 
-def rug_material(k):
+def rug_material(k, name="a_rug", dark="#3a2d25", light="#8a725f"):
     """Chunky taupe-brown knit: 3 cm loops from a Voronoi in rows from a
     wave (sized to read from across the room and to survive the bake),
     fibres from fine noise, darker valleys and lighter loop tops, a slow
     tonal drift; roughness 1."""
-    name = "a_rug"
     if name in k.mats:
         return k.mats[name]
     m, nt, p = tx.new_mat(name)
     p.inputs["Roughness"].default_value = 1.0
     p.inputs["Sheen Weight"].default_value = 0.25
     p.inputs["Sheen Roughness"].default_value = 0.5
-    p.inputs["Sheen Tint"].default_value = tx.hex_rgb("#8a776a")
+    p.inputs["Sheen Tint"].default_value = tx.hex_rgb(light)
     tc = nt.nodes.new("ShaderNodeTexCoord")
     knots = tx.node(nt, "ShaderNodeTexVoronoi", Scale=32.0, Randomness=0.55)
     knots.feature = "SMOOTH_F1"
@@ -50,8 +51,8 @@ def rug_material(k):
     tx.link(nt, both.outputs[0], bump.inputs["Height"])
     tx.link(nt, bump.outputs["Normal"], p.inputs["Normal"])
     ramp = nt.nodes.new("ShaderNodeValToRGB")
-    ramp.color_ramp.elements[0].color = tx.hex_rgb("#3a2d25")
-    ramp.color_ramp.elements[1].color = tx.hex_rgb("#8a725f")
+    ramp.color_ramp.elements[0].color = tx.hex_rgb(dark)
+    ramp.color_ramp.elements[1].color = tx.hex_rgb(light)
     shade = tx.node(nt, "ShaderNodeMath")
     shade.operation = "MULTIPLY_ADD"
     tx.link(nt, both.outputs[0], shade.inputs[0])
@@ -66,12 +67,15 @@ def rug_material(k):
     return m
 
 
-def _rug_point(u, v):
-    """A rug point for u, v in [0, 1]: ragged outline, lumpy pile, curled edges."""
-    cx, cz = RUG_C
-    x = cx - RUG_W / 2 + u * RUG_W
-    z = cz - RUG_D / 2 + v * RUG_D
-    edge = min(u * RUG_W, (1 - u) * RUG_W, v * RUG_D, (1 - v) * RUG_D)
+def _rug_point(u, v, c, w, d, yaw):
+    """A rug point for u, v in [0, 1]: ragged outline, lumpy pile, curled
+    edges, the whole rug turned `yaw` degrees about its centre."""
+    cx, cz = c
+    lx, lz = (u - 0.5) * w, (v - 0.5) * d
+    a = math.radians(yaw)
+    x = cx + lx * math.cos(a) + lz * math.sin(a)
+    z = cz - lx * math.sin(a) + lz * math.cos(a)
+    edge = min(u * w, (1 - u) * w, v * d, (1 - v) * d)
     if edge < 1e-6:
         x += 0.01 * noise.noise(Vector((x * 3.0, z * 3.0, 4.2)))
         z += 0.01 * noise.noise(Vector((x * 3.0, z * 3.0, 7.9)))
@@ -80,10 +84,10 @@ def _rug_point(u, v):
     return x, RUG_Y + lump + curl, z
 
 
-def rug(k):
-    nu, nv = int(RUG_W / CELL), int(RUG_D / CELL)
+def rug(k, name="rug", c=RUG_C, w=RUG_W, d=RUG_D, yaw=RUG_YAW, material=None):
+    nu, nv = int(w / CELL), int(d / CELL)
     bm = bmesh.new()
-    grid = [[bm.verts.new(T(*_rug_point(i / nu, j / nv))) for j in range(nv + 1)] for i in range(nu + 1)]
+    grid = [[bm.verts.new(T(*_rug_point(i / nu, j / nv, c, w, d, yaw))) for j in range(nv + 1)] for i in range(nu + 1)]
     for i in range(nu):
         for j in range(nv):
             bm.faces.new((grid[i][j], grid[i][j + 1], grid[i + 1][j + 1], grid[i + 1][j]))
@@ -93,17 +97,17 @@ def rug(k):
     for v in down:
         v.co.z = 0.0005
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    obj = k._mesh_obj("rug", bm)
-    return k.finish(obj, rug_material(k))
+    obj = k._mesh_obj(name, bm)
+    return k.finish(obj, material or rug_material(k))
 
 
 def calathea(k):
     terracotta = k.mat("a_terracotta", "#b86b4b", 0.85, noise=50.0, mottle=0.12)
     soil = k.mat("a_soil", "#3a2c22", 1.0, noise=120.0, mottle=0.3, bump=0.3, bump_scale=300.0)
     prof = [(0, 0), (0.095, 0), (0.1, 0.006), (0.12, 0.17), (0.128, 0.175), (0.128, 0.195), (0.118, 0.198), (0.113, 0.17), (0, 0.17)]
-    lathe(k, "calathea_pot", prof, (0.9, 0, 2.3), terracotta, segments=36)
-    k.cylinder("calathea_soil", 0.112, 0.004, (0.9, 0.172, 2.3), soil, bevel=0.0, verts=32)
-    ph(k, "calathea_orbifolia_01", (0.9, 0.165, 2.3), (0, 40, 0), height=0.4, pick="_a", ratio=0.7)
+    lathe(k, "calathea_pot", prof, (0.62, 0, 2.3), terracotta, segments=36)
+    k.cylinder("calathea_soil", 0.112, 0.004, (0.62, 0.172, 2.3), soil, bevel=0.0, verts=32)
+    ph(k, "calathea_orbifolia_01", (0.62, 0.165, 2.3), (0, 40, 0), height=0.4, pick="_a", ratio=0.7)
 
 
 def cables(k):

@@ -1,7 +1,7 @@
 import type * as THREE from "three";
 
 /** The things in my room that tell a story when you open them. */
-export type StoryId = "werk" | "homelab" | "groei" | "windsurfen" | "mountainbiken" | "wielrennen" | "motorrijden";
+export type StoryId = "werk" | "homelab" | "groei" | "windsurfen" | "mountainbiken" | "wielrennen" | "motorrijden" | "skien" | "gamen";
 
 /** What a story is about, for the filter under the room. */
 export type Kind = "bouwen" | "buiten" | "groei";

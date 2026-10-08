@@ -4,6 +4,8 @@ and the black cases at the desk's foot."""
 
 from decor._a_cases import build_cases
 from decor._a_util import lathe, ph, rbox
+from decor._b_books import stack
+from decor._b_util import asset
 
 
 def concrete(k):
@@ -31,4 +33,6 @@ def build(k):
         pot(k, "pachira_pot", (0.18, 0, 1.25), 0.115, 0.14, 0.3, ribs=24)
         ph(k, "pachira_aquatica_01", (0.18, 0.26, 1.25), (0, -30, 0), height=0.84, pick="_c", ratio=0.45)
         rbox(k, "plinth", (0.38, 0.12, 0.22), (0.2, 0.06, 1.75), k.wood("a_plinth_wood", "#5a4d44", 0.7, scale=10, streak=0.3), radius=0.006, segments=2)
+        top = stack(k, "plinth_book", 0.2, 0.12, 1.75, [(0.26, 0.032, 0.18, "#2b2b2b"), (0.22, 0.026, 0.15, "#c9b48c")], seed=8)
+        asset(k, "potted_plant_04", (0.2, top, 1.75), rot=-20, height=0.2, ratio=0.3)
         build_cases(k)

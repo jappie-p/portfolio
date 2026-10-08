@@ -146,7 +146,7 @@ def contents(k):
 
 def cabinet(k):
     """The small black two-drawer cabinet at the unit's foot, with an oak
-    top and two spare drives on it."""
+    top (the console stands on it, see pieces/gamen.py)."""
     x, z = 4.1, 0.51
     w, h, d = 0.4, 0.75, 0.4
     body = matte(k, "#232323", 0.55)
@@ -162,11 +162,6 @@ def cabinet(k):
         k.box(f"cabinet_pull{i}", (0.12, 0.018, 0.006), (x, cy + dh / 2 - 0.04, front + 0.015), matte(k, "#0c0c0c", 0.8), bevel=0.003)
         k.box(f"cabinet_label{i}", (0.03, 0.02, 0.0008), (x + 0.12, cy + dh / 2 - 0.04, front + 0.0175), k.mat("b_label", "#f4f1ea", 0.7), bevel=0.0)
     k.box("cabinet_top", (w + 0.01, 0.02, d + 0.01), (x, h + 0.01, z), oak(k), bevel=0.003)
-    silver = k.mat("b_drive", "#b9bbbd", 0.35, metal=1.0)
-    for i in range(2):
-        yy = h + 0.02 + 0.013 + i * 0.026
-        k.box(f"spare_drive{i}", (0.147, 0.026, 0.102), (x - 0.04 + i * 0.01, yy, z + 0.06 - i * 0.01), silver, bevel=0.002, rot=(0, 8 - i * 14, 0))
-        k.box(f"spare_drive{i}_label", (0.09, 0.0005, 0.06), (x - 0.04 + i * 0.01, yy + 0.013, z + 0.06 - i * 0.01), k.mat("b_label", "#f4f1ea", 0.7), bevel=0.0, rot=(0, 8 - i * 14, 0))
 
 
 def build(k):

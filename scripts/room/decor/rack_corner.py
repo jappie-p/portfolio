@@ -2,9 +2,8 @@
 rack's power cord: two light grey crates with gloves on top, a plant in
 a cream pot, a black duffel with leather straps and two olive bottles.
 
-The duffel and the bottles sit further forward than the bible says, so
-they stay clear of the mast and the board leaning on the right wall
-(agreed with the lead)."""
+The clutter sits on the floor under the bike wall (x 4.95 to 7.0, z 0 to
+1.2); the cord runs along the back skirting to the right-wall socket."""
 
 import math
 
@@ -14,17 +13,17 @@ from decor._b_util import asset, cable, matte, recolor, retint
 def crates(k):
     """Two stacked light grey crates (the top one turned a little) with
     gloves on top. (plastic_crate_02: the _01 crate carries a beer brand.)"""
-    lower = asset(k, "plastic_crate_02", (5.14, 0, 0.5), rot=10, depth=0.4, ratio=0.5)
+    lower = asset(k, "plastic_crate_02", (5.3, 0, 0.45), rot=10, depth=0.4, ratio=0.5)
     retint(lower, "#d8d2c6")
     top = k.bounds(lower)[1][1]
-    upper = asset(k, "plastic_crate_02", (5.14, top, 0.5), rot=4, depth=0.4, ratio=0.5)
+    upper = asset(k, "plastic_crate_02", (5.3, top, 0.45), rot=4, depth=0.4, ratio=0.5)
     retint(upper, "#d8d2c6")
-    asset(k, "garden_gloves_01", (5.12, k.bounds(upper)[1][1] - 0.01, 0.52), rot=-25, width=0.2, ratio=0.3)
+    asset(k, "garden_gloves_01", (5.28, k.bounds(upper)[1][1] - 0.01, 0.47), rot=-25, width=0.2, ratio=0.3)
 
 
 def plant(k):
     """A leafy plant, 0.6 tall, in a cream ceramic pot."""
-    root = asset(k, "potted_plant_02", (5.12, 0, 0.98), rot=15, height=0.6, ratio=0.12)
+    root = asset(k, "potted_plant_02", (6.75, 0, 0.9), rot=15, height=0.6, ratio=0.12)
     recolor(root, "_pot", k.mat("b_pot_cream", "#ece4d2", 0.38, noise=30, mottle=0.05))
 
 
@@ -60,7 +59,7 @@ def bottles(k):
     """Two olive drink bottles with black caps."""
     olive = k.mat("b_bottle", "#4e5a33", 0.4, metal=0.3)
     cap = matte(k, "#141414", 0.5)
-    for i, (x, z) in enumerate([(5.2, 1.68), (5.29, 1.75)]):
+    for i, (x, z) in enumerate([(6.3, 0.95), (6.4, 1.02)]):
         k.cylinder(f"bottle{i}", 0.045, 0.17, (x, 0, z), olive, 0.006, verts=24)
         k.cylinder(f"bottle{i}_shoulder", 0.045, 0.02, (x, 0.17, z), olive, 0.002, verts=24, radius2=0.03)
         k.cylinder(f"bottle{i}_cap", 0.024, 0.025, (x, 0.19, z), cap, 0.003, verts=18)
@@ -68,16 +67,16 @@ def bottles(k):
 
 def power_cord(k):
     """From the back of the rack along the floor and the right-wall
-    skirting to the socket at (5.599, 0.32, 0.9)."""
-    pts = [(4.86, 0.1, 0.11), (4.9, 0.012, 0.09), (5.2, 0.006, 0.07), (5.5, 0.006, 0.05), (5.575, 0.006, 0.2), (5.578, 0.006, 0.6), (5.58, 0.02, 0.86), (5.585, 0.2, 0.9), (5.59, 0.3, 0.9)]
+    skirting to the socket at (7.995, 0.32, 0.9)."""
+    pts = [(4.86, 0.1, 0.11), (4.9, 0.012, 0.09), (5.6, 0.006, 0.06), (6.6, 0.006, 0.05), (7.5, 0.006, 0.05), (7.93, 0.006, 0.07), (7.978, 0.006, 0.25), (7.982, 0.006, 0.6), (7.985, 0.02, 0.86), (7.99, 0.2, 0.9), (7.993, 0.3, 0.9)]
     cable(k, "rack_power_cord", pts, 0.004, k.mat("b_cable", "#161616", 0.45), res=6, sides=1)
-    k.box("rack_power_plug", (0.02, 0.045, 0.035), (5.588, 0.32, 0.9), matte(k, "#1a1a1a", 0.45), bevel=0.004)
+    k.box("rack_power_plug", (0.02, 0.045, 0.035), (7.988, 0.32, 0.9), matte(k, "#1a1a1a", 0.45), bevel=0.004)
 
 
 def build(k):
     with k.group("rack_corner"):
         crates(k)
         plant(k)
-        duffel(k, (5.0, 1.3), -35)
+        duffel(k, (5.95, 0.55), -8)
         bottles(k)
         power_cord(k)
